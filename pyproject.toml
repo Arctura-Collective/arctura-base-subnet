@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arctura-base-subnet"
+version = "0.2.0"
+description = "Arctura base subnet — Bittensor SDK v10 compatible"
+requires-python = ">=3.10"
+dependencies = [
+    "bittensor>=10.2.0",
+    "torch>=2.0.0",
+]
+
+[project.scripts]
+arctura-miner = "neurons.miner:main"
+arctura-validator = "neurons.validator:main"
