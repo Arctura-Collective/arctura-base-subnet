@@ -278,7 +278,7 @@ class ArcturaValidator:
             synapse.resonance_score = final_score
             scores[uid] = final_score
 
-            bt.logging.debug(
+            bt.logging.info(
                 f"uid={uid} | "
                 f"base={base_score:.3f} | "
                 f"energy={synapse.energy_tag} | "
