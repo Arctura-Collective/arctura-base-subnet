@@ -22,7 +22,7 @@ Current validation:
 
 ```bash
 pytest tests/ -v
-# 45 passed
+# 47 passed
 ```
 
 This project is not yet mainnet-ready, security-audited, or production-emissions-ready. Builders should treat it as an active subnet implementation looking for focused contributors.
@@ -83,6 +83,14 @@ bash scripts/setup_wallets.sh
 # 5. Run on testnet
 bash scripts/start_miner.sh --network test --netuid 1
 bash scripts/start_validator.sh --network test --netuid 1
+```
+
+After install, the same operator actions are available through the repo-native CLI:
+
+```bash
+arctura metagraph --network test --netuid 1
+arctura miner --network test --netuid 1 --wallet miner --hotkey default
+arctura validator --network test --netuid 1 --wallet validator --hotkey default
 ```
 
 ---
