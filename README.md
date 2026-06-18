@@ -12,6 +12,23 @@
 
 ---
 
+## Current Status
+
+Arctura Base is in **early builder / testnet development**.
+
+The repository has been flattened into a usable subnet layout, and the core protocol, attestation, scoring, and mocked Base RPC tests pass locally. The next milestone is live testnet hardening: running miners and validators against real Base RPC endpoints, verifying Bittensor axon/dendrite behavior, and proving weight-setting over sustained testnet operation.
+
+Current validation:
+
+```bash
+pytest tests/ -v
+# 45 passed
+```
+
+This project is not yet mainnet-ready, security-audited, or production-emissions-ready. Builders should treat it as an active subnet implementation looking for focused contributors.
+
+---
+
 ## What this is
 
 `arctura-base-subnet` is a Bittensor subnet that makes Base chain state a first-class citizen of the decentralized AI network.
@@ -224,6 +241,20 @@ Actively pursuing all four Base programs:
 
 ## Contributing
 
+We are recruiting early builders for the testnet phase. Useful contributor tracks:
+
+| Track | What needs work |
+|-------|-----------------|
+| Bittensor runtime | Miner/validator live testing, axon/dendrite compatibility, weight-setting reliability |
+| Base RPC | Deterministic reads, rate-limit handling, block anchoring, event-log query coverage |
+| Incentives | Resonance BFT scoring review, anti-gaming checks, calibration, validator alignment |
+| AgentKit / CDP | `agent_action` mandate types, smart-wallet flows, safe execution boundaries |
+| Operator tooling | Start scripts, health checks, metagraph monitoring, validator onboarding |
+| Security review | Attestation assumptions, Sybil behavior, RPC trust boundaries, failure modes |
+| Docs | Miner guide, validator guide, live testnet runbooks, issue templates |
+
+Local setup:
+
 ```bash
 git clone https://github.com/bittensaur/arctura-base-subnet
 cd arctura-base-subnet
@@ -231,9 +262,7 @@ pip install -e ".[dev]"
 pytest tests/ -v
 ```
 
-Open areas: Base RPC reliability, AgentKit mandate types, scoring improvements, validator tooling, docs.
-
-Open a GitHub Issue using the Validator Onboarding template to register interest in running a validator node.
+Open a GitHub Issue using the Validator Onboarding template to register interest in running a validator node, or open a focused issue/PR for one of the tracks above.
 
 ---
 

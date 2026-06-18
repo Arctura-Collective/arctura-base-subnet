@@ -98,6 +98,10 @@ class TestNormalization:
         normed = normalize_weights(weights)
         assert abs(sum(normed) - 1.0) < 1e-9
 
+    def test_rounded_weights_sum_to_one(self):
+        normed = normalize_weights([1.0, 1.0, 1.0])
+        assert sum(normed) == 1.0
+
     def test_all_zeros_uniform(self):
         normed = normalize_weights([0.0, 0.0, 0.0])
         assert all(abs(w - 1/3) < 1e-9 for w in normed)

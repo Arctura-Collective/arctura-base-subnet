@@ -117,7 +117,7 @@ class BaseRPCClient:
         Returns:
             {"address": str, "balance": int, "block_number": int, "token": str | None}
         """
-        block_id: BlockIdentifier = block_number or "latest"
+        block_id: BlockIdentifier = block_number if block_number is not None else "latest"
         checksum_addr = Web3.to_checksum_address(address)
 
         if token_address is None:
@@ -140,9 +140,7 @@ class BaseRPCClient:
             )
             token = token_address
 
-        actual_block = (
-            block_number if block_number else self.w3.eth.block_number
-        )
+        actual_block = block_number if block_number is not None else self.w3.eth.block_number
 
         return {
             "address": checksum_addr,
@@ -180,7 +178,10 @@ class BaseRPCClient:
         event = getattr(contract.events, event_name)
 
         # Fetch and serialize (web3 objects aren't JSON-serializable directly)
-        raw_logs = event.get_logs(fromBlock=from_block, toBlock=to_block)
+        log_filter = {"fromBlock": from_block, "toBlock": to_block}
+        if filter_args:
+            log_filter["argument_filters"] = filter_args
+        raw_logs = event.get_logs(**log_filter)
         serialized = [
             {
                 "blockNumber":      log["blockNumber"],
@@ -224,10 +225,10 @@ class BaseRPCClient:
             address=Web3.to_checksum_address(contract_address), abi=abi
         )
         func = getattr(contract.functions, function_name)
-        block_id: BlockIdentifier = block_number or "latest"
+        block_id: BlockIdentifier = block_number if block_number is not None else "latest"
         result = func(*args).call(block_identifier=block_id)
 
-        actual_block = block_number if block_number else self.w3.eth.block_number
+        actual_block = block_number if block_number is not None else self.w3.eth.block_number
 
         return {
             "function":    function_name,
