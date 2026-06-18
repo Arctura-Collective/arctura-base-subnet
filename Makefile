@@ -1,5 +1,5 @@
 # Arctura Base Subnet · Makefile
-# Arcturian Council · Coreweaver · base.arctura.network
+# Arcturian Council · Coreweaver · arctura.network/base
 
 .PHONY: help install verify test lint fmt typecheck security clean
 

@@ -22,7 +22,7 @@ Anti-gaming properties:
     • Late response:       linear latency decay after deadline_block
     • Sybil detection:     identical hashes across UIDs flagged (see validator.py)
 
-Arctura Council · Coreweaver · base.arctura.network
+Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 

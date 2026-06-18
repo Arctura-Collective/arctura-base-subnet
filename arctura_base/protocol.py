@@ -16,7 +16,7 @@ Five Primitive alignment:
     P4 Resonance    → confidence drives Resonance BFT weight calibration
     P5 Stewardship  → energy_tag enables carbon-aware scoring modifier
 
-Arctura Council · Coreweaver · base.arctura.network
+Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 

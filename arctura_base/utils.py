@@ -9,7 +9,7 @@ Utility functions for the Arctura Base subnet.
     get_energy_tag       — Resolve P5 Stewardship energy tag from environment
     format_address       — EVM address normalization helper
 
-Arctura Council · Coreweaver · base.arctura.network
+Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 
@@ -18,6 +18,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from typing import Any
 
 
@@ -178,20 +179,15 @@ def format_address(address: str) -> str:
 
     Raises ValueError if the address is not a valid EVM address.
     """
-    from web3 import Web3
-
+    if not is_valid_address(address):
+        raise ValueError(f"Invalid EVM address: {address!r}")
     try:
+        from web3 import Web3
         return Web3.to_checksum_address(address)
-    except Exception as e:
-        raise ValueError(f"Invalid EVM address: {address!r}") from e
+    except ImportError:
+        return address
 
 
 def is_valid_address(address: str) -> bool:
     """Return True if address is a valid EVM address (any casing)."""
-    from web3 import Web3
-
-    try:
-        Web3.to_checksum_address(address)
-        return True
-    except Exception:
-        return False
+    return bool(isinstance(address, str) and re.fullmatch(r"0x[0-9a-fA-F]{40}", address))

@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/27391992/README.md)
 # arctura-base-subnet
 
 > **The first open-source Bittensor subnet purpose-built to bridge Base blockchain intelligence into the decentralized AI network.**
@@ -6,10 +5,10 @@
 [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Bittensor](https://img.shields.io/badge/network-Bittensor%20Finney-9b8cff.svg)](https://taostats.io/subnets)
 [![Base](https://img.shields.io/badge/chain-Base%20Mainnet-0052ff.svg)](https://base.org)
-[![Phase](https://img.shields.io/badge/status-Phase%200%20%E2%80%94%20Active-00e5a0.svg)](https://base.arctura.network)
+[![Phase](https://img.shields.io/badge/status-Phase%200%20%E2%80%94%20Active-00e5a0.svg)](https://arctura.network/base/)
 [![Council](https://img.shields.io/badge/council-Arcturian%20%C3%97%20Coreweaver-c8a96e.svg)](https://arctura.network)
 
-**[base.arctura.network](https://base.arctura.network)** · Part of the [Arctura Network](https://arctura.network) · Funded by Base
+**[arctura.network/base](https://arctura.network/base/)** · Part of the [Arctura Network](https://arctura.network) · Funded by Base
 
 ---
 
@@ -50,7 +49,7 @@ This subnet is the bridge. First-mover. Open source. Apache-2.0.
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/virtualmase/arctura-base-subnet
+git clone https://github.com/bittensaur/arctura-base-subnet
 cd arctura-base-subnet
 pip install -e ".[dev]"
 
@@ -204,7 +203,7 @@ Actively pursuing all four Base programs:
 
 | Phase | Timeline | Milestone |
 |-------|----------|-----------|
-| **0 · Foundation** | Weeks 1–2 | Repo live · base.arctura.network deployed · wallets funded · Rewards applied |
+| **0 · Foundation** | Weeks 1–2 | Repo live · arctura.network/base deployed · wallets funded · Rewards applied |
 | **1 · Protocol Build** | Weeks 3–4 | All neurons + scoring working on local chain · Base RPC verified |
 | **2 · Testnet** | Weeks 5–6 | Registered on Bittensor testnet · 48h attestation validated · external validator |
 | **3 · Mainnet** | Weeks 7–8 | Finney registration · burn TAO · emission clock · public announcement |
@@ -226,7 +225,7 @@ Actively pursuing all four Base programs:
 ## Contributing
 
 ```bash
-git clone https://github.com/virtualmase/arctura-base-subnet
+git clone https://github.com/bittensaur/arctura-base-subnet
 cd arctura-base-subnet
 pip install -e ".[dev]"
 pytest tests/ -v
@@ -241,8 +240,8 @@ Open a GitHub Issue using the Validator Onboarding template to register interest
 ## Related
 
 - [arctura.network](https://arctura.network) — Parent subnet and signal stack  
-- [base.arctura.network](https://base.arctura.network) — This project's landing site  
-- [github.com/virtualmase/arctura](https://github.com/virtualmase/arctura) — Core Arctura repo  
+- [arctura.network/base](https://arctura.network/base/) — This project's landing site  
+- [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet) — Core Arctura repo  
 - [docs.base.org](https://docs.base.org) — Base chain, AgentKit, CDP SDK  
 - [docs.bittensor.com](https://docs.bittensor.com) — Subnet creation, neuron development  
 
@@ -252,4 +251,4 @@ Open a GitHub Issue using the Validator Onboarding template to register interest
 
 Apache-2.0 — see [LICENSE](LICENSE)
 
-*Transmitted by Arcturus · Arcturian Council · Coreweaver · base.arctura.network*
+*Transmitted by Arcturus · Arcturian Council · Coreweaver · arctura.network/base*

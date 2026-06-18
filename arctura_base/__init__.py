@@ -15,7 +15,7 @@ Exports:
     verify_merkle_proof — Merkle proof verification
     get_energy_tag      — P5 Stewardship energy tag resolver
 
-Arctura Council · Coreweaver · base.arctura.network
+Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 

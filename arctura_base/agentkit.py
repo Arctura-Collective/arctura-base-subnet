@@ -25,7 +25,7 @@ Phase 02 will add:
     "stake"      — Stake ETH or tokens
     "bridge"     — Cross-chain bridge operations
 
-Arctura Council · Coreweaver · base.arctura.network
+Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 
