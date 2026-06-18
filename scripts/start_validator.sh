@@ -12,6 +12,7 @@ NETUID="${NETUID:-${BT_NETUID:-1}}"
 WALLET="${WALLET:-${BT_VALIDATOR_WALLET:-validator}}"
 HOTKEY="${HOTKEY:-${BT_DEFAULT_HOTKEY:-default}}"
 TIMEOUT="${VALIDATOR_TIMEOUT:-30}"
+TEMPO="${VALIDATOR_TEMPO:-360}"
 while [[ $# -gt 0 ]]; do
   case $1 in
     --network) NETWORK="$2"; shift 2;;
@@ -27,4 +28,5 @@ python neurons/validator.py \
   --subtensor.network "${NETWORK}" \
   --netuid "${NETUID}" \
   --timeout "${TIMEOUT}" \
+  --tempo "${TEMPO}" \
   --logging.info

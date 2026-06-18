@@ -20,3 +20,5 @@ def test_start_validator_uses_documented_env_keys():
     assert 'NETUID="${NETUID:-${BT_NETUID:-1}}"' in script
     assert 'WALLET="${WALLET:-${BT_VALIDATOR_WALLET:-validator}}"' in script
     assert 'HOTKEY="${HOTKEY:-${BT_DEFAULT_HOTKEY:-default}}"' in script
+    assert 'TEMPO="${VALIDATOR_TEMPO:-360}"' in script
+    assert '--tempo "${TEMPO}"' in script

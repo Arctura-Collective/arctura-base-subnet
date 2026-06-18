@@ -29,6 +29,7 @@ Apache-2.0
 from __future__ import annotations
 
 import argparse
+import os
 import time
 import uuid
 from collections import defaultdict
@@ -114,6 +115,10 @@ class ArcturaValidator:
             "--timeout", type=float, default=30.0,
             help="Timeout in seconds for miner responses."
         )
+        parser.add_argument(
+            "--tempo", type=int, default=int(os.environ.get("VALIDATOR_TEMPO", "360")),
+            help="Validator scoring cadence in Bittensor blocks."
+        )
 
         config = bt.config(parser)
         config.full_path = (
@@ -137,7 +142,7 @@ class ArcturaValidator:
         latest_base   = self.base_client.get_latest_block_number()
 
         # Deadline: current Bittensor block + tempo/4 blocks
-        tempo = getattr(self.config, "tempo", self.DEFAULT_TEMPO)
+        tempo = getattr(self.config, "tempo", None) or self.DEFAULT_TEMPO
         deadline_block = current_block + tempo // 4
 
         # Rotate mandate type to test different miner capabilities
@@ -320,7 +325,7 @@ class ArcturaValidator:
         """Enter the main validator loop."""
         bt.logging.info(f"Arctura Base validator live | netuid={self.config.netuid}")
 
-        tempo         = getattr(self.config, "tempo", self.DEFAULT_TEMPO)
+        tempo         = getattr(self.config, "tempo", None) or self.DEFAULT_TEMPO
         sleep_seconds = tempo * self.BLOCK_TIME_SECONDS  # ~72 minutes
 
         while True:
