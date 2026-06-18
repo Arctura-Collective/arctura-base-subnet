@@ -7,10 +7,10 @@ if [[ -f .env ]]; then
   source .env
   set +a
 fi
-NETWORK="${NETWORK:-test}"
-NETUID="${NETUID:-1}"
-WALLET="${WALLET:-miner}"
-HOTKEY="${HOTKEY:-default}"
+NETWORK="${NETWORK:-${BT_NETWORK:-test}}"
+NETUID="${NETUID:-${BT_NETUID:-1}}"
+WALLET="${WALLET:-${BT_MINER_WALLET:-miner}}"
+HOTKEY="${HOTKEY:-${BT_DEFAULT_HOTKEY:-default}}"
 PORT="${MINER_AXON_PORT:-8091}"
 while [[ $# -gt 0 ]]; do
   case $1 in
