@@ -67,6 +67,8 @@ class ArcturaValidator:
 
     # Tempo period in blocks (default: 360 blocks = ~72 minutes)
     DEFAULT_TEMPO = 360
+    WEIGHT_SET_RETRIES = 3
+    WEIGHT_SET_RETRY_SECONDS = 5
 
     def __init__(self, config: Optional[bt.config] = None) -> None:
         self.config = config or self._build_config()
@@ -296,28 +298,42 @@ class ArcturaValidator:
         uid_tensor    = torch.tensor(uids, dtype=torch.int64)
         weight_tensor = torch.tensor(normalized, dtype=torch.float32)
 
-        result = self.subtensor.set_weights(
-            wallet=self.wallet,
-            netuid=self.config.netuid,
-            uids=uid_tensor,
-            weights=weight_tensor,
-            wait_for_inclusion=True,
-        )
+        for attempt in range(1, self.WEIGHT_SET_RETRIES + 1):
+            try:
+                result = self.subtensor.set_weights(
+                    wallet=self.wallet,
+                    netuid=self.config.netuid,
+                    uids=uid_tensor,
+                    weights=weight_tensor,
+                    wait_for_inclusion=True,
+                )
+                if isinstance(result, tuple):
+                    success, msg = result
+                else:
+                    success = bool(getattr(result, "is_success", result))
+                    msg = getattr(result, "error_message", "") or getattr(result, "message", "")
+            except Exception as exc:
+                success = False
+                msg = str(exc)
 
-        if isinstance(result, tuple):
-            success, msg = result
-        else:
-            success = bool(getattr(result, "is_success", result))
-            msg = getattr(result, "error_message", "") or getattr(result, "message", "")
+            if success:
+                top_uid = uids[normalized.index(max(normalized))]
+                bt.logging.success(
+                    f"Weights set | miners={len(uids)} | "
+                    f"top_uid={top_uid} | top_weight={max(normalized):.3f}"
+                )
+                return
 
-        if success:
-            top_uid = uids[normalized.index(max(normalized))]
-            bt.logging.success(
-                f"Weights set | miners={len(uids)} | "
-                f"top_uid={top_uid} | top_weight={max(normalized):.3f}"
-            )
-        else:
-            bt.logging.error(f"Weight-setting failed: {msg}")
+            if attempt < self.WEIGHT_SET_RETRIES:
+                bt.logging.warning(
+                    f"Weight-setting attempt {attempt}/{self.WEIGHT_SET_RETRIES} failed: {msg}. "
+                    f"Retrying in {self.WEIGHT_SET_RETRY_SECONDS}s..."
+                )
+                time.sleep(self.WEIGHT_SET_RETRY_SECONDS)
+            else:
+                bt.logging.error(
+                    f"Weight-setting failed after {self.WEIGHT_SET_RETRIES} attempts: {msg}"
+                )
 
     # ── Run loop ──────────────────────────────────────────────────────────
 
