@@ -19,14 +19,6 @@ Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 
-from arctura_base.protocol import BaseSubnetSynapse
-from arctura_base.incentive import (
-    score_response,
-    normalize_weights,
-    apply_stewardship_modifier as apply_stewardship,
-)
-from arctura_base.utils import build_merkle_proof, verify_merkle_proof, get_energy_tag
-
 __version__ = "0.1.0"
 __author__ = "Arctura Collective"
 __license__ = "Apache-2.0"
@@ -40,3 +32,24 @@ __all__ = [
     "verify_merkle_proof",
     "get_energy_tag",
 ]
+
+
+def __getattr__(name: str):
+    """Lazily expose package helpers without importing bittensor during CLI startup."""
+    if name == "BaseSubnetSynapse":
+        from arctura_base.protocol import BaseSubnetSynapse
+
+        return BaseSubnetSynapse
+    if name in {"score_response", "normalize_weights"}:
+        from arctura_base import incentive
+
+        return getattr(incentive, name)
+    if name == "apply_stewardship":
+        from arctura_base.incentive import apply_stewardship_modifier
+
+        return apply_stewardship_modifier
+    if name in {"build_merkle_proof", "verify_merkle_proof", "get_energy_tag"}:
+        from arctura_base import utils
+
+        return getattr(utils, name)
+    raise AttributeError(f"module 'arctura_base' has no attribute {name!r}")

@@ -61,6 +61,7 @@ Documentation = "https://arctura.network/base/"
 "Bug Tracker" = "https://github.com/bittensaur/arctura-base-subnet/issues"
 
 [project.scripts]
+arctura = "arctura_base.cli:main"
 arctura-miner = "neurons.miner:main"
 arctura-validator = "neurons.validator:main"
 

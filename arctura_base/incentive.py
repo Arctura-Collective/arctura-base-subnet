@@ -306,4 +306,7 @@ def normalize_weights(weights: list[float]) -> list[float]:
     if total == 0.0:
         n = len(weights)
         return [1.0 / n] * n if n > 0 else []
-    return [round(w / total, 8) for w in weights]
+    normalized = [round(w / total, 8) for w in weights]
+    if normalized:
+        normalized[-1] = round(normalized[-1] + (1.0 - sum(normalized)), 8)
+    return normalized
