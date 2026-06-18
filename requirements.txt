@@ -11,9 +11,7 @@ torch>=2.0.0,<3.0.0
 # Base chain client
 web3>=6.0.0,<7.0.0
 
-# Merkle proof utilities
-merkletools>=1.0.3,<2.0.0
-coincurve>=18.0.0,<20.0.0
+# Merkle proof utilities are implemented in arctura_base/utils.py.
 
 # Data validation
 pydantic>=2.0.0,<3.0.0
