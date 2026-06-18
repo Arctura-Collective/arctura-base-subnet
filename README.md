@@ -14,7 +14,7 @@
 
 ## Current Status
 
-Arctura Base is in **early builder / testnet development**.
+Arctura Base is in **founder-led testnet development**.
 
 The repository has been flattened into a usable subnet layout, and the core protocol, attestation, scoring, and mocked Base RPC tests pass locally. The next milestone is live testnet hardening: running miners and validators against real Base RPC endpoints, verifying Bittensor axon/dendrite behavior, and proving weight-setting over sustained testnet operation.
 
@@ -25,7 +25,7 @@ pytest tests/ -v
 # 47 passed
 ```
 
-This project is not yet mainnet-ready, security-audited, or production-emissions-ready. Builders should treat it as an active subnet implementation looking for focused contributors.
+This project is not yet mainnet-ready, security-audited, or production-emissions-ready. The immediate focus is proving the subnet end-to-end with repeatable local and testnet runs before expanding contributor scope.
 
 ---
 
@@ -249,7 +249,7 @@ Actively pursuing all four Base programs:
 
 ## Contributing
 
-We are recruiting early builders for the testnet phase. Useful contributor tracks:
+Arctura Base is not running a broad builder program yet. Focused operator and review contributions are welcome where they improve testnet proof, reproducibility, or safety:
 
 | Track | What needs work |
 |-------|-----------------|
