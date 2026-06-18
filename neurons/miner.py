@@ -34,6 +34,7 @@ import bittensor as bt
 
 from arctura_base.protocol import BaseSubnetSynapse
 from arctura_base.base_rpc import BaseRPCClient
+from arctura_base.payload_validation import validate_mandate_payload
 from arctura_base.utils import hash_output, build_merkle_proof, get_energy_tag
 from arctura_base.incentive import REQUIRED_STEPS
 
@@ -173,6 +174,15 @@ class ArcturaMiner:
         steps_completed: list[str] = []
 
         try:
+            is_valid, error_msg = validate_mandate_payload(
+                synapse.query_type,
+                synapse.mandate_payload,
+            )
+            if not is_valid:
+                raise ValueError(
+                    f"Refusing invalid mandate payload: {error_msg}"
+                )
+
             # Step 1: Fetch Base chain data deterministically
             output = self.base_client.execute_mandate(
                 query_type=synapse.query_type,
