@@ -28,7 +28,7 @@ Apache-2.0
 import argparse
 import time
 import uuid
-from typing import Optional
+from typing import Optional, Tuple
 
 import bittensor as bt
 
@@ -115,7 +115,7 @@ class ArcturaMiner:
 
     # ── Axon middleware ───────────────────────────────────────────────────
 
-    def blacklist(self, synapse: BaseSubnetSynapse) -> tuple[bool, str]:
+    def blacklist(self, synapse: BaseSubnetSynapse) -> Tuple[bool, str]:
         """
         Reject synapse requests from unregistered or unknown hotkeys.
 
