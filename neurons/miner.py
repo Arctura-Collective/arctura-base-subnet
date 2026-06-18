@@ -35,7 +35,7 @@ import bittensor as bt
 from arctura_base.protocol import BaseSubnetSynapse
 from arctura_base.base_rpc import BaseRPCClient
 from arctura_base.payload_validation import validate_mandate_payload
-from arctura_base.utils import hash_output, build_merkle_proof, get_energy_tag
+from arctura_base.utils import hash_canonical_output, build_merkle_proof, get_energy_tag
 from arctura_base.incentive import REQUIRED_STEPS
 
 
@@ -193,7 +193,7 @@ class ArcturaMiner:
             steps_completed.append("rpc_fetch")
 
             # Step 2: Hash the output deterministically
-            state_hash = hash_output(output)
+            state_hash = hash_canonical_output(output)
             synapse.base_state_hash = state_hash
             steps_completed.append("output_hash")
 

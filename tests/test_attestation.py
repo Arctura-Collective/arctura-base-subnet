@@ -1,8 +1,8 @@
 """tests/test_attestation.py — Merkle proof construction and verification."""
 import pytest
 from arctura_base.utils import (
-    hash_output, build_merkle_proof, verify_merkle_proof, get_energy_tag,
-    is_valid_address, format_address,
+    hash_output, hash_canonical_output, build_merkle_proof, verify_merkle_proof,
+    get_energy_tag, is_valid_address, format_address,
 )
 
 
@@ -22,6 +22,37 @@ def test_hash_output_sensitivity():
     h1 = hash_output({"balance": 1000})
     h2 = hash_output({"balance": 1001})
     assert h1 != h2
+
+def test_hash_canonical_output_ignores_duration_metadata():
+    base = {
+        "address": "0x4200000000000000000000000000000000000006",
+        "balance": 1000,
+        "block_number": 21_000_000,
+        "_meta": {
+            "query_type": "balance",
+            "duration_ms": 12,
+            "block_hash": "a" * 64,
+        },
+    }
+    slower = {
+        **base,
+        "_meta": {
+            "query_type": "balance",
+            "duration_ms": 87,
+            "block_hash": "a" * 64,
+        },
+    }
+    different_anchor = {
+        **base,
+        "_meta": {
+            "query_type": "balance",
+            "duration_ms": 12,
+            "block_hash": "b" * 64,
+        },
+    }
+
+    assert hash_canonical_output(base) == hash_canonical_output(slower)
+    assert hash_canonical_output(base) != hash_canonical_output(different_anchor)
 
 def test_build_proof_returns_list():
     h = "a" * 64

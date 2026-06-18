@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from arctura_base.base_rpc import BaseRPCClient
-from arctura_base.utils import hash_output
+from arctura_base.utils import hash_canonical_output
 
 
 DEFAULT_BALANCE_ADDRESS = "0x4200000000000000000000000000000000000006"
@@ -123,7 +123,7 @@ def run_balance_benchmark(
                 block_range=(block_number, block_number),
                 payload={"address": address},
             )
-            output_hash = hash_output(output)
+            output_hash = hash_canonical_output(output)
             if first_hash is None:
                 first_hash = output_hash
             elif output_hash != first_hash:
