@@ -13,7 +13,7 @@ RPC endpoints:
     Sepolia:  https://sepolia.base.org    (testnet, free)
     Premium:  Alchemy / QuickNode / Coinbase Node (higher rate limits)
 
-Arctura Council · Coreweaver · base.arctura.network
+Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 
@@ -25,8 +25,13 @@ import time
 from typing import Any, Optional
 
 import bittensor as bt
-from web3 import Web3
-from web3.types import BlockIdentifier
+
+try:
+    from web3 import Web3
+except ImportError:  # pragma: no cover - exercised when optional runtime deps are absent
+    Web3 = None  # type: ignore[assignment]
+
+BlockIdentifier = int | str
 
 
 class BaseRPCClient:
@@ -58,6 +63,8 @@ class BaseRPCClient:
             timeout:  HTTP request timeout in seconds.
         """
         url = rpc_url or os.environ.get("BASE_RPC_URL", "https://mainnet.base.org")
+        if Web3 is None:
+            raise ImportError("web3 is required for BaseRPCClient. Install project dependencies first.")
         self.w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": timeout}))
         self._verify_connection()
 

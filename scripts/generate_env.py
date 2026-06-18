@@ -12,7 +12,7 @@ Usage:
     python scripts/generate_env.py --verify  # verify existing .env
     python scripts/generate_env.py --check   # non-interactive check (CI-safe)
 
-Arctura Council · Coreweaver · base.arctura.network
+Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 
