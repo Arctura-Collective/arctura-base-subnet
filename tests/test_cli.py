@@ -12,6 +12,16 @@ def test_parser_exposes_miner_defaults():
     assert args.port == "8091"
 
 
+def test_cli_help_uses_arctura_parser(capsys):
+    try:
+        cli.main(["--help"])
+    except SystemExit as exc:
+        assert exc.code == 0
+    output = capsys.readouterr().out
+    assert "Operate the Arctura Base subnet." in output
+    assert "metagraph" in output
+
+
 def test_register_command_uses_btcli(monkeypatch):
     calls = []
     monkeypatch.setattr(cli, "run_command", lambda command: calls.append(command) or 0)
