@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # scripts/start_miner.sh
 set -euo pipefail
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
 NETWORK="${NETWORK:-test}"
 NETUID="${NETUID:-1}"
 WALLET="${WALLET:-miner}"

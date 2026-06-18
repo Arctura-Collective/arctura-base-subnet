@@ -27,6 +27,11 @@ from typing import Any, Optional
 import bittensor as bt
 
 try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - dependency is declared for normal installs
+    load_dotenv = None
+
+try:
     from web3 import Web3
 except ImportError:  # pragma: no cover - exercised when optional runtime deps are absent
     Web3 = None  # type: ignore[assignment]
@@ -62,6 +67,8 @@ class BaseRPCClient:
                       then Coinbase's public endpoint.
             timeout:  HTTP request timeout in seconds.
         """
+        if load_dotenv is not None:
+            load_dotenv()
         url = rpc_url or os.environ.get("BASE_RPC_URL", "https://mainnet.base.org")
         if Web3 is None:
             raise ImportError("web3 is required for BaseRPCClient. Install project dependencies first.")
