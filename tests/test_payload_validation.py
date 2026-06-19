@@ -1,5 +1,8 @@
 """Mandate payload validation tests."""
 
+import pytest
+
+from arctura_base.agentkit import SUPPORTED_AGENT_ACTIONS
 from arctura_base.payload_validation import validate_mandate_payload
 
 
@@ -34,3 +37,22 @@ def test_state_payload_requires_non_empty_abi():
     )
     assert is_valid is False
     assert "ABI must be a non-empty list" in error
+
+
+@pytest.mark.parametrize("action_type", sorted(SUPPORTED_AGENT_ACTIONS))
+def test_agent_action_payload_accepts_adapter_supported_actions(action_type):
+    is_valid, error = validate_mandate_payload(
+        "agent_action",
+        {"action_type": action_type, "action_args": {}},
+    )
+    assert is_valid is True
+    assert error is None
+
+
+def test_agent_action_payload_rejects_unimplemented_action():
+    is_valid, error = validate_mandate_payload(
+        "agent_action",
+        {"action_type": "swap", "action_args": {}},
+    )
+    assert is_valid is False
+    assert "Unknown action_type" in error

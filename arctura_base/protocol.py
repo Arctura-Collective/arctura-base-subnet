@@ -78,7 +78,8 @@ class BaseSubnetSynapse(bt.Synapse):
         balance:       {"address": str, "token_address": Optional[str]}
         events:        {"event_name": str, "filter_args": dict}
         state:         {"function_name": str, "args": list, "abi": list}
-        agent_action:  {"action_type": str, "action_args": dict}
+        agent_action:  {"action_type": "transfer"|"deploy"|"call"|"mint_nft",
+                        "action_args": dict}
     """
 
     deadline_block: int = 0

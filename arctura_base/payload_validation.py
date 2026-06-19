@@ -7,6 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
+from arctura_base.agentkit import SUPPORTED_AGENT_ACTIONS
 from arctura_base.utils import is_valid_address
 
 
@@ -82,14 +83,7 @@ class AgentActionPayload(BaseModel):
     @field_validator("action_type")
     @classmethod
     def validate_action_type(cls, value: str) -> str:
-        valid_actions = {
-            "transfer",
-            "swap",
-            "deploy_contract",
-            "call_function",
-            "read_state",
-        }
-        if value not in valid_actions:
+        if value not in SUPPORTED_AGENT_ACTIONS:
             raise ValueError(f"Unknown action_type: {value}")
         return value
 
