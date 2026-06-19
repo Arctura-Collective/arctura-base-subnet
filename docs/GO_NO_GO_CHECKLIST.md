@@ -33,7 +33,7 @@ Every item must be checked before running `btcli subnet create` on Finney.
 
 User-level service templates and a five-minute preflight timer are provided in
 `deploy/systemd/`. Check these items only after enabling them on the launch host
-and reviewing the 48-hour journal.
+and reviewing the 48-hour journal with `arctura-evidence`.
 
 ## Final
 - [ ] Go/no-go reviewed by at least one other person

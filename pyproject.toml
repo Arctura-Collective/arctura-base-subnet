@@ -62,6 +62,7 @@ Documentation = "https://arctura.network/base/"
 [project.scripts]
 arctura = "arctura_base.cli:main"
 arctura-benchmark = "arctura_base.benchmark:main"
+arctura-evidence = "arctura_base.evidence:main"
 arctura-miner = "neurons.miner:main"
 arctura-validator = "neurons.validator:main"
 
