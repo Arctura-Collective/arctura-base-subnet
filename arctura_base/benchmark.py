@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import resource
 import statistics
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from arctura_base.base_rpc import BaseRPCClient
@@ -15,6 +15,15 @@ from arctura_base.utils import hash_canonical_output
 
 
 DEFAULT_BALANCE_ADDRESS = "0x4200000000000000000000000000000000000006"
+
+
+def get_max_rss_kb() -> int:
+    """Return process max RSS in KiB when the platform exposes it."""
+    try:
+        import resource
+    except ImportError:
+        return 0
+    return int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
 
 @dataclass
@@ -66,7 +75,8 @@ class CountingBaseRPCClient(BaseRPCClient):
         return super().get_latest_block_number()
 
     def get_block_hash(self, block_number: int) -> str:
-        self.rpc_calls += 1
+        if block_number not in self._block_hash_cache:
+            self.rpc_calls += 1
         return super().get_block_hash(block_number)
 
     def get_balance(self, *args: Any, **kwargs: Any) -> dict:
@@ -137,7 +147,7 @@ def run_balance_benchmark(
     result.rpc_calls = client.rpc_calls
     result.hashes_stable = hashes_stable
     result.first_hash = first_hash
-    result.max_rss_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    result.max_rss_kb = get_max_rss_kb()
     return result
 
 
@@ -147,6 +157,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--address", default=DEFAULT_BALANCE_ADDRESS)
     parser.add_argument("--rpc-url", default=None)
     parser.add_argument("--timeout", type=int, default=10)
+    parser.add_argument("--output", default=None, help="Optional path to write JSON summary.")
     return parser
 
 
@@ -158,7 +169,13 @@ def main(argv: list[str] | None = None) -> int:
         rpc_url=args.rpc_url,
         timeout=args.timeout,
     )
-    print(json.dumps(result.summary(), indent=2, sort_keys=True))
+    summary = result.summary()
+    rendered = json.dumps(summary, indent=2, sort_keys=True)
+    print(rendered)
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(rendered + "\n", encoding="utf-8")
     return 0 if result.failures == 0 and result.hashes_stable else 1
 
 

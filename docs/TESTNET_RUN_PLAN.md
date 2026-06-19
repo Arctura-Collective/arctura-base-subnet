@@ -31,6 +31,50 @@ Expected:
 - Base RPC returns a block number and block hash prefix
 - `git status --ignored --short .env` shows `.env` as ignored
 
+## Windows RPC-Only Lane
+
+Use Windows for CDP/Base RPC verification only. Do not run Bittensor,
+miner/validator, Docker, Telegram, wallet actions, or mainnet transactions from
+this lane.
+
+```powershell
+cd C:\Users\virtu\ARCTURA\arctura-base-subnet
+python -m arctura_base.benchmark --iterations 5 --output runs\cdp-benchmark.json
+```
+
+Success criteria:
+
+- `failure_rate` is `0.0`
+- `hashes_stable` is `true`
+- `errors` is empty
+- `rpc_calls_per_iteration` is recorded
+- `latency_ms.p50`, `latency_ms.p95`, and `latency_ms.p99` are recorded
+
+Latest CDP/Base RPC result:
+
+```json
+{
+  "failure_rate": 0.0,
+  "failures": 0,
+  "hashes_stable": true,
+  "iterations": 5,
+  "latency_ms": {
+    "max": 186.95969999998852,
+    "min": 78.76530000021376,
+    "p50": 94.16539999983797,
+    "p95": 168.9658799999961,
+    "p99": 183.36093599999003
+  },
+  "rpc_calls": 7,
+  "rpc_calls_per_iteration": 1.4,
+  "successes": 5
+}
+```
+
+The prior checkpoint benchmark recorded `rpc_calls_per_iteration` of `2.2`.
+The current fixed-block benchmark records `1.4`, confirming lower RPC waste
+while preserving deterministic hashes.
+
 ## Bounded Startup Checks
 
 Miner:
