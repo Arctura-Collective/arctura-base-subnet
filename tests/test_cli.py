@@ -1,6 +1,7 @@
 """CLI parser and command construction tests."""
 
 import importlib
+from types import SimpleNamespace
 
 from arctura_base import cli
 
@@ -73,3 +74,77 @@ def test_register_command_uses_btcli(monkeypatch):
             "default",
         ]
     ]
+
+
+def test_preflight_reports_all_checks(monkeypatch, tmp_path):
+    for wallet_name in ("miner", "validator"):
+        hotkeys = tmp_path / wallet_name / "hotkeys"
+        hotkeys.mkdir(parents=True)
+        (hotkeys / "default").write_text("test", encoding="utf-8")
+
+    class FakeClient:
+        def __init__(self, timeout):
+            assert timeout == 3
+
+        def get_latest_block_number(self):
+            return 123
+
+        def get_block_hash(self, block):
+            assert block == 123
+            return "0xabc"
+
+    class FakeWallet:
+        def __init__(self, name, **kwargs):
+            self.hotkey = SimpleNamespace(ss58_address=f"{name}-address")
+
+    closed = []
+    fake_bt = SimpleNamespace(
+        subtensor=lambda network: SimpleNamespace(
+            metagraph=lambda netuid: SimpleNamespace(
+                hotkeys=["miner-address", "validator-address"]
+            ),
+            close=lambda: closed.append(True),
+        ),
+        wallet=FakeWallet,
+    )
+    monkeypatch.setattr("arctura_base.base_rpc.BaseRPCClient", FakeClient)
+    monkeypatch.setitem(__import__("sys").modules, "bittensor", fake_bt)
+
+    args = cli.build_parser().parse_args(
+        [
+            "preflight", "--netuid", "505", "--miner-wallet", "miner",
+            "--validator-wallet", "validator", "--wallet-path", str(tmp_path),
+            "--timeout", "3",
+        ]
+    )
+    result = cli.run_preflight(args)
+
+    assert result["ok"] is True
+    assert result["checks"]["base_rpc"]["block"] == 123
+    assert result["checks"]["metagraph"]["uids"] == 2
+    assert closed == [True]
+
+
+def test_preflight_fails_when_wallets_are_missing(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        "arctura_base.base_rpc.BaseRPCClient",
+        lambda timeout: SimpleNamespace(
+            get_latest_block_number=lambda: 123,
+            get_block_hash=lambda block: "0xabc",
+        ),
+    )
+    monkeypatch.setitem(
+        __import__("sys").modules,
+        "bittensor",
+        SimpleNamespace(
+            subtensor=lambda network: SimpleNamespace(
+                metagraph=lambda netuid: SimpleNamespace(hotkeys=[])
+            ),
+            wallet=lambda name, **kwargs: SimpleNamespace(
+                hotkey=SimpleNamespace(ss58_address=f"{name}-address")
+            ),
+        ),
+    )
+    args = cli.build_parser().parse_args(["preflight", "--wallet-path", str(tmp_path)])
+
+    assert cli.run_preflight(args)["ok"] is False

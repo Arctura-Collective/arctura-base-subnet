@@ -91,6 +91,7 @@ After install, the same operator actions are available through the repo-native C
 
 ```bash
 arctura metagraph --network test --netuid 1
+arctura preflight --network test --netuid 1 --json
 arctura miner --network test --netuid 1 --wallet miner --hotkey default
 arctura validator --network test --netuid 1 --wallet validator --hotkey default
 ```

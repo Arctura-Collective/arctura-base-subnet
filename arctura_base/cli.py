@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -23,6 +24,7 @@ DEFAULT_NETUID = os.environ.get("ARCTURA_NETUID", "1")
 DEFAULT_MINER_WALLET = os.environ.get("ARCTURA_MINER_WALLET", "miner")
 DEFAULT_VALIDATOR_WALLET = os.environ.get("ARCTURA_VALIDATOR_WALLET", "validator")
 DEFAULT_HOTKEY = os.environ.get("ARCTURA_HOTKEY", "default")
+DEFAULT_WALLET_PATH = Path(os.path.expanduser("~/.bittensor/wallets"))
 
 
 def run_command(command: list[str], cwd: Path = REPO_ROOT) -> int:
@@ -146,6 +148,81 @@ def command_validator(args: argparse.Namespace) -> int:
     )
 
 
+def run_preflight(args: argparse.Namespace) -> dict[str, object]:
+    """Check Base RPC and Bittensor registration without starting neurons."""
+    from arctura_base.base_rpc import BaseRPCClient
+
+    result: dict[str, object] = {
+        "ok": True,
+        "network": args.network,
+        "netuid": int(args.netuid),
+        "checks": {},
+    }
+    checks = result["checks"]
+    assert isinstance(checks, dict)
+
+    try:
+        client = BaseRPCClient(timeout=args.timeout)
+        block = client.get_latest_block_number()
+        checks["base_rpc"] = {
+            "ok": True,
+            "block": block,
+            "block_hash": client.get_block_hash(block),
+        }
+    except Exception as exc:
+        checks["base_rpc"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+        result["ok"] = False
+
+    wallet_path = Path(args.wallet_path).expanduser()
+    wallets = {}
+    for role, name in (("miner", args.miner_wallet), ("validator", args.validator_wallet)):
+        hotkey_file = wallet_path / name / "hotkeys" / args.hotkey
+        wallets[role] = {"name": name, "hotkey": args.hotkey, "exists": hotkey_file.is_file()}
+        if not hotkey_file.is_file():
+            result["ok"] = False
+    checks["wallets"] = wallets
+
+    subtensor = None
+    try:
+        import bittensor as bt
+
+        subtensor = bt.subtensor(network=args.network)
+        metagraph = subtensor.metagraph(int(args.netuid))
+        registered = {}
+        for role, name in (("miner", args.miner_wallet), ("validator", args.validator_wallet)):
+            address = bt.wallet(name=name, hotkey=args.hotkey, path=str(wallet_path)).hotkey.ss58_address
+            registered[role] = {"registered": address in metagraph.hotkeys}
+            if address not in metagraph.hotkeys:
+                result["ok"] = False
+        checks["metagraph"] = {
+            "ok": all(item["registered"] for item in registered.values()),
+            "uids": len(metagraph.hotkeys),
+            "wallets": registered,
+        }
+    except Exception as exc:
+        checks["metagraph"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+        result["ok"] = False
+    finally:
+        close = getattr(subtensor, "close", None)
+        if close is not None:
+            close()
+
+    return result
+
+
+def command_preflight(args: argparse.Namespace) -> int:
+    result = run_preflight(args)
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    else:
+        status = "PASS" if result["ok"] else "FAIL"
+        print(f"Arctura preflight: {status} | network={args.network} netuid={args.netuid}")
+        for name, check in result["checks"].items():
+            check_ok = check.get("ok", all(v.get("exists", False) for v in check.values()))
+            print(f"  {'PASS' if check_ok else 'FAIL'} {name}")
+    return 0 if result["ok"] else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="arctura", description="Operate the Arctura Base subnet.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -185,6 +262,18 @@ def build_parser() -> argparse.ArgumentParser:
     add_wallet_args(validator, DEFAULT_VALIDATOR_WALLET)
     validator.add_argument("--timeout", default=os.environ.get("VALIDATOR_TIMEOUT", "30"))
     validator.set_defaults(func=command_validator)
+
+    preflight = subparsers.add_parser(
+        "preflight", help="Check Base RPC, wallets, and Bittensor registration."
+    )
+    add_common_args(preflight)
+    preflight.add_argument("--miner-wallet", default=DEFAULT_MINER_WALLET)
+    preflight.add_argument("--validator-wallet", default=DEFAULT_VALIDATOR_WALLET)
+    preflight.add_argument("--hotkey", default=DEFAULT_HOTKEY)
+    preflight.add_argument("--wallet-path", default=str(DEFAULT_WALLET_PATH))
+    preflight.add_argument("--timeout", type=int, default=10)
+    preflight.add_argument("--json", action="store_true")
+    preflight.set_defaults(func=command_preflight)
 
     return parser
 
