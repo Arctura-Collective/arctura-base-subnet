@@ -8,15 +8,11 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
-try:
-    from dotenv import load_dotenv
-except ImportError:  # pragma: no cover - dependency is declared for normal installs
-    load_dotenv = None
+from dotenv import load_dotenv
 
-
-if load_dotenv is not None:
-    load_dotenv()
+load_dotenv()
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NETWORK = os.environ.get("ARCTURA_NETWORK", "test")
@@ -148,18 +144,17 @@ def command_validator(args: argparse.Namespace) -> int:
     )
 
 
-def run_preflight(args: argparse.Namespace) -> dict[str, object]:
+def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
     """Check Base RPC and Bittensor registration without starting neurons."""
     from arctura_base.base_rpc import BaseRPCClient
 
-    result: dict[str, object] = {
+    result: dict[str, Any] = {
         "ok": True,
         "network": args.network,
         "netuid": int(args.netuid),
         "checks": {},
     }
-    checks = result["checks"]
-    assert isinstance(checks, dict)
+    checks: dict[str, Any] = result["checks"]
 
     try:
         client = BaseRPCClient(timeout=args.timeout)
@@ -190,7 +185,9 @@ def run_preflight(args: argparse.Namespace) -> dict[str, object]:
         metagraph = subtensor.metagraph(int(args.netuid))
         registered = {}
         for role, name in (("miner", args.miner_wallet), ("validator", args.validator_wallet)):
-            address = bt.wallet(name=name, hotkey=args.hotkey, path=str(wallet_path)).hotkey.ss58_address
+            address = bt.wallet(
+                name=name, hotkey=args.hotkey, path=str(wallet_path)
+            ).hotkey.ss58_address
             registered[role] = {"registered": address in metagraph.hotkeys}
             if address not in metagraph.hotkeys:
                 result["ok"] = False
@@ -281,7 +278,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    return args.func(args)
+    return int(args.func(args))
 
 
 if __name__ == "__main__":

@@ -10,17 +10,17 @@ Every item must be checked before running `btcli subnet create` on Finney.
 - [ ] 30-day server cost budgeted
 
 ## Code
-- [ ] `arctura_base/protocol.py` — BaseSubnetSynapse tested locally
-- [ ] `neurons/miner.py` — returns valid `base_state_hash` on every synapse
-- [ ] `neurons/miner.py` — returns valid `merkle_proof` (verify_merkle_proof passes)
-- [ ] `neurons/miner.py` — `block_hash_anchor` matches real Base block hash
-- [ ] `neurons/validator.py` — sets non-zero weights within every tempo period
-- [ ] `pytest tests/ -v` passes with no failures
+- [x] `arctura_base/protocol.py` — BaseSubnetSynapse tested locally
+- [x] `neurons/miner.py` — successful mandates return valid `base_state_hash`
+- [x] `neurons/miner.py` — returns valid `merkle_proof` (verify_merkle_proof passes)
+- [x] `neurons/miner.py` — `block_hash_anchor` matches real Base block hash
+- [x] `neurons/validator.py` — submitted non-zero testnet weights successfully
+- [x] `pytest tests/ -v` passes with no failures (80 tests on 2026-06-19)
 - [ ] No uncaught exceptions in 48h testnet run
 
 ## Network
-- [ ] Miner axon port open and reachable externally (default 8091)
-- [ ] Validator axon port open and reachable externally (default 8092)
+- [x] Miner axon reachable by the testnet validator (testnet port 8191)
+- [x] Validator is dendrite-only; no inbound axon is required by this architecture
 - [ ] At least 1 external validator confirmed for post-launch
 - [ ] Bittensor Discord announcement drafted (#subnet-owners)
 

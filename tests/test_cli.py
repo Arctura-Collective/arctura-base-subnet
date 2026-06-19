@@ -112,9 +112,17 @@ def test_preflight_reports_all_checks(monkeypatch, tmp_path):
 
     args = cli.build_parser().parse_args(
         [
-            "preflight", "--netuid", "505", "--miner-wallet", "miner",
-            "--validator-wallet", "validator", "--wallet-path", str(tmp_path),
-            "--timeout", "3",
+            "preflight",
+            "--netuid",
+            "505",
+            "--miner-wallet",
+            "miner",
+            "--validator-wallet",
+            "validator",
+            "--wallet-path",
+            str(tmp_path),
+            "--timeout",
+            "3",
         ]
     )
     result = cli.run_preflight(args)

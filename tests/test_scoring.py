@@ -1,14 +1,17 @@
 """tests/test_scoring.py — Resonance BFT scoring unit tests."""
-import pytest
-from arctura_base.protocol import BaseSubnetSynapse
-from arctura_base.utils import hash_output, build_merkle_proof
-from arctura_base.incentive import (
-    score_attestation, score_completeness, score_latency,
-    apply_stewardship_modifier, normalize_weights,
-    detect_hash_collision, compute_calibration_accuracy,
-    REQUIRED_STEPS,
-)
 
+from arctura_base.incentive import (
+    REQUIRED_STEPS,
+    apply_stewardship_modifier,
+    compute_calibration_accuracy,
+    detect_hash_collision,
+    normalize_weights,
+    score_attestation,
+    score_completeness,
+    score_latency,
+)
+from arctura_base.protocol import BaseSubnetSynapse
+from arctura_base.utils import build_merkle_proof, hash_output
 
 FAKE_BLOCK_HASH = "d" * 64
 
@@ -104,7 +107,7 @@ class TestNormalization:
 
     def test_all_zeros_uniform(self):
         normed = normalize_weights([0.0, 0.0, 0.0])
-        assert all(abs(w - 1/3) < 1e-9 for w in normed)
+        assert all(abs(w - 1 / 3) < 1e-9 for w in normed)
 
     def test_empty_returns_empty(self):
         assert normalize_weights([]) == []
