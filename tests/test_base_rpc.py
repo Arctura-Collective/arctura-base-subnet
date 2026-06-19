@@ -67,3 +67,20 @@ def test_unknown_query_type_raises(mock_client):
             block_range=(0, 0),
             payload={},
         )
+
+
+def test_execute_mandate_reuses_block_hash_for_fixed_block(mock_client):
+    block = {"hash": bytes.fromhex("11" * 32)}
+    mock_client.w3.eth.get_block.return_value = block
+    mock_client.w3.eth.get_balance.return_value = 100
+
+    for _ in range(2):
+        result = mock_client.execute_mandate(
+            query_type="balance",
+            contract_address=None,
+            block_range=(21_000_000, 21_000_000),
+            payload={"address": "0xAbc"},
+        )
+        assert result["_meta"]["block_hash"] == "11" * 32
+
+    mock_client.w3.eth.get_block.assert_called_once_with(21_000_000)

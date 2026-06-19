@@ -3,6 +3,22 @@
 *.env
 .env.*
 !.env.example
+!.env.*.example
+
+# Secrets and local credentials — NEVER commit these
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+*.seed
+*.mnemonic
+*secret*
+*secrets*
+*private_key*
+*api_key*
+cdp_api_key*.json
 
 # Python
 __pycache__/
@@ -26,6 +42,8 @@ htmlcov/
 ~/.bittensor/
 .bittensor/
 wallets/
+coldkey*
+hotkeys/
 
 # IDE
 .vscode/
@@ -40,3 +58,16 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Local operator/runtime artifacts
+run/
+runs/
+tmp/
+*.pid
+*.sock
+*.sqlite
+*.sqlite3
+*.db
+validator-state*
+miner-state*
+events.out.tfevents*

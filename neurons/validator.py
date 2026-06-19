@@ -29,6 +29,7 @@ Apache-2.0
 from __future__ import annotations
 
 import argparse
+import os
 import time
 import uuid
 from collections import defaultdict
@@ -66,6 +67,8 @@ class ArcturaValidator:
 
     # Tempo period in blocks (default: 360 blocks = ~72 minutes)
     DEFAULT_TEMPO = 360
+    WEIGHT_SET_RETRIES = 3
+    WEIGHT_SET_RETRY_SECONDS = 5
 
     def __init__(self, config: Optional[bt.config] = None) -> None:
         self.config = config or self._build_config()
@@ -114,6 +117,10 @@ class ArcturaValidator:
             "--timeout", type=float, default=30.0,
             help="Timeout in seconds for miner responses."
         )
+        parser.add_argument(
+            "--tempo", type=int, default=int(os.environ.get("VALIDATOR_TEMPO", "360")),
+            help="Validator scoring cadence in Bittensor blocks."
+        )
 
         config = bt.config(parser)
         config.full_path = (
@@ -137,7 +144,7 @@ class ArcturaValidator:
         latest_base   = self.base_client.get_latest_block_number()
 
         # Deadline: current Bittensor block + tempo/4 blocks
-        tempo = getattr(self.config, "tempo", self.DEFAULT_TEMPO)
+        tempo = getattr(self.config, "tempo", None) or self.DEFAULT_TEMPO
         deadline_block = current_block + tempo // 4
 
         # Rotate mandate type to test different miner capabilities
@@ -271,7 +278,7 @@ class ArcturaValidator:
             synapse.resonance_score = final_score
             scores[uid] = final_score
 
-            bt.logging.debug(
+            bt.logging.info(
                 f"uid={uid} | "
                 f"base={base_score:.3f} | "
                 f"energy={synapse.energy_tag} | "
@@ -291,28 +298,42 @@ class ArcturaValidator:
         uid_tensor    = torch.tensor(uids, dtype=torch.int64)
         weight_tensor = torch.tensor(normalized, dtype=torch.float32)
 
-        result = self.subtensor.set_weights(
-            wallet=self.wallet,
-            netuid=self.config.netuid,
-            uids=uid_tensor,
-            weights=weight_tensor,
-            wait_for_inclusion=True,
-        )
+        for attempt in range(1, self.WEIGHT_SET_RETRIES + 1):
+            try:
+                result = self.subtensor.set_weights(
+                    wallet=self.wallet,
+                    netuid=self.config.netuid,
+                    uids=uid_tensor,
+                    weights=weight_tensor,
+                    wait_for_inclusion=True,
+                )
+                if isinstance(result, tuple):
+                    success, msg = result
+                else:
+                    success = bool(getattr(result, "is_success", result))
+                    msg = getattr(result, "error_message", "") or getattr(result, "message", "")
+            except Exception as exc:
+                success = False
+                msg = str(exc)
 
-        if isinstance(result, tuple):
-            success, msg = result
-        else:
-            success = bool(getattr(result, "is_success", result))
-            msg = getattr(result, "error_message", "") or getattr(result, "message", "")
+            if success:
+                top_uid = uids[normalized.index(max(normalized))]
+                bt.logging.success(
+                    f"Weights set | miners={len(uids)} | "
+                    f"top_uid={top_uid} | top_weight={max(normalized):.3f}"
+                )
+                return
 
-        if success:
-            top_uid = uids[normalized.index(max(normalized))]
-            bt.logging.success(
-                f"Weights set | miners={len(uids)} | "
-                f"top_uid={top_uid} | top_weight={max(normalized):.3f}"
-            )
-        else:
-            bt.logging.error(f"Weight-setting failed: {msg}")
+            if attempt < self.WEIGHT_SET_RETRIES:
+                bt.logging.warning(
+                    f"Weight-setting attempt {attempt}/{self.WEIGHT_SET_RETRIES} failed: {msg}. "
+                    f"Retrying in {self.WEIGHT_SET_RETRY_SECONDS}s..."
+                )
+                time.sleep(self.WEIGHT_SET_RETRY_SECONDS)
+            else:
+                bt.logging.error(
+                    f"Weight-setting failed after {self.WEIGHT_SET_RETRIES} attempts: {msg}"
+                )
 
     # ── Run loop ──────────────────────────────────────────────────────────
 
@@ -320,7 +341,7 @@ class ArcturaValidator:
         """Enter the main validator loop."""
         bt.logging.info(f"Arctura Base validator live | netuid={self.config.netuid}")
 
-        tempo         = getattr(self.config, "tempo", self.DEFAULT_TEMPO)
+        tempo         = getattr(self.config, "tempo", None) or self.DEFAULT_TEMPO
         sleep_seconds = tempo * self.BLOCK_TIME_SECONDS  # ~72 minutes
 
         while True:

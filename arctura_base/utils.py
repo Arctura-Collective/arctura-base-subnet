@@ -45,6 +45,25 @@ def hash_output(output: dict) -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
+def hash_canonical_output(output: dict) -> str:
+    """
+    Hash deterministic chain state while excluding volatile runtime metadata.
+
+    BaseRPCClient.execute_mandate attaches _meta.duration_ms for telemetry and
+    _meta.block_hash for attestation anchoring. The duration is intentionally
+    runtime-specific and must not affect the state hash miners are compared on.
+    """
+    canonical = dict(output)
+    meta = canonical.get("_meta")
+    if isinstance(meta, dict):
+        stable_meta = {key: value for key, value in meta.items() if key != "duration_ms"}
+        if stable_meta:
+            canonical["_meta"] = stable_meta
+        else:
+            canonical.pop("_meta", None)
+    return hash_output(canonical)
+
+
 # ── Merkle proof ──────────────────────────────────────────────────────────
 
 def build_merkle_proof(

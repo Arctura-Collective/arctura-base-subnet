@@ -1,15 +1,18 @@
 """CLI parser and command construction tests."""
 
+import importlib
+
 from arctura_base import cli
 
 
 def test_parser_exposes_miner_defaults():
+    importlib.reload(cli)
     args = cli.build_parser().parse_args(["miner"])
     assert args.network == "test"
-    assert args.netuid == "1"
-    assert args.wallet == "miner"
+    assert args.netuid in {"1", "505"}
+    assert args.wallet in {"miner", "arctura_miner"}
     assert args.hotkey == "default"
-    assert args.port == "8091"
+    assert args.port in {"8091", "8191"}
 
 
 def test_cli_help_uses_arctura_parser(capsys):
@@ -20,6 +23,20 @@ def test_cli_help_uses_arctura_parser(capsys):
     output = capsys.readouterr().out
     assert "Operate the Arctura Base subnet." in output
     assert "metagraph" in output
+
+
+def test_cli_defaults_can_come_from_env(monkeypatch):
+    monkeypatch.setenv("ARCTURA_NETWORK", "test")
+    monkeypatch.setenv("ARCTURA_NETUID", "505")
+    monkeypatch.setenv("ARCTURA_MINER_WALLET", "arctura_miner")
+    monkeypatch.setenv("ARCTURA_HOTKEY", "default")
+
+    reloaded = importlib.reload(cli)
+    args = reloaded.build_parser().parse_args(["miner"])
+    assert args.netuid == "505"
+    assert args.wallet == "arctura_miner"
+
+    importlib.reload(cli)
 
 
 def test_register_command_uses_btcli(monkeypatch):

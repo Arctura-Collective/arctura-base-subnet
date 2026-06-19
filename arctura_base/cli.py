@@ -8,6 +8,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - dependency is declared for normal installs
+    load_dotenv = None
+
+
+if load_dotenv is not None:
+    load_dotenv()
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NETWORK = os.environ.get("ARCTURA_NETWORK", "test")

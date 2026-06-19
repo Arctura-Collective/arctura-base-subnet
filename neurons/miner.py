@@ -25,18 +25,17 @@ Arctura Council · Coreweaver · arctura.network/base
 Apache-2.0
 """
 
-from __future__ import annotations
-
 import argparse
 import time
 import uuid
-from typing import Optional
+from typing import Optional, Tuple
 
 import bittensor as bt
 
 from arctura_base.protocol import BaseSubnetSynapse
 from arctura_base.base_rpc import BaseRPCClient
-from arctura_base.utils import hash_output, build_merkle_proof, get_energy_tag
+from arctura_base.payload_validation import validate_mandate_payload
+from arctura_base.utils import hash_canonical_output, build_merkle_proof, get_energy_tag
 from arctura_base.incentive import REQUIRED_STEPS
 
 
@@ -117,7 +116,7 @@ class ArcturaMiner:
 
     # ── Axon middleware ───────────────────────────────────────────────────
 
-    def blacklist(self, synapse: BaseSubnetSynapse) -> tuple[bool, str]:
+    def blacklist(self, synapse: BaseSubnetSynapse) -> Tuple[bool, str]:
         """
         Reject synapse requests from unregistered or unknown hotkeys.
 
@@ -175,6 +174,15 @@ class ArcturaMiner:
         steps_completed: list[str] = []
 
         try:
+            is_valid, error_msg = validate_mandate_payload(
+                synapse.query_type,
+                synapse.mandate_payload,
+            )
+            if not is_valid:
+                raise ValueError(
+                    f"Refusing invalid mandate payload: {error_msg}"
+                )
+
             # Step 1: Fetch Base chain data deterministically
             output = self.base_client.execute_mandate(
                 query_type=synapse.query_type,
@@ -185,7 +193,7 @@ class ArcturaMiner:
             steps_completed.append("rpc_fetch")
 
             # Step 2: Hash the output deterministically
-            state_hash = hash_output(output)
+            state_hash = hash_canonical_output(output)
             synapse.base_state_hash = state_hash
             steps_completed.append("output_hash")
 

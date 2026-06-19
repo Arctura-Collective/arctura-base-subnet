@@ -32,7 +32,15 @@ Apache-2.0
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
+
+
+SUPPORTED_AGENT_ACTIONS: frozenset[str] = frozenset({
+    "transfer",
+    "deploy",
+    "call",
+    "mint_nft",
+})
 
 
 def _get_agentkit():
@@ -104,7 +112,7 @@ def execute_agent_action(
     else:
         raise ValueError(
             f"Unsupported agent_action type: '{action_type}'. "
-            f"Supported: transfer, deploy, call, mint_nft"
+            f"Supported: {', '.join(sorted(SUPPORTED_AGENT_ACTIONS))}"
         )
 
     result["action_type"] = action_type

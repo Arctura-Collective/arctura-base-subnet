@@ -1,6 +1,6 @@
 # arctura-base-subnet
 
-> **The first open-source Bittensor subnet purpose-built to bridge Base blockchain intelligence into the decentralized AI network.**
+> **A founder-led Bittensor subnet built to bridge Base blockchain intelligence into decentralized AI through clean, efficient, reproducible code.**
 
 [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Bittensor](https://img.shields.io/badge/network-Bittensor%20Finney-9b8cff.svg)](https://taostats.io/subnets)
@@ -22,7 +22,7 @@ Current validation:
 
 ```bash
 pytest tests/ -v
-# 48 passed
+# 63 passed
 ```
 
 This project is not yet mainnet-ready, security-audited, or production-emissions-ready. The immediate focus is proving the subnet end-to-end with repeatable local and testnet runs before expanding contributor scope.
@@ -32,6 +32,8 @@ This project is not yet mainnet-ready, security-audited, or production-emissions
 ## What this is
 
 `arctura-base-subnet` is a Bittensor subnet that makes Base chain state a first-class citizen of the decentralized AI network.
+
+The mission is not to build a greed-maximized emissions machine. ARCTURA Base should reward the cleanest, most efficient, most reproducible execution path: optimized code, verifiable work, low operational waste, and maintainable systems that other operators can inspect and trust.
 
 **Miners** read Base blockchain data — contract state, transaction history, event logs, and onchain agent actions via AgentKit — and return Merkle-anchored attestation proofs.
 

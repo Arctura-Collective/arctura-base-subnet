@@ -24,7 +24,20 @@ import os
 import time
 from typing import Any, Optional
 
-import bittensor as bt
+try:
+    import bittensor as bt
+except ImportError:  # pragma: no cover - exercised in lightweight tooling environments
+    class _FallbackLogging:
+        @staticmethod
+        def warning(message: str) -> None:
+            return None
+
+    bt = type("_FallbackBittensor", (), {"logging": _FallbackLogging()})()
+
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - dependency is declared for normal installs
+    load_dotenv = None
 
 try:
     from web3 import Web3
@@ -62,10 +75,13 @@ class BaseRPCClient:
                       then Coinbase's public endpoint.
             timeout:  HTTP request timeout in seconds.
         """
+        if load_dotenv is not None:
+            load_dotenv()
         url = rpc_url or os.environ.get("BASE_RPC_URL", "https://mainnet.base.org")
         if Web3 is None:
             raise ImportError("web3 is required for BaseRPCClient. Install project dependencies first.")
         self.w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": timeout}))
+        self._block_hash_cache: dict[int, str] = {}
         self._verify_connection()
 
     def _verify_connection(self) -> None:
@@ -97,8 +113,12 @@ class BaseRPCClient:
         A miner's block_hash_anchor must match what the validator independently
         fetches — fabricated attestations referencing non-existent blocks fail.
         """
+        if block_number in self._block_hash_cache:
+            return self._block_hash_cache[block_number]
         block = self.w3.eth.get_block(block_number)
-        return block["hash"].hex()
+        block_hash = block["hash"].hex()
+        self._block_hash_cache[block_number] = block_hash
+        return block_hash
 
     def get_balance(
         self,
