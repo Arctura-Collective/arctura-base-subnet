@@ -173,7 +173,15 @@ Preferred proof:
 
 ## Current Known Results
 
-- Miner bounded startup reached live state on port `8191`.
-- Validator bounded startup reached live loop and issued a mandate.
-- Validator observed no responses because the ARCTURA Base miner was not running concurrently.
-- Validator weight setting can report `No attempt made. Perhaps it is too soon to commit weights!`; this is expected during short bounded runs.
+- On 2026-06-19, the live Base benchmark completed 5/5 reads with stable
+  hashes, no errors, and 1.4 RPC calls per iteration.
+- Miner UID `1` reached live axon state on testnet netuid `505`, port `8191`.
+- The validator issued a `state` mandate to two UIDs. Miner UID `1` received
+  and attested it in 352 ms with confidence `0.90`.
+- The validator assigned UID `1` a final Resonance score of `0.950`, normalized
+  it to weight `1.000`, and successfully committed the weights on testnet.
+- UID `0` did not respond during the bounded run. This did not prevent the
+  registered ARCTURA miner from completing the end-to-end flow.
+- `btcli subnet metagraph` currently fails against testnet with a missing
+  `Swap.AlphaSqrtPrice` storage function. The Bittensor SDK path used by both
+  neurons remains operational.
