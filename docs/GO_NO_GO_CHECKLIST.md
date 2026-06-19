@@ -31,6 +31,10 @@ Every item must be checked before running `btcli subnet create` on Finney.
 - [ ] Auto-restart configured (systemd or PM2) for both neurons
 - [ ] Monitoring configured for axon uptime
 
+User-level service templates and a five-minute preflight timer are provided in
+`deploy/systemd/`. Check these items only after enabling them on the launch host
+and reviewing the 48-hour journal.
+
 ## Final
 - [ ] Go/no-go reviewed by at least one other person
 - [ ] Command ready to paste (do not type fresh under pressure):

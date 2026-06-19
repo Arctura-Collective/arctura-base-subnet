@@ -46,6 +46,40 @@ bash scripts/check_metagraph.sh test N
 
 Run for **48+ hours** before proceeding. Confirm non-zero weights in metagraph.
 
+### Supervised 48-hour run
+
+Install the user-level systemd units on the Linux host that owns the Bittensor
+wallets. Keep the operator environment file private; it contains deployment
+paths and may later contain a private RPC URL.
+
+```bash
+mkdir -p ~/.config/systemd/user ~/.config
+cp deploy/systemd/arctura-*.service deploy/systemd/arctura-health.timer \
+  ~/.config/systemd/user/
+cp deploy/systemd/operator.env.example ~/.config/arctura-base-subnet.env
+chmod 600 ~/.config/arctura-base-subnet.env
+# Edit ARCTURA_REPO, ARCTURA_PYTHON, network, netuid, and wallet names.
+
+systemctl --user daemon-reload
+systemctl --user enable --now arctura-miner arctura-validator arctura-health.timer
+loginctl enable-linger "$USER"
+```
+
+Verify restart and monitoring state:
+
+```bash
+systemctl --user status arctura-miner arctura-validator arctura-health.timer
+journalctl --user -u arctura-miner -u arctura-validator --since "48 hours ago"
+journalctl --user -u arctura-health --since "48 hours ago"
+systemctl --user show arctura-miner arctura-validator \
+  --property=NRestarts,ActiveEnterTimestamp
+```
+
+The 48-hour gate passes only when both neurons remained active, health checks
+continued succeeding, at least one non-zero weight commit is present, and the
+logs contain no uncaught exceptions. Do not infer success from process state
+alone.
+
 ## Phase 3 — Mainnet Registration
 
 See [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md) before running any of these.
