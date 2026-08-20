@@ -20,107 +20,150 @@ from __future__ import annotations
 
 import argparse
 import os
-import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
-
 
 # ── Schema ────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class EnvVar:
     key: str
     description: str
-    default: Optional[str]
+    default: str | None
     required: bool
-    secret: bool = False          # mask in output
-    validate_fn: Optional[str] = None  # name of a validator method
+    secret: bool = False  # mask in output
+    validate_fn: str | None = None  # name of a validator method
 
 
 ENV_SCHEMA: list[EnvVar] = [
     # Base Chain
-    EnvVar("BASE_RPC_URL",         "Base mainnet RPC endpoint",                   "https://mainnet.base.org",  True),
-    EnvVar("BASE_SEPOLIA_RPC_URL", "Base Sepolia testnet RPC endpoint",           "https://sepolia.base.org",  True),
+    EnvVar("BASE_RPC_URL", "Base mainnet RPC endpoint", "https://mainnet.base.org", True),
+    EnvVar(
+        "BASE_SEPOLIA_RPC_URL",
+        "Base Sepolia testnet RPC endpoint",
+        "https://sepolia.base.org",
+        True,
+    ),
     # Bittensor
-    EnvVar("BT_NETWORK",           "Bittensor network (local/test/finney)",        "test",                      True,  validate_fn="validate_network"),
-    EnvVar("BT_NETUID",            "Subnet UID (set after registration)",           "1",                         True),
-    EnvVar("BT_OWNER_WALLET",      "Owner wallet name",                            "owner",                     True),
-    EnvVar("BT_VALIDATOR_WALLET",  "Validator wallet name",                        "validator",                  True),
-    EnvVar("BT_MINER_WALLET",      "Miner wallet name",                            "miner",                     True),
-    EnvVar("BT_DEFAULT_HOTKEY",    "Default hotkey name",                          "default",                   True),
+    EnvVar(
+        "BT_NETWORK",
+        "Bittensor network (local/test/finney)",
+        "test",
+        True,
+        validate_fn="validate_network",
+    ),
+    EnvVar("BT_NETUID", "Subnet UID (set after registration)", "1", True),
+    EnvVar("BT_OWNER_WALLET", "Owner wallet name", "owner", True),
+    EnvVar("BT_VALIDATOR_WALLET", "Validator wallet name", "validator", True),
+    EnvVar("BT_MINER_WALLET", "Miner wallet name", "miner", True),
+    EnvVar("BT_DEFAULT_HOTKEY", "Default hotkey name", "default", True),
     # Neurons
-    EnvVar("MINER_AXON_PORT",      "Miner axon port",                             "8091",                      True),
-    EnvVar("VALIDATOR_AXON_PORT",  "Validator axon port",                         "8092",                      True),
-    EnvVar("VALIDATOR_TIMEOUT",    "Miner response timeout (seconds)",             "30",                        True),
+    EnvVar("MINER_AXON_PORT", "Miner axon port", "8091", True),
+    EnvVar("VALIDATOR_AXON_PORT", "Validator axon port", "8092", True),
+    EnvVar("VALIDATOR_TIMEOUT", "Miner response timeout (seconds)", "30", True),
     # Stewardship
-    EnvVar("ARCTURA_ENERGY_TAG",   "P5 energy tag (renewable_verified/renewable_claimed/unknown/high_carbon)", "unknown", True, validate_fn="validate_energy_tag"),
+    EnvVar(
+        "ARCTURA_ENERGY_TAG",
+        "P5 energy tag (renewable_verified/renewable_claimed/unknown/high_carbon)",
+        "unknown",
+        True,
+        validate_fn="validate_energy_tag",
+    ),
     # Optional AgentKit
-    EnvVar("CDP_API_KEY_NAME",     "Coinbase CDP API key name (AgentKit only)",    None,                        False, secret=True),
-    EnvVar("CDP_API_KEY_PRIVATE_KEY", "Coinbase CDP private key (AgentKit only)", None,                        False, secret=True),
+    EnvVar(
+        "CDP_API_KEY_NAME", "Coinbase CDP API key name (AgentKit only)", None, False, secret=True
+    ),
+    EnvVar(
+        "CDP_API_KEY_PRIVATE_KEY",
+        "Coinbase CDP private key (AgentKit only)",
+        None,
+        False,
+        secret=True,
+    ),
     # Logging
-    EnvVar("LOG_LEVEL",            "Log level (debug/info/warning)",               "info",                      True,  validate_fn="validate_log_level"),
+    EnvVar(
+        "LOG_LEVEL",
+        "Log level (debug/info/warning)",
+        "info",
+        True,
+        validate_fn="validate_log_level",
+    ),
 ]
 
-VALID_NETWORKS   = {"local", "test", "finney"}
+VALID_NETWORKS = {"local", "test", "finney"}
 VALID_ENERGY_TAGS = {"renewable_verified", "renewable_claimed", "unknown", "high_carbon"}
 VALID_LOG_LEVELS = {"debug", "info", "warning", "error"}
 
 
 # ── Validators ────────────────────────────────────────────────────────────
 
-def validate_network(value: str) -> Optional[str]:
+
+def validate_network(value: str) -> str | None:
     if value not in VALID_NETWORKS:
         return f"Must be one of: {', '.join(sorted(VALID_NETWORKS))}"
     return None
 
 
-def validate_energy_tag(value: str) -> Optional[str]:
+def validate_energy_tag(value: str) -> str | None:
     if value not in VALID_ENERGY_TAGS:
         return f"Must be one of: {', '.join(sorted(VALID_ENERGY_TAGS))}"
     return None
 
 
-def validate_log_level(value: str) -> Optional[str]:
+def validate_log_level(value: str) -> str | None:
     if value not in VALID_LOG_LEVELS:
         return f"Must be one of: {', '.join(sorted(VALID_LOG_LEVELS))}"
     return None
 
 
 VALIDATORS = {
-    "validate_network":    validate_network,
+    "validate_network": validate_network,
     "validate_energy_tag": validate_energy_tag,
-    "validate_log_level":  validate_log_level,
+    "validate_log_level": validate_log_level,
 }
 
 
 # ── Colors ────────────────────────────────────────────────────────────────
 
+
 class C:
-    RESET  = "\033[0m"
-    BOLD   = "\033[1m"
-    GREEN  = "\033[92m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    GREEN = "\033[92m"
     YELLOW = "\033[93m"
-    RED    = "\033[91m"
-    BLUE   = "\033[94m"
-    CYAN   = "\033[96m"
-    DIM    = "\033[2m"
+    RED = "\033[91m"
+    BLUE = "\033[94m"
+    CYAN = "\033[96m"
+    DIM = "\033[2m"
 
 
-def ok(msg: str)   -> str: return f"{C.GREEN}✓{C.RESET} {msg}"
-def err(msg: str)  -> str: return f"{C.RED}✗{C.RESET} {msg}"
-def warn(msg: str) -> str: return f"{C.YELLOW}⚠{C.RESET} {msg}"
-def info(msg: str) -> str: return f"{C.BLUE}·{C.RESET} {msg}"
+def ok(msg: str) -> str:
+    return f"{C.GREEN}✓{C.RESET} {msg}"
+
+
+def err(msg: str) -> str:
+    return f"{C.RED}✗{C.RESET} {msg}"
+
+
+def warn(msg: str) -> str:
+    return f"{C.YELLOW}⚠{C.RESET} {msg}"
+
+
+def info(msg: str) -> str:
+    return f"{C.BLUE}·{C.RESET} {msg}"
 
 
 # ── RPC connectivity check ────────────────────────────────────────────────
 
+
 def check_rpc(url: str, timeout: int = 5) -> tuple[bool, str]:
     """Return (reachable, message)."""
     try:
-        import urllib.request
         import json
+        import urllib.request
+
         payload = json.dumps({"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1})
         req = urllib.request.Request(
             url,
@@ -140,6 +183,7 @@ def check_rpc(url: str, timeout: int = 5) -> tuple[bool, str]:
 
 # ── Python version check ──────────────────────────────────────────────────
 
+
 def check_python() -> tuple[bool, str]:
     v = sys.version_info
     if v >= (3, 10):
@@ -148,6 +192,7 @@ def check_python() -> tuple[bool, str]:
 
 
 # ── .env parsing ──────────────────────────────────────────────────────────
+
 
 def load_env(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
@@ -171,12 +216,18 @@ def write_env(path: Path, values: dict[str, str]) -> None:
         "# ── Base Chain ─────────────────────────────────",
     ]
     base_keys = ["BASE_RPC_URL", "BASE_SEPOLIA_RPC_URL"]
-    bt_keys   = ["BT_NETWORK", "BT_NETUID", "BT_OWNER_WALLET", "BT_VALIDATOR_WALLET",
-                 "BT_MINER_WALLET", "BT_DEFAULT_HOTKEY"]
+    bt_keys = [
+        "BT_NETWORK",
+        "BT_NETUID",
+        "BT_OWNER_WALLET",
+        "BT_VALIDATOR_WALLET",
+        "BT_MINER_WALLET",
+        "BT_DEFAULT_HOTKEY",
+    ]
     neuron_keys = ["MINER_AXON_PORT", "VALIDATOR_AXON_PORT", "VALIDATOR_TIMEOUT"]
-    other_keys  = ["ARCTURA_ENERGY_TAG", "CDP_API_KEY_NAME", "CDP_API_KEY_PRIVATE_KEY", "LOG_LEVEL"]
+    other_keys = ["ARCTURA_ENERGY_TAG", "CDP_API_KEY_NAME", "CDP_API_KEY_PRIVATE_KEY", "LOG_LEVEL"]
 
-    def emit(keys: list[str], header: Optional[str] = None):
+    def emit(keys: list[str], header: str | None = None):
         if header:
             lines.append(f"\n# ── {header} {'─' * max(0, 45 - len(header))}")
         for k in keys:
@@ -192,6 +243,7 @@ def write_env(path: Path, values: dict[str, str]) -> None:
 
 
 # ── Verify mode ───────────────────────────────────────────────────────────
+
 
 def cmd_verify(env_path: Path) -> int:
     print(f"\n{C.BOLD}arctura-base-subnet · Environment Verification{C.RESET}")
@@ -263,6 +315,7 @@ def cmd_verify(env_path: Path) -> int:
 
 # ── Interactive setup ─────────────────────────────────────────────────────
 
+
 def cmd_generate(env_path: Path) -> int:
     print(f"\n{C.BOLD}arctura-base-subnet · Environment Setup{C.RESET}")
     print(f"{C.DIM}Press Enter to accept the default. Ctrl+C to abort.{C.RESET}\n")
@@ -317,6 +370,7 @@ def cmd_generate(env_path: Path) -> int:
 
 # ── CI check (non-interactive) ────────────────────────────────────────────
 
+
 def cmd_check(env_path: Path) -> int:
     """Non-interactive verify for CI. Reads from actual environment variables."""
     print("arctura-base-subnet · CI env check")
@@ -335,20 +389,25 @@ def cmd_check(env_path: Path) -> int:
 
 # ── Entry point ───────────────────────────────────────────────────────────
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Arctura Base subnet environment generator and verifier",
     )
     parser.add_argument(
-        "--verify", action="store_true",
+        "--verify",
+        action="store_true",
         help="Verify an existing .env without prompting",
     )
     parser.add_argument(
-        "--check", action="store_true",
+        "--check",
+        action="store_true",
         help="Non-interactive CI check against real environment variables",
     )
     parser.add_argument(
-        "--env", type=Path, default=Path(".env"),
+        "--env",
+        type=Path,
+        default=Path(".env"),
         help="Path to the .env file (default: .env)",
     )
     args = parser.parse_args()

@@ -27,16 +27,15 @@ Apache-2.0
 
 import argparse
 import time
-import uuid
-from typing import Optional, Tuple
+from typing import Any
 
 import bittensor as bt
 
-from arctura_base.protocol import BaseSubnetSynapse
 from arctura_base.base_rpc import BaseRPCClient
-from arctura_base.payload_validation import validate_mandate_payload
-from arctura_base.utils import hash_canonical_output, build_merkle_proof, get_energy_tag
 from arctura_base.incentive import REQUIRED_STEPS
+from arctura_base.payload_validation import validate_mandate_payload
+from arctura_base.protocol import BaseSubnetSynapse
+from arctura_base.utils import build_merkle_proof, get_energy_tag, hash_canonical_output
 
 
 class ArcturaMiner:
@@ -54,7 +53,7 @@ class ArcturaMiner:
         5. Calibration of confidence score
     """
 
-    def __init__(self, config: Optional[bt.config] = None) -> None:
+    def __init__(self, config: Any | None = None) -> None:
         self.config = config or self._build_config()
 
         # Initialize logging
@@ -62,9 +61,9 @@ class ArcturaMiner:
         bt.logging.info("Initializing Arctura Base miner...")
 
         # Bittensor components
-        self.wallet     = bt.wallet(config=self.config)
-        self.subtensor  = bt.subtensor(config=self.config)
-        self.metagraph  = self.subtensor.metagraph(self.config.netuid)
+        self.wallet = bt.wallet(config=self.config)
+        self.subtensor = bt.subtensor(config=self.config)
+        self.metagraph = self.subtensor.metagraph(self.config.netuid)
 
         # Base chain client
         self.base_client = BaseRPCClient()
@@ -88,7 +87,7 @@ class ArcturaMiner:
     # ── Config ────────────────────────────────────────────────────────────
 
     @staticmethod
-    def _build_config() -> bt.config:
+    def _build_config() -> Any:
         parser = argparse.ArgumentParser(
             description="Arctura Base subnet miner",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -99,12 +98,13 @@ class ArcturaMiner:
         bt.axon.add_args(parser)
 
         parser.add_argument(
-            "--netuid", type=int, default=1,
-            help="Bittensor subnet UID to register on."
+            "--netuid", type=int, default=1, help="Bittensor subnet UID to register on."
         )
         parser.add_argument(
-            "--max_block_lookback", type=int, default=1000,
-            help="Maximum blocks the miner will look back for historical queries."
+            "--max_block_lookback",
+            type=int,
+            default=1000,
+            help="Maximum blocks the miner will look back for historical queries.",
         )
 
         config = bt.config(parser)
@@ -116,7 +116,7 @@ class ArcturaMiner:
 
     # ── Axon middleware ───────────────────────────────────────────────────
 
-    def blacklist(self, synapse: BaseSubnetSynapse) -> Tuple[bool, str]:
+    def blacklist(self, synapse: BaseSubnetSynapse) -> tuple[bool, str]:
         """
         Reject synapse requests from unregistered or unknown hotkeys.
 
@@ -166,8 +166,7 @@ class ArcturaMiner:
         scores 0.0 — no TAO for failed execution.
         """
         bt.logging.info(
-            f"Mandate received | id={synapse.mandate_id[:8]}... "
-            f"type={synapse.query_type}"
+            f"Mandate received | id={synapse.mandate_id[:8]}... " f"type={synapse.query_type}"
         )
 
         start_ts = time.time()
@@ -179,9 +178,7 @@ class ArcturaMiner:
                 synapse.mandate_payload,
             )
             if not is_valid:
-                raise ValueError(
-                    f"Refusing invalid mandate payload: {error_msg}"
-                )
+                raise ValueError(f"Refusing invalid mandate payload: {error_msg}")
 
             # Step 1: Fetch Base chain data deterministically
             output = self.base_client.execute_mandate(
@@ -209,18 +206,16 @@ class ArcturaMiner:
             # Step 5: Build execution trace
             duration_ms = int((time.time() - start_ts) * 1000)
             synapse.execution_trace = {
-                "ts":           int(start_ts),
-                "duration_ms":  duration_ms,
-                "steps":        steps_completed,
-                "rpc_calls":    1,
+                "ts": int(start_ts),
+                "duration_ms": duration_ms,
+                "steps": steps_completed,
+                "rpc_calls": 1,
                 "block_number": output.get("block_number") or output.get("to_block"),
-                "mandate_id":   synapse.mandate_id,
+                "mandate_id": synapse.mandate_id,
             }
 
             # Step 6: Set confidence and energy tag
-            synapse.confidence = self._estimate_confidence(
-                synapse.query_type, steps_completed
-            )
+            synapse.confidence = self._estimate_confidence(synapse.query_type, steps_completed)
             synapse.energy_tag = get_energy_tag()
 
             bt.logging.success(
@@ -232,14 +227,13 @@ class ArcturaMiner:
 
         except Exception as exc:
             bt.logging.error(
-                f"Mandate execution failed | id={synapse.mandate_id[:8]}... "
-                f"error={exc}"
+                f"Mandate execution failed | id={synapse.mandate_id[:8]}... " f"error={exc}"
             )
             # Return synapse with nulled attestation fields — scores 0.0
-            synapse.base_state_hash  = None
-            synapse.merkle_proof     = None
+            synapse.base_state_hash = None
+            synapse.merkle_proof = None
             synapse.block_hash_anchor = None
-            synapse.confidence       = 0.0
+            synapse.confidence = 0.0
 
         return synapse
 
@@ -280,9 +274,7 @@ class ArcturaMiner:
                 # Sync metagraph every 5 steps (~60 seconds at 12s/block)
                 if step % 5 == 0:
                     self.metagraph.sync(subtensor=self.subtensor)
-                    bt.logging.debug(
-                        f"Metagraph synced | block={self.metagraph.block.item()}"
-                    )
+                    bt.logging.debug(f"Metagraph synced | block={self.metagraph.block.item()}")
                 step += 1
                 time.sleep(12)
 

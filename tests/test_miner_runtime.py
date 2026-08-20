@@ -1,7 +1,6 @@
 """Runtime compatibility checks for the miner neuron."""
 
 import inspect
-from typing import Tuple
 
 import bittensor as bt
 
@@ -19,7 +18,7 @@ def test_forward_synapse_annotation_is_runtime_class():
 def test_blacklist_signature_matches_bittensor_axon_contract():
     signature = inspect.signature(ArcturaMiner.blacklist)
     assert signature.parameters["synapse"].annotation is BaseSubnetSynapse
-    assert signature.return_annotation == Tuple[bool, str]
+    assert signature.return_annotation == tuple[bool, str]
 
 
 def test_forward_refuses_invalid_payload_before_rpc():

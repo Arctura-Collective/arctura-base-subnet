@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 import types
 
-
 if "bittensor" not in sys.modules:
     bittensor = types.ModuleType("bittensor")
 

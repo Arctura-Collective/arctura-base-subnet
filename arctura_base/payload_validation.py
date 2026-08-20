@@ -10,7 +10,6 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 from arctura_base.agentkit import SUPPORTED_AGENT_ACTIONS
 from arctura_base.utils import is_valid_address
 
-
 _IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 

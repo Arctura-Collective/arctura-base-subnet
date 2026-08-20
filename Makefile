@@ -40,12 +40,12 @@ test:
 	pytest tests/ -v --cov=arctura_base --cov-report=term-missing
 
 lint:
-	ruff check arctura_base/ neurons/ tests/
-	black --check arctura_base/ neurons/ tests/
+	ruff check arctura_base/ neurons/ scripts/ tests/
+	black --check arctura_base/ neurons/ scripts/ tests/
 
 fmt:
-	black arctura_base/ neurons/ tests/
-	ruff check arctura_base/ neurons/ tests/ --fix
+	black arctura_base/ neurons/ scripts/ tests/
+	ruff check arctura_base/ neurons/ scripts/ tests/ --fix
 
 typecheck:
 	mypy arctura_base/ --ignore-missing-imports

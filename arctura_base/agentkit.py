@@ -34,13 +34,14 @@ from __future__ import annotations
 import os
 from typing import Any
 
-
-SUPPORTED_AGENT_ACTIONS: frozenset[str] = frozenset({
-    "transfer",
-    "deploy",
-    "call",
-    "mint_nft",
-})
+SUPPORTED_AGENT_ACTIONS: frozenset[str] = frozenset(
+    {
+        "transfer",
+        "deploy",
+        "call",
+        "mint_nft",
+    }
+)
 
 
 def _get_agentkit():
@@ -49,8 +50,8 @@ def _get_agentkit():
     Returns (AgentKit instance, wallet) or raises ImportError with helpful message.
     """
     try:
-        from coinbase_agentkit import AgentKit, AgentKitConfig
         from cdp import Cdp
+        from coinbase_agentkit import AgentKit, AgentKitConfig
     except ImportError:
         raise ImportError(
             "AgentKit integration requires optional dependencies.\n"
@@ -62,7 +63,7 @@ def _get_agentkit():
     api_key_private_key = os.environ.get("CDP_API_KEY_PRIVATE_KEY")
 
     if not api_key_name or not api_key_private_key:
-        raise EnvironmentError(
+        raise OSError(
             "AgentKit requires CDP credentials in .env:\n"
             "  CDP_API_KEY_NAME=your-key-name\n"
             "  CDP_API_KEY_PRIVATE_KEY=your-private-key\n"
@@ -122,9 +123,9 @@ def execute_agent_action(
 def _do_transfer(kit: Any, args: dict) -> dict:
     """Transfer ETH or ERC-20 tokens on Base."""
     wallet = kit.wallet
-    amount     = args["amount"]
+    amount = args["amount"]
     to_address = args["to_address"]
-    token      = args.get("token_address")  # None = native ETH
+    token = args.get("token_address")  # None = native ETH
 
     if token:
         tx = wallet.transfer(amount, token, to_address)
@@ -133,39 +134,38 @@ def _do_transfer(kit: Any, args: dict) -> dict:
 
     tx.wait()
     return {
-        "status":       "success",
-        "tx_hash":      tx.transaction_hash,
-        "amount":       str(amount),
-        "to":           to_address,
-        "token":        token,
+        "status": "success",
+        "tx_hash": tx.transaction_hash,
+        "amount": str(amount),
+        "to": to_address,
+        "token": token,
     }
 
 
 def _do_deploy(kit: Any, args: dict) -> dict:
     """Deploy a smart contract on Base."""
-    wallet    = kit.wallet
-    abi       = args["abi"]
-    bytecode  = args["bytecode"]
+    wallet = kit.wallet
+    abi = args["abi"]
+    bytecode = args["bytecode"]
     init_args = args.get("constructor_args", [])
 
     contract = wallet.deploy_contract(abi=abi, bytecode=bytecode, args=init_args)
     contract.wait()
 
     return {
-        "status":           "success",
+        "status": "success",
         "contract_address": contract.contract_address,
-        "tx_hash":          contract.transaction.transaction_hash,
+        "tx_hash": contract.transaction.transaction_hash,
     }
 
 
 def _do_contract_call(kit: Any, args: dict) -> dict:
     """Call a state-changing contract function on Base."""
-    wallet          = kit.wallet
+    wallet = kit.wallet
     contract_address = args["contract_address"]
-    abi             = args["abi"]
-    function_name   = args["function_name"]
-    call_args       = args.get("args", [])
-    value           = args.get("value", 0)  # ETH value to send
+    abi = args["abi"]
+    function_name = args["function_name"]
+    call_args = args.get("args", [])
 
     tx = wallet.invoke_contract(
         contract_address=contract_address,
@@ -176,25 +176,25 @@ def _do_contract_call(kit: Any, args: dict) -> dict:
     tx.wait()
 
     return {
-        "status":            "success",
-        "tx_hash":           tx.transaction.transaction_hash,
-        "contract_address":  contract_address,
-        "function":          function_name,
+        "status": "success",
+        "tx_hash": tx.transaction.transaction_hash,
+        "contract_address": contract_address,
+        "function": function_name,
     }
 
 
 def _do_mint_nft(kit: Any, args: dict) -> dict:
     """Mint an NFT on Base."""
-    wallet           = kit.wallet
+    wallet = kit.wallet
     contract_address = args["contract_address"]
-    destination      = args.get("destination", wallet.default_address.address_id)
+    destination = args.get("destination", wallet.default_address.address_id)
 
     nft = wallet.mint_nft(contract_address=contract_address, destination=destination)
     nft.wait()
 
     return {
-        "status":           "success",
-        "tx_hash":          nft.transaction.transaction_hash,
+        "status": "success",
+        "tx_hash": nft.transaction.transaction_hash,
         "contract_address": contract_address,
-        "destination":      destination,
+        "destination": destination,
     }

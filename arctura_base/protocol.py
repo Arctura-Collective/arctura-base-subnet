@@ -23,7 +23,6 @@ Apache-2.0
 from __future__ import annotations
 
 import bittensor as bt
-from typing import Optional
 
 
 class BaseSubnetSynapse(bt.Synapse):
@@ -56,7 +55,7 @@ class BaseSubnetSynapse(bt.Synapse):
     Set end=0 to query a single block. Set to (0, 0) for latest block.
     """
 
-    contract_address: Optional[str] = None
+    contract_address: str | None = None
     """
     EVM contract address on Base to query (checksummed).
     Required for query_type in ("state", "events", "agent_action").
@@ -91,7 +90,7 @@ class BaseSubnetSynapse(bt.Synapse):
 
     # ── Attestation fields (miner → validator) ────────────────────────────
 
-    base_state_hash: Optional[str] = None
+    base_state_hash: str | None = None
     """
     SHA-256 hex digest of the serialized Base chain output.
     This is the primary P3 Attestation signal. Must be deterministically
@@ -100,7 +99,7 @@ class BaseSubnetSynapse(bt.Synapse):
     Construction: hashlib.sha256(json.dumps(output, sort_keys=True).encode()).hexdigest()
     """
 
-    merkle_proof: Optional[list] = None
+    merkle_proof: list | None = None
     """
     Merkle proof chain anchoring base_state_hash.
     Each node: {"hash": str, "direction": "left" | "right"}
@@ -109,7 +108,7 @@ class BaseSubnetSynapse(bt.Synapse):
     Phase 02: full binary Merkle tree with sibling nodes.
     """
 
-    block_hash_anchor: Optional[str] = None
+    block_hash_anchor: str | None = None
     """
     The live Base block hash at the time of execution.
     Validators fetch this independently and compare — stale or fabricated
@@ -118,7 +117,7 @@ class BaseSubnetSynapse(bt.Synapse):
     Critical: this is the primary anti-fabrication check.
     """
 
-    execution_trace: Optional[dict] = None
+    execution_trace: dict | None = None
     """
     Metadata proving the work was performed. Minimum schema:
     {
@@ -155,7 +154,7 @@ class BaseSubnetSynapse(bt.Synapse):
 
     # ── Computed fields (set by validator post-scoring) ───────────────────
 
-    resonance_score: Optional[float] = None
+    resonance_score: float | None = None
     """
     Final Resonance BFT score (0.0–1.0) assigned by the validator after
     verifying the attestation. NOT set by miners.

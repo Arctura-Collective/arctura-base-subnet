@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 from arctura_base.benchmark import (
     BenchmarkResult,
     CountingBaseRPCClient,
-    main,
     get_max_rss_kb,
+    main,
     percentile,
 )
 
