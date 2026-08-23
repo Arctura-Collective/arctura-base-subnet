@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import sys
 import types
+from importlib.util import find_spec
 
-if "bittensor" not in sys.modules:
+if find_spec("bittensor") is None:
     bittensor = types.ModuleType("bittensor")
 
     class Synapse:

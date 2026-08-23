@@ -26,12 +26,14 @@ Apache-2.0
 """
 
 import argparse
+import os
 import time
 from typing import Any
 
 import bittensor as bt
 
 from arctura_base.base_rpc import BaseRPCClient
+from arctura_base.bittensor_runtime import load_metagraph
 from arctura_base.incentive import REQUIRED_STEPS
 from arctura_base.payload_validation import validate_mandate_payload
 from arctura_base.protocol import BaseSubnetSynapse
@@ -63,7 +65,7 @@ class ArcturaMiner:
         # Bittensor components
         self.wallet = bt.Wallet(config=self.config)
         self.subtensor = bt.Subtensor(config=self.config)
-        self.metagraph = self.subtensor.metagraph(self.config.netuid)
+        self.metagraph = load_metagraph(self.subtensor, self.config.netuid)
 
         # Base chain client
         self.base_client = BaseRPCClient()
@@ -88,6 +90,9 @@ class ArcturaMiner:
 
     @staticmethod
     def _build_config() -> Any:
+        # Bittensor v10 disables CLI parsing by default. Neuron entry points
+        # must honor their explicit wallet, network, netuid, and axon flags.
+        os.environ["BT_NO_PARSE_CLI_ARGS"] = "false"
         parser = argparse.ArgumentParser(
             description="Arctura Base subnet miner",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,

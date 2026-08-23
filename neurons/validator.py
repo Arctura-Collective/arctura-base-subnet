@@ -38,6 +38,7 @@ from typing import Any
 import bittensor as bt
 
 from arctura_base.base_rpc import BaseRPCClient
+from arctura_base.bittensor_runtime import load_metagraph
 from arctura_base.incentive import (
     apply_stewardship_modifier,
     compute_calibration_accuracy,
@@ -79,7 +80,7 @@ class ArcturaValidator:
         self.wallet = bt.Wallet(config=self.config)
         self.subtensor = bt.Subtensor(config=self.config)
         self.dendrite = bt.Dendrite(wallet=self.wallet)
-        self.metagraph = self.subtensor.metagraph(self.config.netuid)
+        self.metagraph = load_metagraph(self.subtensor, self.config.netuid)
 
         # Base chain client (for reference block hash verification)
         self.base_client = BaseRPCClient()
@@ -100,6 +101,9 @@ class ArcturaValidator:
 
     @staticmethod
     def _build_config() -> Any:
+        # Bittensor v10 disables CLI parsing by default. Neuron entry points
+        # must honor their explicit wallet, network, netuid, and runtime flags.
+        os.environ["BT_NO_PARSE_CLI_ARGS"] = "false"
         parser = argparse.ArgumentParser(
             description="Arctura Base subnet validator",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,

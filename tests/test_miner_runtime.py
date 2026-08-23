@@ -1,11 +1,39 @@
 """Runtime compatibility checks for the miner neuron."""
 
 import inspect
+import sys
 
 import bittensor as bt
 
 from arctura_base.protocol import BaseSubnetSynapse
 from neurons.miner import ArcturaMiner
+
+
+def test_miner_config_honors_v10_cli_flags(monkeypatch):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "miner",
+            "--wallet.name",
+            "arctura_miner",
+            "--wallet.hotkey",
+            "default",
+            "--subtensor.network",
+            "test",
+            "--netuid",
+            "505",
+            "--axon.port",
+            "8191",
+        ],
+    )
+
+    config = ArcturaMiner._build_config()
+
+    assert config.wallet.name == "arctura_miner"
+    assert config.subtensor.network == "test"
+    assert config.netuid == 505
+    assert config.axon.port == 8191
 
 
 def test_forward_synapse_annotation_is_runtime_class():

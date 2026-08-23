@@ -1,9 +1,40 @@
 """Runtime compatibility checks for the validator neuron."""
 
+import sys
 from types import SimpleNamespace
 
 from arctura_base.protocol import BaseSubnetSynapse
 from neurons.validator import ArcturaValidator
+
+
+def test_validator_config_honors_v10_cli_flags(monkeypatch):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "validator",
+            "--wallet.name",
+            "arctura_val",
+            "--wallet.hotkey",
+            "default",
+            "--subtensor.network",
+            "test",
+            "--netuid",
+            "505",
+            "--timeout",
+            "30",
+            "--tempo",
+            "360",
+        ],
+    )
+
+    config = ArcturaValidator._build_config()
+
+    assert config.wallet.name == "arctura_val"
+    assert config.subtensor.network == "test"
+    assert config.netuid == 505
+    assert config.timeout == 30
+    assert config.tempo == 360
 
 
 def test_validator_tempo_fallback_handles_none_config():
