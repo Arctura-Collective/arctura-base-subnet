@@ -14,7 +14,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 DEFAULT_REPO_DIR = Path("/home/ubuntu/arctura-base-subnet")
 LOG_NAMES = ("burn_cost.log", "validator.log")
 
@@ -81,9 +80,7 @@ def create_security_issue(repo_dir: Path, audit_output: str) -> str:
 
 
 def weekly_security_report(repo_dir: Path, create_issues: bool) -> str:
-    code, stdout, stderr = run_command(
-        [sys.executable, "scripts/dependency_audit.py"], repo_dir
-    )
+    code, stdout, stderr = run_command([sys.executable, "scripts/dependency_audit.py"], repo_dir)
     audit_output = "\n".join(part for part in (stdout, stderr) if part)
     if code == 0:
         issue_status = "No GitHub issue created; audit passed."

@@ -28,28 +28,30 @@ Apache-2.0
 
 from __future__ import annotations
 
-import hashlib
 from arctura_base.protocol import BaseSubnetSynapse
 from arctura_base.utils import verify_merkle_proof
-
 
 # ── Constants ─────────────────────────────────────────────────────────────
 
 # Required execution steps that a complete miner trace must contain
-REQUIRED_STEPS: frozenset[str] = frozenset({
-    "rpc_fetch",
-    "output_hash",
-    "merkle_build",
-    "block_anchor",
-})
+REQUIRED_STEPS: frozenset[str] = frozenset(
+    {
+        "rpc_fetch",
+        "output_hash",
+        "merkle_build",
+        "block_anchor",
+    }
+)
 
 # Dimension weights — must sum to 1.0
-WEIGHT_ATTESTATION   = 0.40
-WEIGHT_COMPLETENESS  = 0.30
-WEIGHT_LATENCY       = 0.20
-WEIGHT_CALIBRATION   = 0.10
+WEIGHT_ATTESTATION = 0.40
+WEIGHT_COMPLETENESS = 0.30
+WEIGHT_LATENCY = 0.20
+WEIGHT_CALIBRATION = 0.10
 
-assert abs(WEIGHT_ATTESTATION + WEIGHT_COMPLETENESS + WEIGHT_LATENCY + WEIGHT_CALIBRATION - 1.0) < 1e-9
+assert (
+    abs(WEIGHT_ATTESTATION + WEIGHT_COMPLETENESS + WEIGHT_LATENCY + WEIGHT_CALIBRATION - 1.0) < 1e-9
+)
 
 # Latency grace window (blocks after deadline_block before score hits 0.0)
 LATENCY_GRACE_BLOCKS = 12  # ~2.4 minutes at 12s/block
@@ -57,13 +59,14 @@ LATENCY_GRACE_BLOCKS = 12  # ~2.4 minutes at 12s/block
 # P5 Stewardship modifiers
 STEWARDSHIP_MODIFIER: dict[str, float] = {
     "renewable_verified": 1.15,
-    "renewable_claimed":  1.05,
-    "unknown":            1.00,
-    "high_carbon":        0.90,
+    "renewable_claimed": 1.05,
+    "unknown": 1.00,
+    "high_carbon": 0.90,
 }
 
 
 # ── Dimension 1: Attestation validity ─────────────────────────────────────
+
 
 def score_attestation(
     synapse: BaseSubnetSynapse,
@@ -103,6 +106,7 @@ def score_attestation(
 
 # ── Dimension 2: Execution completeness ───────────────────────────────────
 
+
 def score_completeness(synapse: BaseSubnetSynapse) -> float:
     """
     Score how completely the miner's execution trace covers required steps.
@@ -122,6 +126,7 @@ def score_completeness(synapse: BaseSubnetSynapse) -> float:
 
 
 # ── Dimension 3: Response latency ─────────────────────────────────────────
+
 
 def score_latency(response_block: int, deadline_block: int) -> float:
     """
@@ -154,6 +159,7 @@ def score_latency(response_block: int, deadline_block: int) -> float:
 
 # ── Dimension 4: Confidence calibration ───────────────────────────────────
 
+
 def compute_calibration_accuracy(
     reported_confidence: float,
     actual_score: float,
@@ -176,6 +182,7 @@ def compute_calibration_accuracy(
 
 
 # ── Main scoring function ──────────────────────────────────────────────────
+
 
 def score_response(
     synapse: BaseSubnetSynapse,
@@ -208,15 +215,15 @@ def score_response(
         return 0.0
 
     # Compute each dimension
-    attestation  = score_attestation(synapse, live_block_hash)
+    attestation = score_attestation(synapse, live_block_hash)
     completeness = score_completeness(synapse)
-    latency      = score_latency(response_block, synapse.deadline_block)
+    latency = score_latency(response_block, synapse.deadline_block)
 
     # Base score (without calibration dimension, for calibration computation)
     base_score = (
-        WEIGHT_ATTESTATION  * attestation
+        WEIGHT_ATTESTATION * attestation
         + WEIGHT_COMPLETENESS * completeness
-        + WEIGHT_LATENCY      * latency
+        + WEIGHT_LATENCY * latency
     )
 
     # Calibration dimension uses historical accuracy
@@ -228,6 +235,7 @@ def score_response(
 
 
 # ── P5 Stewardship modifier ───────────────────────────────────────────────
+
 
 def apply_stewardship_modifier(base_score: float, energy_tag: str) -> float:
     """
@@ -249,6 +257,7 @@ def apply_stewardship_modifier(base_score: float, energy_tag: str) -> float:
 
 # ── Sybil detection ───────────────────────────────────────────────────────
 
+
 def detect_hash_collision(
     uid_hashes: dict[int, str | None],
 ) -> set[int]:
@@ -269,9 +278,10 @@ def detect_hash_collision(
     Returns:
         Set of UIDs flagged for potential Sybil behavior.
     """
-    COLLISION_THRESHOLD = 3  # Flag if >3 miners share the same hash
+    collision_threshold = 3  # Flag if >3 miners share the same hash
 
     from collections import defaultdict
+
     hash_to_uids: dict[str, list[int]] = defaultdict(list)
 
     for uid, h in uid_hashes.items():
@@ -280,13 +290,14 @@ def detect_hash_collision(
 
     flagged: set[int] = set()
     for h, uids in hash_to_uids.items():
-        if len(uids) > COLLISION_THRESHOLD:
+        if len(uids) > collision_threshold:
             flagged.update(uids)
 
     return flagged
 
 
 # ── Weight normalization ───────────────────────────────────────────────────
+
 
 def normalize_weights(weights: list[float]) -> list[float]:
     """

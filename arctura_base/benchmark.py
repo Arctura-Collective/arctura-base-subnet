@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import statistics
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -12,7 +11,6 @@ from typing import Any
 
 from arctura_base.base_rpc import BaseRPCClient
 from arctura_base.utils import hash_canonical_output
-
 
 DEFAULT_BALANCE_ADDRESS = "0x4200000000000000000000000000000000000006"
 
@@ -46,9 +44,7 @@ class BenchmarkResult:
             "failures": self.failures,
             "failure_rate": self.failures / self.iterations if self.iterations else 0.0,
             "rpc_calls": self.rpc_calls,
-            "rpc_calls_per_iteration": self.rpc_calls / self.iterations
-            if self.iterations
-            else 0.0,
+            "rpc_calls_per_iteration": self.rpc_calls / self.iterations if self.iterations else 0.0,
             "hashes_stable": self.hashes_stable,
             "first_hash": self.first_hash,
             "latency_ms": {

@@ -5,9 +5,7 @@ from __future__ import annotations
 
 import importlib.metadata
 import re
-import sys
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT = ROOT / "pyproject.toml"
@@ -56,12 +54,12 @@ def main() -> int:
     print("==================================================")
     print("ARCTURA Base — Security & Dependency Audit Scanner")
     print("==================================================")
-    
+
     project_deps = read_project_dependencies()
     requirement_deps = read_requirements()
-    
+
     vulnerabilities_found = 0
-    
+
     print("\n[1] Direct Dependencies & Installed Versions:")
     for dep in project_deps:
         name = package_name(dep)

@@ -1,19 +1,21 @@
 """tests/test_base_rpc.py — Base RPC client tests (mocked)."""
-import json
-import pytest
+
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from arctura_base.base_rpc import BaseRPCClient
 
 
 @pytest.fixture
 def mock_client():
-    with patch("arctura_base.base_rpc.Web3") as MockWeb3:
+    with patch("arctura_base.base_rpc.Web3") as mock_web3:
         w3 = MagicMock()
         w3.is_connected.return_value = True
         w3.eth.chain_id = 8453
-        MockWeb3.return_value = w3
-        MockWeb3.HTTPProvider.return_value = MagicMock()
-        MockWeb3.to_checksum_address.side_effect = lambda x: x
+        mock_web3.return_value = w3
+        mock_web3.HTTPProvider.return_value = MagicMock()
+        mock_web3.to_checksum_address.side_effect = lambda x: x
         client = BaseRPCClient(rpc_url="http://mock")
         client.w3 = w3
         yield client

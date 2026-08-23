@@ -19,14 +19,15 @@ Apache-2.0
 
 from __future__ import annotations
 
-import json
 import os
 import time
-from typing import Any, Optional
+from collections.abc import Callable
+from typing import Any
 
 try:
     import bittensor as bt
 except ImportError:  # pragma: no cover - exercised in lightweight tooling environments
+
     class _FallbackLogging:
         @staticmethod
         def warning(message: str) -> None:
@@ -34,15 +35,19 @@ except ImportError:  # pragma: no cover - exercised in lightweight tooling envir
 
     bt = type("_FallbackBittensor", (), {"logging": _FallbackLogging()})()
 
+load_dotenv: Callable[..., object] | None
 try:
-    from dotenv import load_dotenv
+    from dotenv import load_dotenv as _load_dotenv
 except ImportError:  # pragma: no cover - dependency is declared for normal installs
     load_dotenv = None
+else:
+    load_dotenv = _load_dotenv
 
+Web3: Any
 try:
     from web3 import Web3
 except ImportError:  # pragma: no cover - exercised when optional runtime deps are absent
-    Web3 = None  # type: ignore[assignment]
+    Web3 = None
 
 BlockIdentifier = int | str
 
@@ -64,7 +69,7 @@ class BaseRPCClient:
 
     def __init__(
         self,
-        rpc_url: Optional[str] = None,
+        rpc_url: str | None = None,
         timeout: int = 10,
     ) -> None:
         """
@@ -79,7 +84,9 @@ class BaseRPCClient:
             load_dotenv()
         url = rpc_url or os.environ.get("BASE_RPC_URL", "https://mainnet.base.org")
         if Web3 is None:
-            raise ImportError("web3 is required for BaseRPCClient. Install project dependencies first.")
+            raise ImportError(
+                "web3 is required for BaseRPCClient. Install project dependencies first."
+            )
         self.w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": timeout}))
         self._block_hash_cache: dict[int, str] = {}
         self._verify_connection()
@@ -103,7 +110,7 @@ class BaseRPCClient:
 
     def get_latest_block_number(self) -> int:
         """Return the current latest block number on Base."""
-        return self.w3.eth.block_number
+        return int(self.w3.eth.block_number)
 
     def get_block_hash(self, block_number: int) -> str:
         """
@@ -116,15 +123,15 @@ class BaseRPCClient:
         if block_number in self._block_hash_cache:
             return self._block_hash_cache[block_number]
         block = self.w3.eth.get_block(block_number)
-        block_hash = block["hash"].hex()
+        block_hash = str(block["hash"].hex())
         self._block_hash_cache[block_number] = block_hash
         return block_hash
 
     def get_balance(
         self,
         address: str,
-        token_address: Optional[str] = None,
-        block_number: Optional[int] = None,
+        token_address: str | None = None,
+        block_number: int | None = None,
     ) -> dict:
         """
         Fetch native ETH or ERC-20 token balance at a specific block.
@@ -137,7 +144,7 @@ class BaseRPCClient:
         Returns:
             {"address": str, "balance": int, "block_number": int, "token": str | None}
         """
-        block_id: BlockIdentifier = block_number if block_number is not None else "latest"
+        block_id: Any = block_number if block_number is not None else "latest"
         checksum_addr = Web3.to_checksum_address(address)
 
         if token_address is None:
@@ -147,17 +154,18 @@ class BaseRPCClient:
         else:
             # ERC-20 balance via balanceOf(address) view call
             erc20_abi = [
-                {"name": "balanceOf", "type": "function",
-                 "inputs": [{"name": "account", "type": "address"}],
-                 "outputs": [{"name": "", "type": "uint256"}],
-                 "stateMutability": "view"}
+                {
+                    "name": "balanceOf",
+                    "type": "function",
+                    "inputs": [{"name": "account", "type": "address"}],
+                    "outputs": [{"name": "", "type": "uint256"}],
+                    "stateMutability": "view",
+                }
             ]
             contract = self.w3.eth.contract(
                 address=Web3.to_checksum_address(token_address), abi=erc20_abi
             )
-            balance = contract.functions.balanceOf(checksum_addr).call(
-                block_identifier=block_id
-            )
+            balance = contract.functions.balanceOf(checksum_addr).call(block_identifier=block_id)
             token = token_address
 
         actual_block = block_number if block_number is not None else self.w3.eth.block_number
@@ -176,7 +184,7 @@ class BaseRPCClient:
         event_name: str,
         from_block: int,
         to_block: int,
-        filter_args: Optional[dict] = None,
+        filter_args: dict | None = None,
     ) -> dict:
         """
         Fetch contract event logs in a block range.
@@ -192,32 +200,30 @@ class BaseRPCClient:
         Returns:
             {"event": str, "from_block": int, "to_block": int, "logs": list, "count": int}
         """
-        contract = self.w3.eth.contract(
-            address=Web3.to_checksum_address(contract_address), abi=abi
-        )
+        contract = self.w3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=abi)
         event = getattr(contract.events, event_name)
 
         # Fetch and serialize (web3 objects aren't JSON-serializable directly)
-        log_filter = {"fromBlock": from_block, "toBlock": to_block}
+        log_filter: dict[str, Any] = {"fromBlock": from_block, "toBlock": to_block}
         if filter_args:
             log_filter["argument_filters"] = filter_args
         raw_logs = event.get_logs(**log_filter)
         serialized = [
             {
-                "blockNumber":      log["blockNumber"],
-                "transactionHash":  log["transactionHash"].hex(),
-                "logIndex":         log["logIndex"],
-                "args":             {k: str(v) for k, v in log["args"].items()},
+                "blockNumber": log["blockNumber"],
+                "transactionHash": log["transactionHash"].hex(),
+                "logIndex": log["logIndex"],
+                "args": {k: str(v) for k, v in log["args"].items()},
             }
             for log in raw_logs
         ]
 
         return {
-            "event":      event_name,
+            "event": event_name,
             "from_block": from_block,
-            "to_block":   to_block,
-            "logs":       serialized,
-            "count":      len(serialized),
+            "to_block": to_block,
+            "logs": serialized,
+            "count": len(serialized),
         }
 
     def call_view(
@@ -226,7 +232,7 @@ class BaseRPCClient:
         abi: list,
         function_name: str,
         args: list,
-        block_number: Optional[int] = None,
+        block_number: int | None = None,
     ) -> dict:
         """
         Call a view/pure contract function at a specific block.
@@ -241,19 +247,17 @@ class BaseRPCClient:
         Returns:
             {"function": str, "args": list, "result": Any, "block_number": int}
         """
-        contract = self.w3.eth.contract(
-            address=Web3.to_checksum_address(contract_address), abi=abi
-        )
+        contract = self.w3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=abi)
         func = getattr(contract.functions, function_name)
-        block_id: BlockIdentifier = block_number if block_number is not None else "latest"
+        block_id: Any = block_number if block_number is not None else "latest"
         result = func(*args).call(block_identifier=block_id)
 
         actual_block = block_number if block_number is not None else self.w3.eth.block_number
 
         return {
-            "function":    function_name,
-            "args":        [str(a) for a in args],
-            "result":      str(result),
+            "function": function_name,
+            "args": [str(a) for a in args],
+            "result": str(result),
             "block_number": actual_block,
         }
 
@@ -262,7 +266,7 @@ class BaseRPCClient:
     def execute_mandate(
         self,
         query_type: str,
-        contract_address: Optional[str],
+        contract_address: str | None,
         block_range: tuple[int, int],
         payload: dict,
     ) -> dict:
@@ -320,6 +324,7 @@ class BaseRPCClient:
         elif query_type == "agent_action":
             # Delegate to AgentKit adapter — requires CDP credentials
             from arctura_base.agentkit import execute_agent_action
+
             result = execute_agent_action(
                 action_type=payload["action_type"],
                 action_args=payload.get("action_args", {}),
@@ -333,9 +338,9 @@ class BaseRPCClient:
 
         duration_ms = int((time.time() - start_ts) * 1000)
         result["_meta"] = {
-            "query_type":  query_type,
+            "query_type": query_type,
             "duration_ms": duration_ms,
-            "block_hash":  self.get_block_hash(effective_to),
+            "block_hash": self.get_block_hash(effective_to),
         }
 
         return result

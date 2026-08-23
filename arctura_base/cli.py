@@ -6,12 +6,16 @@ import argparse
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
+load_dotenv: Callable[..., object] | None
 try:
-    from dotenv import load_dotenv
+    from dotenv import load_dotenv as _load_dotenv
 except ImportError:  # pragma: no cover - dependency is declared for normal installs
     load_dotenv = None
+else:
+    load_dotenv = _load_dotenv
 
 
 if load_dotenv is not None:
@@ -192,7 +196,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    return args.func(args)
+    command = args.func
+    return int(command(args))
 
 
 if __name__ == "__main__":

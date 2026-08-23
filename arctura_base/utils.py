@@ -19,10 +19,9 @@ import hashlib
 import json
 import os
 import re
-from typing import Any
-
 
 # ── Hashing ───────────────────────────────────────────────────────────────
+
 
 def hash_output(output: dict) -> str:
     """
@@ -65,6 +64,7 @@ def hash_canonical_output(output: dict) -> str:
 
 
 # ── Merkle proof ──────────────────────────────────────────────────────────
+
 
 def build_merkle_proof(
     attestation_hash: str,
@@ -140,9 +140,7 @@ def verify_merkle_proof(
 
         for i, node in enumerate(proof):
             expected_sibling_input = f"{salt}:{i}:{current}"
-            expected_sibling = hashlib.sha256(
-                expected_sibling_input.encode()
-            ).hexdigest()
+            expected_sibling = hashlib.sha256(expected_sibling_input.encode()).hexdigest()
 
             # The sibling hash in the proof must match what we'd generate
             if node.get("hash") != expected_sibling:
@@ -167,12 +165,14 @@ def verify_merkle_proof(
 
 # ── P5 Stewardship ────────────────────────────────────────────────────────
 
-_VALID_ENERGY_TAGS: frozenset[str] = frozenset({
-    "renewable_verified",
-    "renewable_claimed",
-    "unknown",
-    "high_carbon",
-})
+_VALID_ENERGY_TAGS: frozenset[str] = frozenset(
+    {
+        "renewable_verified",
+        "renewable_claimed",
+        "unknown",
+        "high_carbon",
+    }
+)
 
 
 def get_energy_tag() -> str:
@@ -192,6 +192,7 @@ def get_energy_tag() -> str:
 
 # ── EVM address helpers ───────────────────────────────────────────────────
 
+
 def format_address(address: str) -> str:
     """
     Normalize an EVM address to checksummed format.
@@ -202,6 +203,7 @@ def format_address(address: str) -> str:
         raise ValueError(f"Invalid EVM address: {address!r}")
     try:
         from web3 import Web3
+
         return Web3.to_checksum_address(address)
     except ImportError:
         return address
