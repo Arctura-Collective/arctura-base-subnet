@@ -290,15 +290,22 @@
         throw new Error(`Ticker data returned ${response.status}`);
       }
       const data = await response.json();
-      if (!data.ok) {
-        throw new Error(data.error || "Ticker data is unavailable");
-      }
-      currentCostTao = Number(data.cost_tao);
-      costEl.textContent = data.cost_tao || "--";
       networkEl.textContent = data.network || "finney";
       updatedEl.textContent = formatUpdated(data.collected_at);
       sourceEl.textContent = data.source || "btcli subnet burn_cost --subtensor.network finney";
       warningEl.textContent = data.warning || warningEl.textContent;
+      if (!data.ok) {
+        currentCostTao = null;
+        costEl.textContent = data.cost_label || "--";
+        usdEl.textContent = "USD estimate unavailable";
+        rateEl.textContent = "Live Finney registration cost unavailable. Re-check before launch.";
+        statusEl.textContent = data.error || "Ticker data is unavailable";
+        dotEl.style.background = "var(--warn)";
+        dotEl.style.boxShadow = "0 0 18px var(--warn)";
+        return;
+      }
+      currentCostTao = Number(data.cost_tao);
+      costEl.textContent = data.cost_tao || "--";
       rateEl.textContent = "Dynamic registration cost. Re-check within 30 minutes before launch.";
       statusEl.textContent = "Live data loaded";
       dotEl.style.background = "var(--good)";
