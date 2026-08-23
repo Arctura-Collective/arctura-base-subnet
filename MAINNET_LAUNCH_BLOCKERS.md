@@ -82,6 +82,8 @@ git diff --check
 - [ ] Owner coldkey mnemonic stored offline in at least two separate locations
 - [ ] Validator coldkey mnemonic stored offline
 - [ ] Miner coldkey mnemonic stored offline
+- [ ] Key rotation and emergency custody procedure reviewed:
+  `docs/KEY_ROTATION_AND_CUSTODY.md`
 - [ ] Final operator approval recorded with date, burn cost, wallet names, and command
 
 Verify without mutation:
@@ -111,6 +113,7 @@ systemctl --user cat arctura-miner arctura-validator arctura-health.timer
 cat deploy/systemd/operator.env.example
 cat docs/SUBNET_LAUNCH.md
 cat docs/GO_NO_GO_CHECKLIST.md
+cat docs/KEY_ROTATION_AND_CUSTODY.md
 ```
 
 ## Commands Forbidden Until Final Approval
