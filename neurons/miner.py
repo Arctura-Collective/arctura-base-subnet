@@ -28,7 +28,7 @@ Apache-2.0
 import argparse
 import os
 import time
-from typing import Any
+from typing import Any, Tuple  # noqa: UP035 - required by Bittensor Axon signature checks
 
 import bittensor as bt
 
@@ -126,7 +126,7 @@ class ArcturaMiner:
 
     # ── Axon middleware ───────────────────────────────────────────────────
 
-    def blacklist(self, synapse: BaseSubnetSynapse) -> tuple[bool, str]:
+    def blacklist(self, synapse: BaseSubnetSynapse) -> Tuple[bool, str]:  # noqa: UP006
         """
         Reject synapse requests from unregistered or unknown hotkeys.
 

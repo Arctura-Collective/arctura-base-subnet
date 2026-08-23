@@ -2,6 +2,7 @@
 
 import inspect
 import sys
+from typing import Tuple  # noqa: UP035 - mirrors Bittensor's runtime contract
 
 import bittensor as bt
 
@@ -46,7 +47,7 @@ def test_forward_synapse_annotation_is_runtime_class():
 def test_blacklist_signature_matches_bittensor_axon_contract():
     signature = inspect.signature(ArcturaMiner.blacklist)
     assert signature.parameters["synapse"].annotation is BaseSubnetSynapse
-    assert signature.return_annotation == tuple[bool, str]
+    assert signature.return_annotation == Tuple[bool, str]  # noqa: UP006
 
 
 def test_forward_refuses_invalid_payload_before_rpc():
