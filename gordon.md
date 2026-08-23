@@ -22,9 +22,14 @@ the branch Gordon reviewed, so use current source as authoritative.
 - Issue #6 is partially addressed through a Prometheus textfile exporter,
   optional systemd timer, and alert rules. This does not replace a hosted
   Prometheus/Grafana deployment.
-- Remaining high-priority work: port conflict detection, disk/inode monitoring,
-  key rotation procedure, stricter latency/deadline scoring, and deeper
-  calibration hardening.
+- Finding 3.1 is addressed in `neurons/miner.py`: the miner checks whether the
+  configured axon port is already listening and fails before starting the axon.
+- Finding 3.2 is partially addressed in `scripts/check_ubuntu_readiness.sh` and
+  `docs/VPS_PROVISIONING_CHECKLIST.md`: launch preflight now checks disk and
+  inode usage, and provisioning docs include journal footprint bounds. This is
+  not a replacement for hosted disk alerts.
+- Remaining high-priority work: key rotation procedure, stricter
+  latency/deadline scoring, and deeper calibration hardening.
 
 ---
 

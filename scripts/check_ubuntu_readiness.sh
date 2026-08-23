@@ -7,6 +7,7 @@ set -u -o pipefail
 
 REPO_DIR="${1:-$HOME/arctura-base-subnet}"
 FAILURES=0
+DISK_WARN_PERCENT="${ARCTURA_DISK_WARN_PERCENT:-80}"
 
 pass() { printf '[PASS] %s\n' "$1"; }
 warn() { printf '[WARN] %s\n' "$1"; }
@@ -30,6 +31,35 @@ if [[ -d "$REPO_DIR" ]]; then
 else
   fail 'repository directory missing'
 fi
+
+check_usage() {
+  local path="$1"
+  local label="$2"
+  if [[ ! -e "$path" ]]; then
+    warn "$label path unavailable for disk check: $path"
+    return
+  fi
+  local disk_percent inode_percent
+  disk_percent="$(df -P "$path" | awk 'NR==2 {gsub("%", "", $5); print $5}')"
+  inode_percent="$(df -Pi "$path" | awk 'NR==2 {gsub("%", "", $5); print $5}')"
+  if [[ -z "$disk_percent" || -z "$inode_percent" ]]; then
+    warn "$label disk/inode usage could not be determined"
+    return
+  fi
+  if (( disk_percent >= DISK_WARN_PERCENT )); then
+    fail "$label disk usage ${disk_percent}% exceeds threshold ${DISK_WARN_PERCENT}%"
+  else
+    pass "$label disk usage ${disk_percent}% below threshold ${DISK_WARN_PERCENT}%"
+  fi
+  if (( inode_percent >= DISK_WARN_PERCENT )); then
+    fail "$label inode usage ${inode_percent}% exceeds threshold ${DISK_WARN_PERCENT}%"
+  else
+    pass "$label inode usage ${inode_percent}% below threshold ${DISK_WARN_PERCENT}%"
+  fi
+}
+
+check_usage "$REPO_DIR" "repository filesystem"
+check_usage "$HOME" "home filesystem"
 
 for command in python3 git docker btcli; do
   require_command "$command"

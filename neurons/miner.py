@@ -27,6 +27,7 @@ Apache-2.0
 
 import argparse
 import os
+import socket
 import time
 from typing import Any, Tuple  # noqa: UP035 - required by Bittensor Axon signature checks
 
@@ -271,8 +272,20 @@ class ArcturaMiner:
 
     # ── Run loop ──────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _verify_port_available(port: int, host: str = "127.0.0.1") -> None:
+        """Fail fast when another process is already bound to the axon port."""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1.0)
+            if sock.connect_ex((host, port)) == 0:
+                raise RuntimeError(
+                    f"Axon port {port} is already in use on {host}. "
+                    "Stop the conflicting process or set MINER_AXON_PORT to a free port."
+                )
+
     def run(self) -> None:
         """Start the miner axon and enter the main loop."""
+        self._verify_port_available(int(self.config.axon.port))
         self.axon.start()
         self.axon.serve(netuid=self.config.netuid, subtensor=self.subtensor)
 
