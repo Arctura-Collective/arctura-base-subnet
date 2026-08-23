@@ -32,6 +32,19 @@ def read_log(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+def log_from_marker(log: str, marker: str) -> str:
+    """
+    Return log content from the first live marker onward.
+
+    If the marker is absent, return the full log so missing-start failures do
+    not hide fatal startup errors.
+    """
+    marker_index = log.find(marker)
+    if marker_index == -1:
+        return log
+    return log[marker_index:]
+
+
 def evaluate_evidence(
     *,
     started_at: datetime,
@@ -48,16 +61,24 @@ def evaluate_evidence(
 ) -> dict[str, Any]:
     """Return a machine-readable launch-gate report."""
     elapsed_hours = max(0.0, (now - started_at).total_seconds() / 3600)
-    combined = "\n".join((miner_log, validator_log, health_log))
-    fatal_counts = {marker: combined.lower().count(marker.lower()) for marker in FATAL_MARKERS}
+    miner_live_marker = "Arctura Base miner live"
+    validator_live_marker = "Arctura Base validator live"
+    fatal_window = "\n".join(
+        (
+            log_from_marker(miner_log, miner_live_marker),
+            log_from_marker(validator_log, validator_live_marker),
+            health_log,
+        )
+    )
+    fatal_counts = {marker: fatal_window.lower().count(marker.lower()) for marker in FATAL_MARKERS}
     attestations = miner_log.count("Mandate attested")
     weight_commits = validator_log.count("Weights set")
     health_passes = health_log.count('"ok": true')
 
     checks = {
         "duration": elapsed_hours >= minimum_hours,
-        "miner_started": "Arctura Base miner live" in miner_log,
-        "validator_started": "Arctura Base validator live" in validator_log,
+        "miner_started": miner_live_marker in miner_log,
+        "validator_started": validator_live_marker in validator_log,
         "attestations": attestations > 0,
         "weight_commits": weight_commits >= minimum_weight_commits,
         "health_samples": health_passes >= minimum_health_checks,
