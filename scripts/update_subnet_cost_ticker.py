@@ -54,9 +54,39 @@ def build_payload(
     }
 
 
+def build_unavailable_payload(
+    *,
+    network: str,
+    command: list[str],
+    error: str,
+    collected_at: datetime | None = None,
+) -> dict[str, object]:
+    """Build a ticker payload when live burn cost cannot be collected."""
+    observed_at = collected_at or datetime.now(timezone.utc)
+    return {
+        "schema_version": 1,
+        "ok": False,
+        "network": network,
+        "cost_tao": None,
+        "cost_label": "Unavailable",
+        "source": " ".join(command),
+        "raw_output": "",
+        "collected_at": observed_at.isoformat().replace("+00:00", "Z"),
+        "error": error,
+        "warning": (
+            "Live burn cost is unavailable from this runner. Do not use this snapshot "
+            "for registration. Re-check live burn cost within 30 minutes of any Finney "
+            "registration and require explicit operator approval before spend."
+        ),
+    }
+
+
 def run_burn_cost(command: list[str]) -> tuple[Decimal, str]:
     """Run btcli and return the parsed subnet registration cost."""
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False)
+    except OSError as exc:
+        raise RuntimeError(f"Burn-cost command unavailable: {command[0]}") from exc
     output = "\n".join(part for part in (result.stdout, result.stderr) if part)
     if result.returncode != 0:
         raise RuntimeError(output.strip() or f"Command failed with exit code {result.returncode}")
@@ -83,13 +113,21 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     command = args.command or ["btcli", "subnet", "burn_cost", "--subtensor.network", args.network]
-    cost_tao, raw_output = run_burn_cost(command)
-    payload = build_payload(
-        cost_tao=cost_tao,
-        network=args.network,
-        command=command,
-        raw_output=raw_output,
-    )
+    try:
+        cost_tao, raw_output = run_burn_cost(command)
+    except RuntimeError as exc:
+        payload = build_unavailable_payload(
+            network=args.network,
+            command=command,
+            error=str(exc),
+        )
+    else:
+        payload = build_payload(
+            cost_tao=cost_tao,
+            network=args.network,
+            command=command,
+            raw_output=raw_output,
+        )
     write_payload(args.output, payload)
     print(f"Wrote {args.output}: {payload['cost_label']}")
     return 0

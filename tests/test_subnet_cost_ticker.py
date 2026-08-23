@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
-from scripts.update_subnet_cost_ticker import build_payload, parse_tao_amount
+from scripts.update_subnet_cost_ticker import (
+    build_payload,
+    build_unavailable_payload,
+    parse_tao_amount,
+    run_burn_cost,
+)
 
 
 @pytest.mark.parametrize(
@@ -40,3 +46,33 @@ def test_build_payload_is_stable() -> None:
     assert payload["cost_label"] == "773.1718 TAO"
     assert payload["collected_at"] == "2026-08-23T22:45:00Z"
     assert "explicit operator approval" in str(payload["warning"])
+
+
+def test_build_unavailable_payload_blocks_registration_use() -> None:
+    payload = build_unavailable_payload(
+        network="finney",
+        command=["btcli", "subnet", "burn_cost", "--subtensor.network", "finney"],
+        error="Burn-cost command unavailable: btcli",
+        collected_at=datetime(2026, 8, 23, 22, 45, tzinfo=timezone.utc),
+    )
+
+    assert payload["ok"] is False
+    assert payload["cost_tao"] is None
+    assert payload["cost_label"] == "Unavailable"
+    assert "Do not use this snapshot" in str(payload["warning"])
+    assert payload["error"] == "Burn-cost command unavailable: btcli"
+
+
+def test_run_burn_cost_reports_missing_command() -> None:
+    with pytest.raises(RuntimeError, match="Burn-cost command unavailable"):
+        run_burn_cost(["definitely-missing-btcli-for-test"])
+
+
+def test_cost_page_renders_unavailable_payload_without_throwing() -> None:
+    page = (Path(__file__).resolve().parents[1] / "docs" / "subnet-cost.html").read_text(
+        encoding="utf-8"
+    )
+
+    assert "if (!data.ok)" in page
+    assert "costEl.textContent = data.cost_label" in page
+    assert "return;" in page
