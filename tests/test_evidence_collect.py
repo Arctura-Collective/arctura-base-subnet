@@ -43,6 +43,40 @@ def test_collect_writes_complete_evidence_bundle(tmp_path):
     assert (tmp_path / "report.json").is_file()
 
 
+def test_collect_preserves_each_service_start_marker(tmp_path):
+    starts = {
+        "arctura-miner": "2026-06-16T23:55:00+00:00",
+        "arctura-validator": "2026-06-17T00:00:00+00:00",
+    }
+    journal_since = {}
+
+    def runner(command):
+        service = command[command.index("-u") + 1] if "-u" in command else command[3]
+        if command[0] == "systemctl":
+            return completed(
+                command,
+                f"ActiveEnterTimestamp={starts[service]}\nNRestarts=0\nActiveState=active\n",
+            )
+        journal_since[service] = command[command.index("--since") + 1]
+        logs = {
+            "arctura-miner": "Arctura Base miner live\nMandate attested\n",
+            "arctura-validator": "Arctura Base validator live\nWeights set\n",
+            "arctura-health": '{"ok": true}\n' * 576,
+        }
+        return completed(command, logs[service])
+
+    report = collect(
+        tmp_path,
+        runner=runner,
+        now=datetime(2026, 6, 19, 1, tzinfo=timezone.utc),
+    )
+
+    assert report["ok"] is True
+    assert report["run"]["started_at"] == starts["arctura-validator"]
+    assert journal_since["arctura-miner"] == starts["arctura-miner"]
+    assert journal_since["arctura-validator"] == starts["arctura-validator"]
+
+
 def test_collect_rejects_inactive_service(tmp_path):
     def runner(command):
         return completed(

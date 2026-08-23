@@ -78,11 +78,16 @@ def journal(service: str, started_at: datetime, runner: Runner = run) -> str:
 def collect(output_dir: Path, runner: Runner = run, now: datetime | None = None) -> dict:
     """Write journals and a gate report, returning the report."""
     properties = {service: service_properties(service, runner) for service in SERVICES}
-    starts = [parse_systemd_timestamp(properties[s]["ActiveEnterTimestamp"]) for s in SERVICES]
-    started_at = max(starts)
+    starts = {
+        service: parse_systemd_timestamp(properties[service]["ActiveEnterTimestamp"])
+        for service in SERVICES
+    }
+    started_at = max(starts.values())
     logs = {
-        "miner": journal("arctura-miner", started_at, runner),
-        "validator": journal("arctura-validator", started_at, runner),
+        # Preserve each current activation marker while anchoring the minimum
+        # uninterrupted duration to the later neuron start.
+        "miner": journal("arctura-miner", starts["arctura-miner"], runner),
+        "validator": journal("arctura-validator", starts["arctura-validator"], runner),
         "health": journal("arctura-health", started_at, runner),
     }
     collected_at = now or datetime.now(timezone.utc)
@@ -99,6 +104,9 @@ def collect(output_dir: Path, runner: Runner = run, now: datetime | None = None)
         "started_at": started_at.isoformat(),
         "collected_at": collected_at.isoformat(),
         "services": properties,
+        "journal_started_at": {
+            service: timestamp.isoformat() for service, timestamp in starts.items()
+        },
     }
     output_dir.mkdir(parents=True, exist_ok=True)
     for role, content in logs.items():
