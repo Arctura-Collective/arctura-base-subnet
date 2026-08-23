@@ -193,26 +193,21 @@ class ArcturaValidator:
 
     def _get_active_miner_uids(self) -> list[int]:
         """
-        Return serving miner UIDs, excluding this validator and validator peers.
+        Return serving Axon UIDs, excluding this validator's own UID.
+
+        A validator permit is not a reliable role signal: on small subnets a
+        miner may also hold a permit. Excluding permitted UIDs can therefore
+        remove every eligible miner from the scoring set.
         """
         try:
             my_uid = self.metagraph.hotkeys.index(self.wallet.hotkey.ss58_address)
         except ValueError:
             my_uid = -1
 
-        validator_permits = getattr(self.metagraph, "validator_permit", None)
-
-        def has_validator_permit(uid: int) -> bool:
-            if validator_permits is None:
-                return False
-            return bool(validator_permits[uid])
-
         return [
             uid
             for uid in range(len(self.metagraph.S))
-            if uid != my_uid
-            and not has_validator_permit(uid)
-            and bool(self.metagraph.axons[uid].is_serving)
+            if uid != my_uid and bool(self.metagraph.axons[uid].is_serving)
         ]
 
     def _get_historical_calibration(self, hotkey: str) -> float:
