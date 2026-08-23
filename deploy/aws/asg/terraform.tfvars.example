@@ -1,0 +1,7 @@
+bt_netuid                = 0
+runtime_user             = "ubuntu"
+miner_ami_id            = "ami-00000000000000000"
+instance_profile_name   = "arctura-ec2-runtime"
+security_group_ids      = ["sg-00000000000000000"]
+subnet_ids              = ["subnet-00000000000000000", "subnet-11111111111111111"]
+alertmanager_webhook_url = "https://alertmanager.example.com/api/v2/alerts"
