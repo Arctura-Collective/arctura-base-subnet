@@ -1,67 +1,88 @@
-# Arctura Base Subnet: Prometheus & Grafana Monitoring Architecture
+# Arctura Base Monitoring and Metrics
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
-**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
+Arctura exposes launch-readiness metrics through a Prometheus textfile exporter.
+This avoids opening extra HTTP ports on the miner or validator and keeps
+monitoring separate from wallet and Bittensor process authority.
 
----
+## Exporter
 
-## 1. Metric Exporter Integration for Bittensor Neurons
+Run once:
 
-Because standard Bittensor neurons use gRPC/Axon transport rather than native HTTP Prometheus endpoints, production monitoring requires embedding `prometheus_client` in `neurons/validator.py` and `neurons/miner.py` to expose a local `/metrics` TCP port (e.g., port `9090` for validators, `9091` for miners).
-
-### Example Exporter Snippet (`arctura_base/metrics.py`)
-```python
-from prometheus_client import start_http_server, Counter, Histogram, Gauge
-
-# Define core subnet metrics
-VALIDATION_LATENCY = Histogram(
-    "arctura_validation_latency_seconds", "Time taken to verify miner attestation"
-)
-VALIDATOR_WEIGHTS_SET = Counter(
-    "arctura_validator_weights_set_total", "Total number of successful weight commits"
-)
-MINER_SUCCESSFUL_PROOFS = Counter(
-    "miner_successful_proofs_total", "Total valid Merkle proofs generated"
-)
-NEURON_UPTIME = Gauge("arctura_neuron_uptime_seconds", "Active uptime of the neuron process")
-
-
-def init_metrics(port: int):
-    start_http_server(port)
-    print(f"Prometheus metrics server started on port {port}")
+```bash
+python scripts/export_prometheus_metrics.py
 ```
 
----
+Default output:
 
-## 2. Verified Prometheus Alert Rules (`alert.rules.yml`)
-
-```yaml
-groups:
-  - name: arctura_production_alerts
-    rules:
-      - alert: NeuronProcessDown
-        expr: up{job=~"arctura-.*"} == 0
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Arctura neuron container down ({{ $labels.job }})"
-          description: "The Prometheus scrape target has been unreachable for over 1 minute."
-
-      - alert: HighValidationLatency
-        expr: histogram_quantile(0.95, rate(arctura_validation_latency_seconds_bucket[5m])) > 5.0
-        for: 3m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High validation latency on validator node"
-          description: "P95 validation latency exceeds 5 seconds."
+```text
+~/.local/share/arctura/metrics/arctura.prom
 ```
 
----
+The exporter reads the same systemd services and journals as
+`arctura-collect-evidence`, writes the evidence bundle under
+`runs/mainnet-evidence`, and atomically writes Prometheus metrics.
 
-## References
+Key metrics:
 
-- [Bittensor Documentation](https://www.bittensor.com/docs) [11]
-- [Prometheus Client Python](https://github.com/prometheus/client_python)
+- `arctura_evidence_gate_ok`
+- `arctura_evidence_elapsed_hours`
+- `arctura_evidence_check_pass{check="duration"}`
+- `arctura_attestations_total`
+- `arctura_weight_commits_total`
+- `arctura_health_passes_total`
+- `arctura_service_active{service="arctura-miner"}`
+- `arctura_service_restarts_total{service="arctura-validator"}`
+- `arctura_fatal_markers_total{marker="Traceback_..."}`
+
+## Systemd Timer
+
+Install the optional timer on the launch host:
+
+```bash
+cp deploy/systemd/arctura-metrics.service deploy/systemd/arctura-metrics.timer \
+  ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now arctura-metrics.timer
+```
+
+Verify:
+
+```bash
+systemctl --user status arctura-metrics.timer
+systemctl --user start arctura-metrics.service
+cat ~/.local/share/arctura/metrics/arctura.prom
+```
+
+## Prometheus Integration
+
+Use node-exporter's textfile collector on the host that runs the neurons:
+
+```bash
+node_exporter \
+  --collector.textfile.directory="$HOME/.local/share/arctura/metrics"
+```
+
+Then add or merge `deploy/prometheus/arctura-alerts.yml` into the Prometheus
+rule files. The included rules cover:
+
+- exporter failure
+- miner or validator service down
+- neuron restart during the monitored window
+- fatal journal marker
+- evidence gate still red after 48 hours
+
+## Grafana Panels
+
+Recommended panels:
+
+- SingleStat: `arctura_evidence_gate_ok`
+- Gauge: `arctura_evidence_elapsed_hours`
+- Table: `arctura_evidence_check_pass`
+- Timeseries: `arctura_health_passes_total`
+- Timeseries: `arctura_attestations_total`
+- Timeseries: `arctura_weight_commits_total`
+- Timeseries: `arctura_service_restarts_total`
+
+Monitoring does not replace the launch gate. Mainnet remains blocked until
+`arctura-collect-evidence` returns `ok: true` and the operator gives explicit
+approval for any Finney spend.

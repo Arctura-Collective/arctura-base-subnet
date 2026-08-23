@@ -8,7 +8,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-FATAL_MARKERS = ("Traceback (most recent call last)", "uncaught exception", "CRITICAL")
+FATAL_MARKERS = (
+    "Traceback (most recent call last)",
+    "uncaught exception",
+    "CRITICAL",
+    "SystemExit",
+    "KeyboardInterrupt",
+    "RuntimeError",
+    "bittensor.errors",
+)
 
 
 def parse_timestamp(value: str) -> datetime:
@@ -34,8 +42,9 @@ def evaluate_evidence(
     miner_restarts: int,
     validator_restarts: int,
     minimum_hours: float = 48.0,
-    minimum_health_checks: int = 500,
-    maximum_restarts: int = 3,
+    minimum_health_checks: int = 570,
+    minimum_weight_commits: int = 2,
+    maximum_restarts: int = 0,
 ) -> dict[str, Any]:
     """Return a machine-readable launch-gate report."""
     elapsed_hours = max(0.0, (now - started_at).total_seconds() / 3600)
@@ -50,7 +59,7 @@ def evaluate_evidence(
         "miner_started": "Arctura Base miner live" in miner_log,
         "validator_started": "Arctura Base validator live" in validator_log,
         "attestations": attestations > 0,
-        "weight_commits": weight_commits > 0,
+        "weight_commits": weight_commits >= minimum_weight_commits,
         "health_samples": health_passes >= minimum_health_checks,
         "restart_budget": max(miner_restarts, validator_restarts) <= maximum_restarts,
         "no_fatal_errors": not any(fatal_counts.values()),
@@ -142,8 +151,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--miner-restarts", type=int, required=True)
     parser.add_argument("--validator-restarts", type=int, required=True)
     parser.add_argument("--minimum-hours", type=float, default=48.0)
-    parser.add_argument("--minimum-health-checks", type=int, default=500)
-    parser.add_argument("--maximum-restarts", type=int, default=3)
+    parser.add_argument("--minimum-health-checks", type=int, default=570)
+    parser.add_argument("--minimum-weight-commits", type=int, default=2)
+    parser.add_argument("--maximum-restarts", type=int, default=0)
     parser.add_argument("--output", type=Path)
     return parser
 
@@ -160,6 +170,7 @@ def main(argv: list[str] | None = None) -> int:
         validator_restarts=args.validator_restarts,
         minimum_hours=args.minimum_hours,
         minimum_health_checks=args.minimum_health_checks,
+        minimum_weight_commits=args.minimum_weight_commits,
         maximum_restarts=args.maximum_restarts,
     )
     rendered = json.dumps(report, indent=2, sort_keys=True)

@@ -9,11 +9,9 @@ Scoring dimensions (Phase 01):
     20%  Response latency        — response within deadline_block
     10%  Confidence calibration  — historical accuracy of miner self-scoring
 
-P5 Stewardship modifier applied after base score computation:
-    renewable_verified  → ×1.15 (+15%)
-    renewable_claimed   → ×1.05 (+5%)
-    unknown             → ×1.00 (no change)
-    high_carbon         → ×0.90 (-10%)
+P5 Stewardship modifier:
+    Phase 01 treats energy tags as telemetry only. Self-declared tags do not
+    change weights until a validator-verifiable provenance mechanism exists.
 
 Anti-gaming properties:
     • Fabricated hash:     Merkle proof verification fails → 0.0
@@ -241,18 +239,19 @@ def apply_stewardship_modifier(base_score: float, energy_tag: str) -> float:
     """
     Apply P5 Stewardship carbon-aware weight modifier.
 
-    Miners who declare verified renewable energy sources receive higher weight.
-    This incentivizes low-carbon operation at the infrastructure level.
+    Phase 01 miners self-report energy provenance. Self-declared tags are not a
+    safe basis for emissions, so the modifier is disabled until provenance can be
+    validated independently.
 
     Args:
         base_score:  Resonance BFT score before stewardship adjustment.
         energy_tag:  Miner's declared energy provenance tag.
 
     Returns:
-        Adjusted score, capped at 1.0.
+        Unmodified score, capped to [0.0, 1.0].
     """
-    modifier = STEWARDSHIP_MODIFIER.get(energy_tag, 1.00)
-    return round(min(base_score * modifier, 1.0), 6)
+    _ = energy_tag
+    return round(min(max(base_score, 0.0), 1.0), 6)
 
 
 # ── Sybil detection ───────────────────────────────────────────────────────

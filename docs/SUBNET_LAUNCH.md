@@ -86,13 +86,13 @@ arctura-collect-evidence --output-dir runs/mainnet-evidence
 ```
 
 `arctura-collect-evidence` exits nonzero unless the run lasted at least 48 hours, both
-neurons started, an attestation and weight commit succeeded, at least 500
-five-minute health samples passed, restart counts stayed within budget, and no
+neurons started, an attestation and at least two weight commits succeeded, at
+least 570 five-minute health samples passed, restart counts stayed at zero, and no
 fatal error markers appeared. The `runs/` directory is ignored because logs can
 contain operational metadata; share the reviewed report deliberately.
 
 The 48-hour gate passes only when both neurons remained active, health checks
-continued succeeding, at least one non-zero weight commit is present, and the
+continued succeeding, at least two non-zero weight commits are present, and the
 logs contain no uncaught exceptions. Do not infer success from process state
 alone.
 

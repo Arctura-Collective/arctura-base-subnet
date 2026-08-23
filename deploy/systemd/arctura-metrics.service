@@ -1,0 +1,11 @@
+[Unit]
+Description=Arctura Base Prometheus textfile metrics export
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/arctura-base-subnet.env
+ExecStart=/usr/bin/bash -lc 'cd "$ARCTURA_REPO" && "$ARCTURA_PYTHON" scripts/export_prometheus_metrics.py'
+NoNewPrivileges=true
+PrivateTmp=true

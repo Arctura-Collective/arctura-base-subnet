@@ -41,10 +41,10 @@ def test_evidence_passes_complete_48_hour_run():
         started_at=started,
         now=started + timedelta(hours=49),
         miner_log="Arctura Base miner live\nMandate attested\n" * 2,
-        validator_log="Arctura Base validator live\nWeights set\n",
+        validator_log="Arctura Base validator live\nWeights set\nWeights set\n",
         health_log='{"ok": true}\n' * 576,
         miner_restarts=0,
-        validator_restarts=1,
+        validator_restarts=0,
     )
 
     assert report["ok"] is True
@@ -60,9 +60,9 @@ def test_evidence_passes_complete_48_hour_run():
             {"miner_log": "Arctura Base miner live\nTraceback (most recent call last)"},
             "no_fatal_errors",
         ),
-        ({"validator_log": "Arctura Base validator live"}, "weight_commits"),
-        ({"health_log": '{"ok": true}\n' * 10}, "health_samples"),
-        ({"miner_restarts": 4}, "restart_budget"),
+        ({"validator_log": "Arctura Base validator live\nWeights set\n"}, "weight_commits"),
+        ({"health_log": '{"ok": true}\n' * 569}, "health_samples"),
+        ({"miner_restarts": 1}, "restart_budget"),
     ],
 )
 def test_evidence_fails_incomplete_or_unhealthy_run(override, failed_check):
@@ -71,7 +71,7 @@ def test_evidence_fails_incomplete_or_unhealthy_run(override, failed_check):
         "started_at": started,
         "now": started + timedelta(hours=49),
         "miner_log": "Arctura Base miner live\nMandate attested",
-        "validator_log": "Arctura Base validator live\nWeights set",
+        "validator_log": "Arctura Base validator live\nWeights set\nWeights set",
         "health_log": '{"ok": true}\n' * 576,
         "miner_restarts": 0,
         "validator_restarts": 0,

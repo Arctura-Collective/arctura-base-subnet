@@ -19,9 +19,9 @@ the operator gives explicit final approval.
 - [ ] Evidence window is based on the systemd-managed services, not the older
   template helper and not the foreground probe
 - [ ] Report includes at least one successful attestation
-- [ ] Report includes at least one successful weight commit inside the evidence window
-- [ ] Health samples meet the required threshold
-- [ ] Restart counts remain within budget
+- [ ] Report includes at least two successful weight commits inside the evidence window
+- [ ] Health samples meet the required threshold (`570` by default)
+- [ ] Restart counts remain at zero during the evidence window
 - [ ] Fatal journal markers are absent
 
 Verify without mutation:

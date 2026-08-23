@@ -82,11 +82,11 @@ class TestLatencyScoring:
 
 
 class TestStewardshipModifier:
-    def test_renewable_verified_boost(self):
-        assert apply_stewardship_modifier(0.8, "renewable_verified") > 0.8
+    def test_renewable_verified_does_not_self_award_boost(self):
+        assert apply_stewardship_modifier(0.8, "renewable_verified") == 0.8
 
-    def test_high_carbon_penalty(self):
-        assert apply_stewardship_modifier(0.8, "high_carbon") < 0.8
+    def test_high_carbon_self_declaration_does_not_change_score(self):
+        assert apply_stewardship_modifier(0.8, "high_carbon") == 0.8
 
     def test_unknown_no_change(self):
         assert apply_stewardship_modifier(0.8, "unknown") == 0.8

@@ -1,0 +1,47 @@
+groups:
+  - name: arctura_launch_readiness
+    rules:
+      - alert: ArcturaMetricsExporterFailed
+        expr: arctura_evidence_collector_ok == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Arctura metrics exporter failed"
+          description: "The launch metrics textfile exporter could not render current evidence state."
+
+      - alert: ArcturaNeuronServiceDown
+        expr: arctura_service_active{service=~"arctura-(miner|validator)"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Arctura neuron service down"
+          description: "{{ $labels.service }} is not active according to systemd evidence metrics."
+
+      - alert: ArcturaNeuronRestarted
+        expr: increase(arctura_service_restarts_total{service=~"arctura-(miner|validator)"}[15m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Arctura neuron restarted"
+          description: "{{ $labels.service }} restarted during the monitored window."
+
+      - alert: ArcturaFatalJournalMarker
+        expr: increase(arctura_fatal_markers_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Fatal Arctura journal marker observed"
+          description: "Fatal marker {{ $labels.marker }} appeared in the evidence window."
+
+      - alert: ArcturaEvidenceGateStillRed
+        expr: arctura_evidence_gate_ok == 0 and arctura_evidence_elapsed_hours > 48
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Arctura evidence gate still red after 48 hours"
+          description: "The evidence run reached 48 hours but at least one launch gate is still failing."
