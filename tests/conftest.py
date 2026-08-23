@@ -50,11 +50,11 @@ if find_spec("bittensor") is None:
             full_path="",
         )
 
-    bittensor.Synapse = Synapse
-    bittensor.Config = _config
-    bittensor.logging = _Logging()
-    bittensor.Subtensor = _ArgProvider()
-    bittensor.Wallet = _ArgProvider()
-    bittensor.Axon = _ArgProvider()
-    bittensor.Dendrite = _ArgProvider()
+    setattr(bittensor, "Synapse", Synapse)
+    setattr(bittensor, "Config", _config)
+    setattr(bittensor, "logging", _Logging())
+    setattr(bittensor, "Subtensor", _ArgProvider())
+    setattr(bittensor, "Wallet", _ArgProvider())
+    setattr(bittensor, "Axon", _ArgProvider())
+    setattr(bittensor, "Dendrite", _ArgProvider())
     sys.modules["bittensor"] = bittensor

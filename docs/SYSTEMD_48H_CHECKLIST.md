@@ -3,7 +3,11 @@
 Use this checklist for the supervised Arctura Base testnet run before any Finney
 launch decision.
 
-Current run anchor: `Tue 2026-07-07 19:50:43 PDT`
+Current run anchor: `Sun 2026-08-23 15:34:42 PDT`
+
+The miner entered `active` at `Sun 2026-08-23 15:31:18 PDT`; the validator
+entered `active` at `Sun 2026-08-23 15:34:42 PDT`. Use the later timestamp as
+the formal evidence-window start.
 
 ## Service Install
 
@@ -31,8 +35,8 @@ loginctl show-user "$USER" --property=Linger
 - [x] Validator issued a mandate to UID `1`
 - [x] Miner attested a systemd-managed mandate
 - [x] Validator scored UID `1`
-- [ ] Validator commits at least one non-zero weight during the uninterrupted systemd run
-- [ ] Restart counts remain within budget
+- [x] Validator commits at least one non-zero weight during the uninterrupted systemd run
+- [x] Restart counts remain within budget
 - [ ] Health timer emits at least 500 passing samples
 - [ ] No fatal journal markers during the 48-hour window
 
@@ -41,9 +45,9 @@ Verify:
 ```bash
 systemctl --user show arctura-miner arctura-validator \
   --property=ActiveState,SubState,MainPID,ActiveEnterTimestamp,NRestarts
-journalctl --user -u arctura-miner --since "2026-07-07 19:50:43" --no-pager
-journalctl --user -u arctura-validator --since "2026-07-07 19:50:43" --no-pager
-journalctl --user -u arctura-health --since "2026-07-07 19:50:43" --no-pager
+journalctl --user -u arctura-miner --since "2026-08-23 15:31:18" --no-pager
+journalctl --user -u arctura-validator --since "2026-08-23 15:34:42" --no-pager
+journalctl --user -u arctura-health --since "2026-08-23 15:34:42" --no-pager
 ```
 
 ## Unit Robustness
@@ -75,7 +79,7 @@ grep -R "OnUnitActiveSec=5min\\|Persistent=true" deploy/systemd/arctura-health.t
 Collect after the 48-hour window:
 
 ```bash
-cd /home/brimstone/gbrain-work/arctura-base-subnet
+cd /home/brimstone/arctura-base-subnet-live
 arctura-collect-evidence --output-dir runs/mainnet-evidence
 python -m json.tool runs/mainnet-evidence/report.json
 ```

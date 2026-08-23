@@ -17,7 +17,8 @@ operator-facing blocker list and non-mutating verification commands.
 - [x] `neurons/miner.py` — returns valid `merkle_proof` (verify_merkle_proof passes)
 - [x] `neurons/miner.py` — `block_hash_anchor` matches real Base block hash
 - [x] `neurons/validator.py` — submitted non-zero testnet weights successfully
-- [x] `pytest tests/ -v` passes with no failures (103 tests on 2026-07-08)
+- [x] `pytest tests/ -q` passes with no failures (113 tests on 2026-08-23)
+- [x] Bittensor v10.5 testnet miner and validator complete one attestation and one non-zero weight commit
 - [ ] No uncaught exceptions in 48h testnet run
 
 ## Network
@@ -30,8 +31,9 @@ operator-facing blocker list and non-mutating verification commands.
 - [ ] Owner coldkey mnemonic stored offline in ≥2 separate locations
 - [ ] Validator coldkey mnemonic stored offline
 - [ ] Miner coldkey mnemonic stored offline
-- [ ] Auto-restart configured (systemd or PM2) for both neurons
-- [ ] Monitoring configured for axon uptime
+- [x] Auto-restart configured with systemd for both neurons
+- [x] Five-minute health timer configured for supervised testnet evidence
+- [ ] Monitoring host selected for mainnet axon uptime
 
 User-level service templates and a five-minute preflight timer are provided in
 `deploy/systemd/`. Track the supervised testnet run in

@@ -15,10 +15,17 @@ Because standard Bittensor neurons use gRPC/Axon transport rather than native HT
 from prometheus_client import start_http_server, Counter, Histogram, Gauge
 
 # Define core subnet metrics
-VALIDATION_LATENCY = Histogram('arctura_validation_latency_seconds', 'Time taken to verify miner attestation')
-VALIDATOR_WEIGHTS_SET = Counter('arctura_validator_weights_set_total', 'Total number of successful weight commits')
-MINER_SUCCESSFUL_PROOFS = Counter('miner_successful_proofs_total', 'Total valid Merkle proofs generated')
-NEURON_UPTIME = Gauge('arctura_neuron_uptime_seconds', 'Active uptime of the neuron process')
+VALIDATION_LATENCY = Histogram(
+    "arctura_validation_latency_seconds", "Time taken to verify miner attestation"
+)
+VALIDATOR_WEIGHTS_SET = Counter(
+    "arctura_validator_weights_set_total", "Total number of successful weight commits"
+)
+MINER_SUCCESSFUL_PROOFS = Counter(
+    "miner_successful_proofs_total", "Total valid Merkle proofs generated"
+)
+NEURON_UPTIME = Gauge("arctura_neuron_uptime_seconds", "Active uptime of the neuron process")
+
 
 def init_metrics(port: int):
     start_http_server(port)

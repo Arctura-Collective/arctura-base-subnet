@@ -6,11 +6,11 @@ the operator gives explicit final approval.
 ## Current Status
 
 - Testnet netuid: `505`
-- Current 48-hour run start: `Tue 2026-07-07 19:50:43 PDT`
+- Current 48-hour run start: `Sun 2026-08-23 15:34:42 PDT`
 - Miner service: `arctura-miner.service`
 - Validator service: `arctura-validator.service`
 - Health timer: `arctura-health.timer`
-- Current repo checkpoint: intentionally uncommitted
+- Current repo checkpoint: `codex/live-launch`
 
 ## Blocked Until: Testnet Evidence
 
@@ -27,22 +27,22 @@ the operator gives explicit final approval.
 Verify without mutation:
 
 ```bash
-cd /home/brimstone/gbrain-work/arctura-base-subnet
+cd /home/brimstone/arctura-base-subnet-live
 systemctl --user show arctura-miner arctura-validator \
   --property=ActiveState,SubState,MainPID,ActiveEnterTimestamp,NRestarts
-journalctl --user -u arctura-miner --since "2026-07-07 19:50:43" --no-pager
-journalctl --user -u arctura-validator --since "2026-07-07 19:50:43" --no-pager
-journalctl --user -u arctura-health --since "2026-07-07 19:50:43" --no-pager
+journalctl --user -u arctura-miner --since "2026-08-23 15:31:18" --no-pager
+journalctl --user -u arctura-validator --since "2026-08-23 15:34:42" --no-pager
+journalctl --user -u arctura-health --since "2026-08-23 15:34:42" --no-pager
 arctura-collect-evidence --output-dir runs/mainnet-evidence
 python -m json.tool runs/mainnet-evidence/report.json
 ```
 
 ## Blocked Until: Code and Review
 
-- [ ] Current checkpoint is reviewed and committed intentionally
-- [ ] Full test suite passes after the final checkpoint
-- [ ] Focused Ruff check/format passes on changed files
-- [ ] `git diff --check` passes
+- [x] Current checkpoint is reviewed and committed intentionally
+- [x] Full test suite passes after the final checkpoint
+- [x] Ruff check/format passes
+- [x] `git diff --check` passes
 - [ ] Gordon prompt 1 evidence-gate findings are either resolved or explicitly accepted
 - [ ] Gordon prompt 2 scoring/adversarial findings are either resolved or explicitly accepted
 - [ ] Decision recorded: current scoring vs. hardened scoring before mainnet
@@ -50,27 +50,25 @@ python -m json.tool runs/mainnet-evidence/report.json
 
 Already satisfied in the current checkpoint:
 
-- [x] Local full suite passed with `103` tests on 2026-07-08
-- [x] Focused Ruff check/format over changed surface passed
+- [x] Local full suite passed with `113` tests on 2026-08-23
+- [x] Ruff check/format over the repo passed
 - [x] `git diff --check` passed
 - [x] Finney register/stake CLI guard exists via `--confirm-finney`
 - [x] Finney preflight rejects non-Base-mainnet chain id
+- [x] Bittensor v10.5 runtime compatibility verified on testnet
+- [x] Systemd-managed testnet services emitted one attestation and one non-zero
+  weight commit on 2026-08-23
 
 Verify without mutation:
 
 ```bash
-cd /home/brimstone/gbrain-work/arctura-base-subnet
+cd /home/brimstone/arctura-base-subnet-live
 git status --short
 git diff --stat
-/home/brimstone/gbrain-work/subnet-template-venv/bin/python -m pytest tests/ -q
-/home/brimstone/gbrain-work/subnet-template-venv/bin/python -m ruff check \
-  arctura_base/base_rpc.py arctura_base/cli.py arctura_base/evidence.py \
-  arctura_base/evidence_collect.py tests/test_cli.py tests/test_evidence.py \
-  tests/test_evidence_collect.py tests/test_systemd_units.py
-/home/brimstone/gbrain-work/subnet-template-venv/bin/python -m ruff format --check \
-  arctura_base/base_rpc.py arctura_base/cli.py arctura_base/evidence.py \
-  arctura_base/evidence_collect.py tests/test_cli.py tests/test_evidence.py \
-  tests/test_evidence_collect.py tests/test_systemd_units.py
+.venv/bin/python -m pytest tests/ -q
+.venv/bin/python -m ruff check .
+.venv/bin/python -m ruff format --check .
+.venv/bin/python -m mypy arctura_base neurons scripts tests
 git diff --check
 ```
 

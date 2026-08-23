@@ -76,8 +76,9 @@ import bittensor as bt
 
 # Distribution Ratios
 CORE_ENGINEERING_SHARE = 0.40  # 40% of treasury emissions
-SYNDICATE_SHARE = 0.30         # 30% to validator syndicates
-LIQUIDITY_POOL_SHARE = 0.30    # 30% to dTAO AMM liquidity
+SYNDICATE_SHARE = 0.30  # 30% to validator syndicates
+LIQUIDITY_POOL_SHARE = 0.30  # 30% to dTAO AMM liquidity
+
 
 def distribute_emissions(total_treasury_tao: float):
     eng_amount = total_treasury_tao * CORE_ENGINEERING_SHARE
@@ -91,6 +92,7 @@ def distribute_emissions(total_treasury_tao: float):
 
     # In production, integrate btcli wallet transfer calls here
     # bt.wallet(name="owner").substrate.transfer(...)
+
 
 if __name__ == "__main__":
     intake = float(sys.argv[1]) if len(sys.argv) > 1 else 100.0
