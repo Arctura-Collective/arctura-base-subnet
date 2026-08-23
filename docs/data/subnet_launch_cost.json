@@ -1,11 +1,12 @@
 {
-  "collected_at": "2026-08-23T22:49:11.362362Z",
-  "cost_label": "772.9978 TAO",
-  "cost_tao": "772.9978",
+  "collected_at": "2026-08-23T23:46:37.958461Z",
+  "cost_label": "Unavailable",
+  "cost_tao": null,
+  "error": "Burn-cost command unavailable: btcli",
   "network": "finney",
-  "ok": true,
-  "raw_output": "Subnet burn cost: \u200e772.9978 \u03c4\u200e",
+  "ok": false,
+  "raw_output": "",
   "schema_version": 1,
   "source": "btcli subnet burn_cost --subtensor.network finney",
-  "warning": "Planning signal only. Re-check live burn cost within 30 minutes of any Finney registration and require explicit operator approval before spend."
+  "warning": "Live burn cost is unavailable from this runner. Do not use this snapshot for registration. Re-check live burn cost within 30 minutes of any Finney registration and require explicit operator approval before spend."
 }
