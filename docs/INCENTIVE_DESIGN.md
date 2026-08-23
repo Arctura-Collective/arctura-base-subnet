@@ -12,7 +12,7 @@ weights, which determine TAO emission distribution.
 | Attestation validity | 40% | Merkle proof valid + block_hash_anchor matches |
 | Execution completeness | 30% | execution_trace covers all required steps |
 | Response latency | 20% | Response within deadline_block |
-| Confidence calibration | 10% | Historical accuracy of self-reported confidence |
+| Confidence calibration | 10% | Warmed-up, variance-penalized historical accuracy of self-reported confidence |
 
 ## Anti-Gaming Properties
 
@@ -23,7 +23,8 @@ weights, which determine TAO emission distribution.
 | Pre-computed proof | block_hash_anchor tied to a block that must exist at query time |
 | Incomplete execution | Completeness scoring penalizes missing trace steps |
 | Sybil (identical hashes) | Hash collision detection → 75% score penalty |
-| Overconfident miner | Calibration tracking penalizes consistent miscalibration |
+| New or thin-history miner | No calibration bonus until enough observations exist |
+| Overconfident or drifting miner | Calibration tracking penalizes consistent miscalibration and unstable confidence history |
 
 ## P5 Stewardship Modifier
 

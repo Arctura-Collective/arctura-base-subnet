@@ -200,7 +200,7 @@ def score_response(
     synapse: BaseSubnetSynapse,
     live_block_hash: str,
     response_block: int,
-    historical_calibration: float = 0.5,
+    historical_calibration: float = 0.0,
 ) -> float:
     """
     Compute the Resonance BFT score for a miner's synapse response.
@@ -218,7 +218,7 @@ def score_response(
         live_block_hash:        Block hash the validator fetched independently.
         response_block:         Bittensor block at which the response arrived.
         historical_calibration: Miner's historical confidence accuracy (0.0–1.0).
-                                Default 0.5 (neutral) for new miners.
+                                Default 0.0 for unproven/new miners.
 
     Returns:
         Float [0.0, 1.0] — the Resonance BFT score.

@@ -68,6 +68,8 @@ class ArcturaValidator:
     # Tempo period in blocks (default: 360 blocks = ~72 minutes)
     DEFAULT_TEMPO = 360
     MIN_DEADLINE_BLOCKS = 30
+    CALIBRATION_WARMUP_SAMPLES = 5
+    CALIBRATION_VARIANCE_PENALTY = 0.50
     WEIGHT_SET_RETRIES = 3
     WEIGHT_SET_RETRY_SECONDS = 5
 
@@ -218,14 +220,25 @@ class ArcturaValidator:
 
     def _get_historical_calibration(self, hotkey: str) -> float:
         """
-        Return the rolling-window average calibration accuracy for a miner.
-        Defaults to 0.0 for new miners with no history; unproven confidence
-        claims should not earn a calibration bonus.
+        Return a variance-penalized calibration score for a miner.
+
+        New or thin-history miners receive no calibration bonus. Once enough
+        observations exist, unstable confidence histories are penalized so a
+        miner cannot build trust and then drift into overconfident fabrication.
         """
         history = self._calibration_history.get(hotkey, [])
-        if not history:
+        return self._score_calibration_history(history)
+
+    @classmethod
+    def _score_calibration_history(cls, history: list[float]) -> float:
+        """Score historical confidence accuracy with warm-up and variance controls."""
+        if len(history) < cls.CALIBRATION_WARMUP_SAMPLES:
             return 0.0
-        return sum(history) / len(history)
+
+        mean = sum(history) / len(history)
+        variance = sum((sample - mean) ** 2 for sample in history) / len(history)
+        score = mean - cls.CALIBRATION_VARIANCE_PENALTY * variance
+        return round(min(max(score, 0.0), 1.0), 6)
 
     def _update_calibration(
         self, hotkey: str, reported_confidence: float, actual_base_score: float
