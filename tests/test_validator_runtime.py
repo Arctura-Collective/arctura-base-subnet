@@ -45,6 +45,11 @@ def test_validator_tempo_fallback_handles_none_config():
     assert tempo == ArcturaValidator.DEFAULT_TEMPO
 
 
+def test_validator_deadline_offset_uses_tight_bounded_window():
+    assert ArcturaValidator._deadline_offset(360) == 45
+    assert ArcturaValidator._deadline_offset(120) == 30
+
+
 def test_active_miner_uids_only_include_serving_axons():
     validator = object.__new__(ArcturaValidator)
     validator.wallet = SimpleNamespace(hotkey=SimpleNamespace(ss58_address="validator"))
