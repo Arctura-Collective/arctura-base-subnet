@@ -38,6 +38,10 @@ the branch Gordon reviewed, so use current source as authoritative.
 - Finding 3.3 is addressed in `docs/KEY_ROTATION_AND_CUSTODY.md`: owner,
   validator, miner, and treasury custody now have planned rotation, emergency
   revocation, incident escalation, and approval boundaries documented.
+- Finding 1.4 is addressed in `arctura_base/incentive.py`: hash-collision
+  detection now flags triads and larger groups by default (`>=3`) instead of
+  only four-or-more (`>3`), while leaving pair collisions unflagged because
+  deterministic mandates can make two honest miners return the same hash.
 - Remaining high-priority work: none from the Gordon high-priority triage list;
   mainnet remains blocked by live evidence, funding, multisig/operator approval,
   and unresolved repository issues.
