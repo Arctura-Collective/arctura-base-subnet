@@ -20,3 +20,11 @@ def test_readiness_checker_checks_environment_and_operational_logs():
     assert '"$REPO_DIR/.env"' in script
     assert "burn_cost.log validator.log" in script
     assert "No transaction or signing action was performed." in script
+
+
+def test_readiness_checker_checks_disk_and_inode_usage():
+    script = (ROOT / "scripts" / "check_ubuntu_readiness.sh").read_text(encoding="utf-8")
+    assert "ARCTURA_DISK_WARN_PERCENT" in script
+    assert "df -P" in script
+    assert "df -Pi" in script
+    assert "inode usage" in script

@@ -39,6 +39,16 @@ mkdir -p ~/gbrain-work
 mkdir -p ~/.bittensor/wallets
 ```
 
+Verify disk and inode headroom before copying wallets or starting services:
+
+```bash
+df -h ~ ~/gbrain-work ~/.bittensor
+df -ih ~ ~/gbrain-work ~/.bittensor
+```
+
+Do not start a 48-hour evidence run if any relevant filesystem is above `80%`
+disk or inode usage.
+
 ---
 
 ### 2. Copy Repository & Testnet Wallets
@@ -116,6 +126,18 @@ loginctl enable-linger "$USER"
 
 Execute these commands to verify that all components are correctly configured and operating.
 
+### Run Readiness Script
+Run the read-only readiness checker before starting the evidence window:
+
+```bash
+scripts/check_ubuntu_readiness.sh "$PWD"
+```
+
+The script checks core tools, Docker Compose, GitHub CLI auth state, environment
+file permissions, operational logs, disk usage, and inode usage. It never
+creates wallets, signs transactions, registers a subnet, restarts services, or
+moves funds.
+
 ### Verify Firewall & Inbound Port Routing
 Verify that the UFW rules are active and port `8191/tcp` is bound by the miner axon process:
 ```bash
@@ -125,6 +147,30 @@ sudo ufw status verbose
 # Confirm the miner axon is listening on port 8191
 ss -tulpn | grep 8191
 ```
+
+Before starting a second miner or changing `MINER_AXON_PORT`, confirm the target
+port is not already bound:
+
+```bash
+ss -tulpn | grep ":8191 " || true
+```
+
+The miner now fails fast if the configured axon port is already in use.
+
+### Verify Journal Footprint
+Bound persistent journal usage before a 48-hour run:
+
+```bash
+journalctl --disk-usage
+sudo mkdir -p /etc/systemd/journald.conf.d
+printf '%s\n' '[Journal]' 'SystemMaxUse=500M' 'RuntimeMaxUse=200M' | \
+  sudo tee /etc/systemd/journald.conf.d/arctura.conf
+sudo systemctl restart systemd-journald
+journalctl --disk-usage
+```
+
+Restarting `systemd-journald` does not restart the Arctura user services, but do
+this before anchoring the formal evidence window.
 
 ### Verify Wallets Directory & Structure
 Ensure only the specified testnet wallets are present:

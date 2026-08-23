@@ -1,10 +1,12 @@
 """Runtime compatibility checks for the miner neuron."""
 
 import inspect
+import socket
 import sys
 from typing import Tuple  # noqa: UP035 - mirrors Bittensor's runtime contract
 
 import bittensor as bt
+import pytest
 
 from arctura_base.protocol import BaseSubnetSynapse
 from neurons.miner import ArcturaMiner
@@ -81,3 +83,21 @@ def test_blacklist_requires_validator_permit():
 
     assert blocked is True
     assert "validator permit" in reason
+
+
+def test_port_guard_rejects_occupied_axon_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen()
+        port = listener.getsockname()[1]
+
+        with pytest.raises(RuntimeError, match="already in use"):
+            ArcturaMiner._verify_port_available(port)
+
+
+def test_port_guard_allows_free_axon_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as reserved:
+        reserved.bind(("127.0.0.1", 0))
+        port = reserved.getsockname()[1]
+
+    ArcturaMiner._verify_port_available(port)
