@@ -1,5 +1,7 @@
 """tests/test_scoring.py — Resonance BFT scoring unit tests."""
 
+import pytest
+
 from arctura_base.incentive import (
     REQUIRED_STEPS,
     apply_stewardship_modifier,
@@ -138,13 +140,28 @@ class TestSybilDetection:
 
     def test_collision_flagged(self):
         same = "a" * 64
-        hashes = {i: same for i in range(4)}
+        hashes = {i: same for i in range(3)}
         flagged = detect_hash_collision(hashes)
-        assert flagged == {0, 1, 2, 3}
+        assert flagged == {0, 1, 2}
+
+    def test_pair_collision_not_flagged_by_default(self):
+        same = "a" * 64
+        hashes = {0: same, 1: same, 2: "b" * 64}
+        assert detect_hash_collision(hashes) == set()
+
+    def test_collision_threshold_is_configurable(self):
+        same = "a" * 64
+        hashes = {0: same, 1: same, 2: "b" * 64}
+        assert detect_hash_collision(hashes, min_collision_size=2) == {0, 1}
 
     def test_none_hashes_ignored(self):
-        hashes = {0: None, 1: None, 2: "abc"}
+        hashes = {0: None, 1: None, 2: "", 3: "abc"}
         assert detect_hash_collision(hashes) == set()
+
+    def test_collision_threshold_must_be_at_least_two(self):
+        hashes = {0: "a" * 64}
+        with pytest.raises(ValueError, match="min_collision_size"):
+            detect_hash_collision(hashes, min_collision_size=1)
 
 
 class TestCalibration:

@@ -22,7 +22,7 @@ weights, which determine TAO emission distribution.
 | Stale attestation | block_hash_anchor mismatch → 0.0 |
 | Pre-computed proof | block_hash_anchor tied to a block that must exist at query time |
 | Incomplete execution | Completeness scoring penalizes missing trace steps |
-| Sybil (identical hashes) | Hash collision detection → 75% score penalty |
+| Sybil triads or larger (identical hashes) | Hash collision detection flags three-or-more UIDs sharing a hash in one tempo → 75% score penalty |
 | New or thin-history miner | No calibration bonus until enough observations exist |
 | Overconfident or drifting miner | Calibration tracking penalizes consistent miscalibration and unstable confidence history |
 

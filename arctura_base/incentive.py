@@ -275,6 +275,8 @@ def apply_stewardship_modifier(base_score: float, energy_tag: str) -> float:
 
 def detect_hash_collision(
     uid_hashes: dict[int, str | None],
+    *,
+    min_collision_size: int = 3,
 ) -> set[int]:
     """
     Detect potential Sybil attack: multiple miners returning identical attestation hashes.
@@ -284,28 +286,33 @@ def detect_hash_collision(
     hash (determinism), but near-identical timing combined with the same hash
     across many UIDs can indicate Sybil coordination.
 
-    Phase 01: flag UIDs sharing a hash with >2 other miners (threshold configurable).
+    Phase 01: flag UIDs sharing a hash with at least two other miners by default.
+    Pairs are not flagged by default because deterministic mandates can make two
+    honest miners return the same hash.
     Phase 02: cross-reference with historical patterns.
 
     Args:
         uid_hashes: {uid: base_state_hash | None} for all miners this tempo.
+        min_collision_size: Minimum number of UIDs sharing a non-empty hash
+            before the group is flagged.
 
     Returns:
         Set of UIDs flagged for potential Sybil behavior.
     """
-    collision_threshold = 3  # Flag if >3 miners share the same hash
+    if min_collision_size < 2:
+        raise ValueError("min_collision_size must be >= 2")
 
     from collections import defaultdict
 
     hash_to_uids: dict[str, list[int]] = defaultdict(list)
 
     for uid, h in uid_hashes.items():
-        if h is not None:
+        if h:
             hash_to_uids[h].append(uid)
 
     flagged: set[int] = set()
     for h, uids in hash_to_uids.items():
-        if len(uids) > collision_threshold:
+        if len(uids) >= min_collision_size:
             flagged.update(uids)
 
     return flagged
