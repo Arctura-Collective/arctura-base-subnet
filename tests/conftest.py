@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import sys
 import types
+from importlib.util import find_spec
 
-if "bittensor" not in sys.modules:
+if find_spec("bittensor") is None:
     bittensor = types.ModuleType("bittensor")
 
     class Synapse:
@@ -49,18 +50,11 @@ if "bittensor" not in sys.modules:
             full_path="",
         )
 
-    bittensor.Synapse = Synapse
-    bittensor.config = _config
-    bittensor.logging = _Logging()
-    bittensor.subtensor = _ArgProvider()
-    bittensor.wallet = _ArgProvider()
-    bittensor.axon = _ArgProvider()
+    setattr(bittensor, "Synapse", Synapse)
+    setattr(bittensor, "Config", _config)
+    setattr(bittensor, "logging", _Logging())
+    setattr(bittensor, "Subtensor", _ArgProvider())
+    setattr(bittensor, "Wallet", _ArgProvider())
+    setattr(bittensor, "Axon", _ArgProvider())
+    setattr(bittensor, "Dendrite", _ArgProvider())
     sys.modules["bittensor"] = bittensor
-
-
-if "torch" not in sys.modules:
-    torch = types.ModuleType("torch")
-    torch.int64 = "int64"
-    torch.float32 = "float32"
-    torch.tensor = lambda values, dtype=None: values
-    sys.modules["torch"] = torch

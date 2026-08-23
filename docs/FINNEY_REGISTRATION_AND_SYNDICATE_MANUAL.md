@@ -1,8 +1,8 @@
 # Arctura Base Subnet: Finney Registration & Syndicate Negotiation Manual
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repository:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 
 ---
 
@@ -108,7 +108,7 @@ Syndicate Offer:
 2. Validator Stake Weight: Commitment of [X,000] TAO stake directed to Arctura validators upon mainnet registration.
 3. Technical Partnership: Direct integration support for custom validator plugins and Resonance BFT scoring.
 
-We invite your technical lead to review our codebase at github.com/bittensaur/arctura-base-subnet and discuss terms ahead of our August 15 target window.
+We invite your technical lead to review our codebase at github.com/Arctura-Collective/arctura-base-subnet and discuss terms ahead of our August 15 target window.
 
 Regards,
 The Arctura Core Team

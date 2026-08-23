@@ -1,0 +1,11 @@
+[Unit]
+Description=Arctura Base subnet health check
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/arctura-base-subnet.env
+ExecStart=/usr/bin/bash -lc 'cd "$ARCTURA_REPO" && "$ARCTURA_PYTHON" -m arctura_base.cli preflight --network "$BT_NETWORK" --netuid "$BT_NETUID" --miner-wallet "$BT_MINER_WALLET" --validator-wallet "$BT_VALIDATOR_WALLET" --hotkey "$BT_DEFAULT_HOTKEY" --json'
+NoNewPrivileges=true
+PrivateTmp=true

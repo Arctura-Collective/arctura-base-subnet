@@ -19,8 +19,10 @@ Apache-2.0
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -61,8 +63,8 @@ ENV_SCHEMA: list[EnvVar] = [
     EnvVar("BT_DEFAULT_HOTKEY", "Default hotkey name", "default", True),
     # Neurons
     EnvVar("MINER_AXON_PORT", "Miner axon port", "8091", True),
-    EnvVar("VALIDATOR_AXON_PORT", "Validator axon port", "8092", True),
     EnvVar("VALIDATOR_TIMEOUT", "Miner response timeout (seconds)", "30", True),
+    EnvVar("VALIDATOR_TEMPO", "Weight cadence in Bittensor blocks", "360", True),
     # Stewardship
     EnvVar(
         "ARCTURA_ENERGY_TAG",
@@ -160,23 +162,22 @@ def info(msg: str) -> str:
 
 def check_rpc(url: str, timeout: int = 5) -> tuple[bool, str]:
     """Return (reachable, message)."""
+    if not url.startswith(("https://", "http://")):
+        return False, "RPC URL must use http:// or https://"
     try:
-        import json
-        import urllib.request
-
         payload = json.dumps({"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1})
         req = urllib.request.Request(
             url,
-            data=payload.encode(),
+            data=payload.encode("utf-8"),
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            data = json.loads(resp.read())
-            if "result" in data:
-                block = int(data["result"], 16)
-                return True, f"block #{block:,}"
-            return False, f"unexpected response: {data}"
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        if "result" in data:
+            block = int(data["result"], 16)
+            return True, f"block #{block:,}"
+        return False, f"unexpected response: {data}"
     except Exception as e:
         return False, str(e)
 
@@ -224,7 +225,7 @@ def write_env(path: Path, values: dict[str, str]) -> None:
         "BT_MINER_WALLET",
         "BT_DEFAULT_HOTKEY",
     ]
-    neuron_keys = ["MINER_AXON_PORT", "VALIDATOR_AXON_PORT", "VALIDATOR_TIMEOUT"]
+    neuron_keys = ["MINER_AXON_PORT", "VALIDATOR_TIMEOUT", "VALIDATOR_TEMPO"]
     other_keys = ["ARCTURA_ENERGY_TAG", "CDP_API_KEY_NAME", "CDP_API_KEY_PRIVATE_KEY", "LOG_LEVEL"]
 
     def emit(keys: list[str], header: str | None = None):

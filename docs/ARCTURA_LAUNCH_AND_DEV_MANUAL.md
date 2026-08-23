@@ -1,8 +1,8 @@
 # Arctura Base Subnet: Pre-Flight, Deck Hosting & Autonomous GitHub Developer Workflow
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repositories:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet) | [virtualmase/portfolio](https://github.com/virtualmase/portfolio)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repositories:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet) | [virtualmase/portfolio](https://github.com/virtualmase/portfolio)
 
 ---
 
@@ -46,7 +46,7 @@ You can host your pitch deck (`docs/pitch_deck.html`) publicly in minutes using 
 
 ### Option B: Vercel (Lightning Fast)
 1. Install Vercel CLI or connect your GitHub repository directly at [vercel.com](https://vercel.com).
-2. Import `bittensaur/arctura-base-subnet`.
+2. Import `Arctura-Collective/arctura-base-subnet`.
 3. Set root directory to root or `/docs`. Click **Deploy**. Vercel will assign a production URL (`arctura-base-subnet.vercel.app`) with automatic SSL.
 
 ---
@@ -68,7 +68,7 @@ You can host your pitch deck (`docs/pitch_deck.html`) publicly in minutes using 
 
 ## Part 4 — Autonomous Bittensor Developer & GitHub Workflow
 
-You asked how to train me (Manus) on coding, triage, and issue resolution across your repositories (such as `virtualmase/portfolio` and `bittensaur/arctura-base-subnet`). Here is the exact operational framework for how I act as your **Autonomous Bittensor Developer**:
+You asked how to train me (Manus) on coding, triage, and issue resolution across your repositories (such as `virtualmase/portfolio` and `Arctura-Collective/arctura-base-subnet`). Here is the exact operational framework for how I act as your **Autonomous Bittensor Developer**:
 
 ### 1. How I Interact with Your GitHub Repositories
 - **Pre-Configured GitHub CLI (`gh`):** I have direct access to GitHub via pre-authenticated `gh` commands in the sandbox shell.
@@ -80,7 +80,7 @@ When you assign a coding task or GitHub issue, provide instructions using this s
 
 ```markdown
 Task: [Describe bug fix, new miner feature, or RPC optimization]
-Repository: [bittensaur/arctura-base-subnet or virtualmase/portfolio]
+Repository: [Arctura-Collective/arctura-base-subnet or virtualmase/portfolio]
 Issue # / Reference: [Link or description]
 Acceptance Criteria:
 1. All unit tests must pass (`pytest tests/ -v`).

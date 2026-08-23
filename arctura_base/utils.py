@@ -204,7 +204,7 @@ def format_address(address: str) -> str:
     try:
         from web3 import Web3
 
-        return Web3.to_checksum_address(address)
+        return str(Web3.to_checksum_address(address))
     except ImportError:
         return address
 

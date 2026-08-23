@@ -33,11 +33,12 @@ import os
 import time
 import uuid
 from collections import defaultdict
+from typing import Any
 
 import bittensor as bt
-import torch
 
 from arctura_base.base_rpc import BaseRPCClient
+from arctura_base.bittensor_runtime import load_metagraph
 from arctura_base.incentive import (
     apply_stewardship_modifier,
     compute_calibration_accuracy,
@@ -69,17 +70,17 @@ class ArcturaValidator:
     WEIGHT_SET_RETRIES = 3
     WEIGHT_SET_RETRY_SECONDS = 5
 
-    def __init__(self, config: bt.config | None = None) -> None:
+    def __init__(self, config: Any | None = None) -> None:
         self.config = config or self._build_config()
 
         bt.logging(config=self.config, logging_dir=self.config.full_path)
         bt.logging.info("Initializing Arctura Base validator...")
 
         # Bittensor components
-        self.wallet = bt.wallet(config=self.config)
-        self.subtensor = bt.subtensor(config=self.config)
-        self.dendrite = bt.dendrite(wallet=self.wallet)
-        self.metagraph = self.subtensor.metagraph(self.config.netuid)
+        self.wallet = bt.Wallet(config=self.config)
+        self.subtensor = bt.Subtensor(config=self.config)
+        self.dendrite = bt.Dendrite(wallet=self.wallet)
+        self.metagraph = load_metagraph(self.subtensor, self.config.netuid)
 
         # Base chain client (for reference block hash verification)
         self.base_client = BaseRPCClient()
@@ -99,14 +100,17 @@ class ArcturaValidator:
     # ── Config ────────────────────────────────────────────────────────────
 
     @staticmethod
-    def _build_config() -> bt.config:
+    def _build_config() -> Any:
+        # Bittensor v10 disables CLI parsing by default. Neuron entry points
+        # must honor their explicit wallet, network, netuid, and runtime flags.
+        os.environ["BT_NO_PARSE_CLI_ARGS"] = "false"
         parser = argparse.ArgumentParser(
             description="Arctura Base subnet validator",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
-        bt.subtensor.add_args(parser)
+        bt.Subtensor.add_args(parser)
         bt.logging.add_args(parser)
-        bt.wallet.add_args(parser)
+        bt.Wallet.add_args(parser)
 
         parser.add_argument("--netuid", type=int, default=1, help="Bittensor subnet UID.")
         parser.add_argument(
@@ -119,7 +123,7 @@ class ArcturaValidator:
             help="Validator scoring cadence in Bittensor blocks.",
         )
 
-        config = bt.config(parser)
+        config = bt.Config(parser)
         config.full_path = (
             f"~/.bittensor/validators/{config.wallet.name}"
             f"/{config.wallet.hotkey}/netuid{config.netuid}/validator"
@@ -148,7 +152,7 @@ class ArcturaValidator:
         cycle = current_block % 3
         if cycle == 0:
             query_type = "balance"
-            mandate_payload = {
+            mandate_payload: dict[str, Any] = {
                 "address": "0x4200000000000000000000000000000000000006",  # WETH on Base
             }
         elif cycle == 1:
@@ -189,25 +193,21 @@ class ArcturaValidator:
 
     def _get_active_miner_uids(self) -> list[int]:
         """
-        Return UIDs of registered miners, excluding this validator and peers
-        marked with a validator permit.
+        Return serving Axon UIDs, excluding this validator's own UID.
+
+        A validator permit is not a reliable role signal: on small subnets a
+        miner may also hold a permit. Excluding permitted UIDs can therefore
+        remove every eligible miner from the scoring set.
         """
         try:
             my_uid = self.metagraph.hotkeys.index(self.wallet.hotkey.ss58_address)
         except ValueError:
             my_uid = -1
 
-        validator_permits = getattr(self.metagraph, "validator_permit", None)
-
-        def has_validator_permit(uid: int) -> bool:
-            if validator_permits is None:
-                return False
-            return bool(validator_permits[uid])
-
         return [
             uid
             for uid in range(len(self.metagraph.S))
-            if uid != my_uid and not has_validator_permit(uid)
+            if uid != my_uid and bool(self.metagraph.axons[uid].is_serving)
         ]
 
     def _get_historical_calibration(self, hotkey: str) -> float:
@@ -246,17 +246,18 @@ class ArcturaValidator:
         scores: dict[int, float] = {}
 
         # Sybil detection: collect all state hashes
-        uid_hashes = {
-            uid: (synapses[i].base_state_hash if synapses[i] else None)
-            for i, uid in enumerate(miner_uids)
-        }
+        uid_hashes = {}
+        for index, uid in enumerate(miner_uids):
+            synapse = synapses[index] if index < len(synapses) else None
+            uid_hashes[uid] = synapse.base_state_hash if synapse else None
         sybil_flagged = detect_hash_collision(uid_hashes)
         if sybil_flagged:
             bt.logging.warning(
-                f"Potential Sybil behavior detected — " f"UIDs sharing hash: {sybil_flagged}"
+                f"Potential Sybil behavior detected — UIDs sharing hash: {sybil_flagged}"
             )
 
-        for uid, synapse in zip(miner_uids, synapses):
+        for index, uid in enumerate(miner_uids):
+            synapse = synapses[index] if index < len(synapses) else None
             hotkey = self.metagraph.hotkeys[uid]
 
             if synapse is None or synapse.base_state_hash is None:
@@ -299,28 +300,28 @@ class ArcturaValidator:
 
     # ── Weight setting ────────────────────────────────────────────────────
 
-    def _set_weights(self, scores: dict[int, float]) -> None:
+    def _set_weights(self, scores: dict[int, float]) -> bool:
         """Normalize scores and submit weights to Yuma Consensus on-chain."""
         uids = list(scores.keys())
         raw_weights = [scores[uid] for uid in uids]
+        if not uids or sum(raw_weights) <= 0.0:
+            bt.logging.warning("Skipping weight submission: no miner earned a positive score.")
+            return False
         normalized = normalize_weights(raw_weights)
-
-        uid_tensor = torch.tensor(uids, dtype=torch.int64)
-        weight_tensor = torch.tensor(normalized, dtype=torch.float32)
 
         for attempt in range(1, self.WEIGHT_SET_RETRIES + 1):
             try:
                 result = self.subtensor.set_weights(
                     wallet=self.wallet,
                     netuid=self.config.netuid,
-                    uids=uid_tensor,
-                    weights=weight_tensor,
+                    uids=uids,
+                    weights=normalized,
                     wait_for_inclusion=True,
                 )
                 if isinstance(result, tuple):
                     success, msg = result
                 else:
-                    success = bool(getattr(result, "is_success", result))
+                    success = bool(getattr(result, "success", getattr(result, "is_success", False)))
                     msg = getattr(result, "error_message", "") or getattr(result, "message", "")
             except Exception as exc:
                 success = False
@@ -332,7 +333,11 @@ class ArcturaValidator:
                     f"Weights set | miners={len(uids)} | "
                     f"top_uid={top_uid} | top_weight={max(normalized):.3f}"
                 )
-                return
+                return True
+
+            if "too soon to commit weights" in str(msg).lower():
+                bt.logging.info(f"Weight submission deferred by chain cooldown: {msg}")
+                return False
 
             if attempt < self.WEIGHT_SET_RETRIES:
                 bt.logging.warning(
@@ -344,6 +349,7 @@ class ArcturaValidator:
                 bt.logging.error(
                     f"Weight-setting failed after {self.WEIGHT_SET_RETRIES} attempts: {msg}"
                 )
+        return False
 
     # ── Run loop ──────────────────────────────────────────────────────────
 
@@ -401,8 +407,7 @@ class ArcturaValidator:
                     self._set_weights(scores)
 
                 bt.logging.info(
-                    f"Tempo complete | sleeping {sleep_seconds}s "
-                    f"(~{sleep_seconds // 60} minutes)"
+                    f"Tempo complete | sleeping {sleep_seconds}s (~{sleep_seconds // 60} minutes)"
                 )
                 time.sleep(sleep_seconds)
 
@@ -412,6 +417,10 @@ class ArcturaValidator:
             except Exception as exc:
                 bt.logging.error(f"Validator loop error: {exc}")
                 time.sleep(60)
+
+        close = getattr(self.subtensor, "close", None)
+        if close is not None:
+            close()
 
 
 def main() -> None:

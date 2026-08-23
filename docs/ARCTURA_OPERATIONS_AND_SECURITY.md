@@ -1,8 +1,8 @@
 # Arctura Base Subnet: Treasury, Security & Pitch Operations Manual
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repository:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 
 ---
 
@@ -158,7 +158,7 @@ server {
 ---
 
 ## Slide 8: Join the Arctura Ecosystem
-- **GitHub:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)
+- **GitHub:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 - **Portal:** [arctura.network/base](https://arctura.network/base/)
 - **Call to Action:** We are actively onboarding founding validator partners and institutional syndicate backers ahead of our August 15 Finney registration window.
 

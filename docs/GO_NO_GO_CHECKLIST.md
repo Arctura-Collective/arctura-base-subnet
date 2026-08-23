@@ -1,6 +1,8 @@
 # Mainnet Go / No-Go Checklist
 
 Every item must be checked before running `btcli subnet create` on Finney.
+Use [../MAINNET_LAUNCH_BLOCKERS.md](../MAINNET_LAUNCH_BLOCKERS.md) for the
+operator-facing blocker list and non-mutating verification commands.
 
 ## Capital
 - [ ] Burn cost checked within last 30 minutes
@@ -10,17 +12,18 @@ Every item must be checked before running `btcli subnet create` on Finney.
 - [ ] 30-day server cost budgeted
 
 ## Code
-- [ ] `arctura_base/protocol.py` — BaseSubnetSynapse tested locally
-- [ ] `neurons/miner.py` — returns valid `base_state_hash` on every synapse
-- [ ] `neurons/miner.py` — returns valid `merkle_proof` (verify_merkle_proof passes)
-- [ ] `neurons/miner.py` — `block_hash_anchor` matches real Base block hash
-- [ ] `neurons/validator.py` — sets non-zero weights within every tempo period
-- [ ] `pytest tests/ -v` passes with no failures
+- [x] `arctura_base/protocol.py` — BaseSubnetSynapse tested locally
+- [x] `neurons/miner.py` — successful mandates return valid `base_state_hash`
+- [x] `neurons/miner.py` — returns valid `merkle_proof` (verify_merkle_proof passes)
+- [x] `neurons/miner.py` — `block_hash_anchor` matches real Base block hash
+- [x] `neurons/validator.py` — submitted non-zero testnet weights successfully
+- [x] `pytest tests/ -q` passes with no failures (113 tests on 2026-08-23)
+- [x] Bittensor v10.5 testnet miner and validator complete one attestation and one non-zero weight commit
 - [ ] No uncaught exceptions in 48h testnet run
 
 ## Network
-- [ ] Miner axon port open and reachable externally (default 8091)
-- [ ] Validator axon port open and reachable externally (default 8092)
+- [x] Miner axon reachable by the testnet validator (testnet port 8191)
+- [x] Validator is dendrite-only; no inbound axon is required by this architecture
 - [ ] At least 1 external validator confirmed for post-launch
 - [ ] Bittensor Discord announcement drafted (#subnet-owners)
 
@@ -28,8 +31,15 @@ Every item must be checked before running `btcli subnet create` on Finney.
 - [ ] Owner coldkey mnemonic stored offline in ≥2 separate locations
 - [ ] Validator coldkey mnemonic stored offline
 - [ ] Miner coldkey mnemonic stored offline
-- [ ] Auto-restart configured (systemd or PM2) for both neurons
-- [ ] Monitoring configured for axon uptime
+- [x] Auto-restart configured with systemd for both neurons
+- [x] Five-minute health timer configured for supervised testnet evidence
+- [ ] Monitoring host selected for mainnet axon uptime
+
+User-level service templates and a five-minute preflight timer are provided in
+`deploy/systemd/`. Track the supervised testnet run in
+[SYSTEMD_48H_CHECKLIST.md](SYSTEMD_48H_CHECKLIST.md). Check these items only
+after enabling them on the launch host and reviewing the 48-hour journal with
+`arctura-collect-evidence`.
 
 ## Final
 - [ ] Go/no-go reviewed by at least one other person

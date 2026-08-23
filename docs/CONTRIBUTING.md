@@ -4,7 +4,7 @@
 >
 > Apache-2.0 · [arctura.network/base](https://arctura.network/base/) · Arcturian Council × Coreweaver
 
-This is the single source of truth for setting up a dev environment, running the test suite, and submitting a pull request. If any step fails or contradicts another document, [open an issue](https://github.com/bittensaur/arctura-base-subnet/issues/new) — that is a bug.
+This is the single source of truth for setting up a dev environment, running the test suite, and submitting a pull request. If any step fails or contradicts another document, [open an issue](https://github.com/Arctura-Collective/arctura-base-subnet/issues/new) — that is a bug.
 
 ---
 
@@ -42,14 +42,14 @@ This is the single source of truth for setting up a dev environment, running the
 ## 2. Clone and install
 
 ```bash
-git clone https://github.com/bittensaur/arctura-base-subnet
+git clone https://github.com/Arctura-Collective/arctura-base-subnet
 cd arctura-base-subnet
 
 # Install all dependencies including dev tools
 pip install -e ".[dev]"
 ```
 
-This installs: `bittensor`, `web3`, `torch`, `pydantic`, `pytest`, `black`, `ruff`, `mypy`, `pre-commit`.
+This installs: `bittensor`, `web3`, `pydantic`, `pytest`, `black`, `ruff`, `mypy`, and `pre-commit`.
 
 **Install pre-commit hooks** (runs black + ruff + mypy on every commit):
 
@@ -214,7 +214,7 @@ Pre-commit hooks run this automatically on `git commit` if you ran `pre-commit i
 5. **Address review comments** — the Council reviews within 48 hours
 6. **Merge** happens once CI is green and at least one reviewer approves
 
-**Good first issues** are labeled [`good first issue`](https://github.com/bittensaur/arctura-base-subnet/labels/good%20first%20issue) — start there.
+**Good first issues** are labeled [`good first issue`](https://github.com/Arctura-Collective/arctura-base-subnet/labels/good%20first%20issue) — start there.
 
 ---
 
@@ -233,7 +233,7 @@ Some issues carry TAO or ETH bounties via escrow.
 
 | Channel | Link | What it's for |
 |---------|------|---------------|
-| GitHub Issues | [issues](https://github.com/bittensaur/arctura-base-subnet/issues) | Bugs, features, bounties |
+| GitHub Issues | [issues](https://github.com/Arctura-Collective/arctura-base-subnet/issues) | Bugs, features, bounties |
 | Bittensor Discord | [discord.gg/bittensor](https://discord.gg/bittensor) | `#subnet-builders` |
 | Base Discord | [discord.gg/buildonbase](https://discord.gg/buildonbase) | `#builders` |
 | X / Twitter | [@ArcturaNetwork](https://x.com/ArcturaNetwork) | Announcements |

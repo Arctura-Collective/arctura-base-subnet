@@ -6,7 +6,7 @@ This runbook begins only after the Ubuntu cloud computer is available again. It 
 
 1. Confirm the cloud computer is running and inspect `/home/ubuntu/AGENTS.md` or `agents.md` before making changes.
 2. Verify Docker, `btcli`, Python, GitHub CLI, and the repository checkout are available.
-3. Pull the `main` branch of `bittensaur/arctura-base-subnet`, including `scripts/run_maintenance.py`.
+3. Pull the `main` branch of `Arctura-Collective/arctura-base-subnet`, including `scripts/run_maintenance.py`.
 4. Confirm the source locations for `burn_cost.log` and `validator.log`; update the maintenance invocation with `--repo-dir` only if the repository is stored elsewhere.
 5. Run the daily health check locally:
 

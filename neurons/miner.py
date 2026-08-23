@@ -26,12 +26,14 @@ Apache-2.0
 """
 
 import argparse
+import os
 import time
-from typing import Any
+from typing import Any, Tuple  # noqa: UP035 - required by Bittensor Axon signature checks
 
 import bittensor as bt
 
 from arctura_base.base_rpc import BaseRPCClient
+from arctura_base.bittensor_runtime import load_metagraph
 from arctura_base.incentive import REQUIRED_STEPS
 from arctura_base.payload_validation import validate_mandate_payload
 from arctura_base.protocol import BaseSubnetSynapse
@@ -61,15 +63,15 @@ class ArcturaMiner:
         bt.logging.info("Initializing Arctura Base miner...")
 
         # Bittensor components
-        self.wallet = bt.wallet(config=self.config)
-        self.subtensor = bt.subtensor(config=self.config)
-        self.metagraph = self.subtensor.metagraph(self.config.netuid)
+        self.wallet = bt.Wallet(config=self.config)
+        self.subtensor = bt.Subtensor(config=self.config)
+        self.metagraph = load_metagraph(self.subtensor, self.config.netuid)
 
         # Base chain client
         self.base_client = BaseRPCClient()
 
         # Axon — the miner's network-facing endpoint
-        self.axon = bt.axon(wallet=self.wallet, config=self.config)
+        self.axon = bt.Axon(wallet=self.wallet, config=self.config)
         self.axon.attach(
             forward_fn=self.forward,
             blacklist_fn=self.blacklist,
@@ -88,14 +90,17 @@ class ArcturaMiner:
 
     @staticmethod
     def _build_config() -> Any:
+        # Bittensor v10 disables CLI parsing by default. Neuron entry points
+        # must honor their explicit wallet, network, netuid, and axon flags.
+        os.environ["BT_NO_PARSE_CLI_ARGS"] = "false"
         parser = argparse.ArgumentParser(
             description="Arctura Base subnet miner",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
-        bt.subtensor.add_args(parser)
+        bt.Subtensor.add_args(parser)
         bt.logging.add_args(parser)
-        bt.wallet.add_args(parser)
-        bt.axon.add_args(parser)
+        bt.Wallet.add_args(parser)
+        bt.Axon.add_args(parser)
 
         parser.add_argument(
             "--netuid", type=int, default=1, help="Bittensor subnet UID to register on."
@@ -106,8 +111,13 @@ class ArcturaMiner:
             default=1000,
             help="Maximum blocks the miner will look back for historical queries.",
         )
+        parser.add_argument(
+            "--allow_non_validator",
+            action="store_true",
+            help="Allow callers without a validator permit (unsafe on mainnet).",
+        )
 
-        config = bt.config(parser)
+        config = bt.Config(parser)
         config.full_path = (
             f"~/.bittensor/miners/{config.wallet.name}"
             f"/{config.wallet.hotkey}/netuid{config.netuid}/miner"
@@ -116,7 +126,7 @@ class ArcturaMiner:
 
     # ── Axon middleware ───────────────────────────────────────────────────
 
-    def blacklist(self, synapse: BaseSubnetSynapse) -> tuple[bool, str]:
+    def blacklist(self, synapse: BaseSubnetSynapse) -> Tuple[bool, str]:  # noqa: UP006
         """
         Reject synapse requests from unregistered or unknown hotkeys.
 
@@ -131,6 +141,10 @@ class ArcturaMiner:
         uid = self.metagraph.hotkeys.index(caller_hotkey)
         if self.metagraph.S[uid] == 0:
             return True, f"Zero-stake validator (uid={uid}) — ignored."
+        permits = getattr(self.metagraph, "validator_permit", None)
+        allow_non_validator = getattr(self.config, "allow_non_validator", False)
+        if permits is not None and not bool(permits[uid]) and not allow_non_validator:
+            return True, f"Hotkey lacks validator permit (uid={uid}) — ignored."
 
         return False, ""
 
@@ -166,7 +180,7 @@ class ArcturaMiner:
         scores 0.0 — no TAO for failed execution.
         """
         bt.logging.info(
-            f"Mandate received | id={synapse.mandate_id[:8]}... " f"type={synapse.query_type}"
+            f"Mandate received | id={synapse.mandate_id[:8]}... type={synapse.query_type}"
         )
 
         start_ts = time.time()
@@ -227,7 +241,7 @@ class ArcturaMiner:
 
         except Exception as exc:
             bt.logging.error(
-                f"Mandate execution failed | id={synapse.mandate_id[:8]}... " f"error={exc}"
+                f"Mandate execution failed | id={synapse.mandate_id[:8]}... error={exc}"
             )
             # Return synapse with nulled attestation fields — scores 0.0
             synapse.base_state_hash = None
@@ -263,9 +277,7 @@ class ArcturaMiner:
         self.axon.serve(netuid=self.config.netuid, subtensor=self.subtensor)
 
         bt.logging.info(
-            f"Arctura Base miner live\n"
-            f"  axon:   {self.axon}\n"
-            f"  netuid: {self.config.netuid}"
+            f"Arctura Base miner live\n  axon:   {self.axon}\n  netuid: {self.config.netuid}"
         )
 
         step = 0
@@ -280,7 +292,11 @@ class ArcturaMiner:
 
         except KeyboardInterrupt:
             bt.logging.info("Miner shutdown requested — stopping axon.")
+        finally:
             self.axon.stop()
+            close = getattr(self.subtensor, "close", None)
+            if close is not None:
+                close()
 
 
 def main() -> None:

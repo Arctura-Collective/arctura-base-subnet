@@ -1,0 +1,17 @@
+[Unit]
+Description=Arctura Base validator
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/arctura-base-subnet.env
+ExecStart=/usr/bin/bash -lc 'cd "$ARCTURA_REPO" && exec "$ARCTURA_PYTHON" neurons/validator.py --wallet.name "$BT_VALIDATOR_WALLET" --wallet.hotkey "$BT_DEFAULT_HOTKEY" --subtensor.network "$BT_NETWORK" --netuid "$BT_NETUID" --timeout "$VALIDATOR_TIMEOUT" --tempo "$VALIDATOR_TEMPO" --logging.info'
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

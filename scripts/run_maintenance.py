@@ -19,7 +19,7 @@ LOG_NAMES = ("burn_cost.log", "validator.log")
 
 
 def utc_now() -> dt.datetime:
-    return dt.datetime.now(dt.UTC)
+    return dt.datetime.now(dt.timezone.utc)
 
 
 def run_command(command: list[str], repo_dir: Path) -> tuple[int, str, str]:
@@ -31,7 +31,7 @@ def summarize_log(log_path: Path, now: dt.datetime) -> str:
     if not log_path.exists():
         return f"{log_path.name}: MISSING — no health conclusion available."
 
-    modified_at = dt.datetime.fromtimestamp(log_path.stat().st_mtime, tz=dt.UTC)
+    modified_at = dt.datetime.fromtimestamp(log_path.stat().st_mtime, tz=dt.timezone.utc)
     age = now - modified_at
     lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
     latest = lines[-1].strip() if lines else "empty"
@@ -67,7 +67,7 @@ def create_security_issue(repo_dir: Path, audit_output: str) -> str:
         "issue",
         "create",
         "--repo",
-        "bittensaur/arctura-base-subnet",
+        "Arctura-Collective/arctura-base-subnet",
         "--title",
         title,
         "--body",

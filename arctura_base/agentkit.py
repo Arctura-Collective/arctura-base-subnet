@@ -166,7 +166,6 @@ def _do_contract_call(kit: Any, args: dict) -> dict:
     abi = args["abi"]
     function_name = args["function_name"]
     call_args = args.get("args", [])
-
     tx = wallet.invoke_contract(
         contract_address=contract_address,
         method=function_name,

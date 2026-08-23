@@ -1,14 +1,14 @@
 # Arctura Base Subnet: The 686 TAO Funding & Strategic Roadmap
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repository:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 
 ---
 
 ## Executive Summary
 
-Securing **686 TAO** (or navigating alternative capitalization pathways) to register the **Arctura Base Subnet** on Bittensor Finney Mainnet requires looking beyond standard developer bootstrapping. While local testnet `505` proves technical viability, mainnet registration demands capital alignment. 
+Securing **686 TAO** (or navigating alternative capitalization pathways) to register the **Arctura Base Subnet** on Bittensor Finney Mainnet requires looking beyond standard developer bootstrapping. While local testnet `505` proves technical viability, mainnet registration demands capital alignment.
 
 This roadmap outlines overlooked platforms, decentralized crowdfunding mechanisms, validator syndicates, and cross-chain grant stacking strategies designed to fulfill the Arctura mission.
 
@@ -18,7 +18,7 @@ This roadmap outlines overlooked platforms, decentralized crowdfunding mechanism
 
 ### Bitstarter (`bitstarter.ai`)
 - **What it is:** The premier Bittensor-native decentralized crowdfunding launchpad and incubator [2].
-- **How it helps:** Bitstarter connects emerging subnet founders directly with TAO holders and institutional backers. Instead of self-funding 100% of the registration cost, you can pitch Arctura as the definitive **Base × Bittensor bridge** (bringing Coinbase L2 intelligence and AgentKit onchain actions into decentralized AI). 
+- **How it helps:** Bitstarter connects emerging subnet founders directly with TAO holders and institutional backers. Instead of self-funding 100% of the registration cost, you can pitch Arctura as the definitive **Base × Bittensor bridge** (bringing Coinbase L2 intelligence and AgentKit onchain actions into decentralized AI).
 - **The Mechanic:** Raise capital from the community and pre-launch investors in exchange for future alpha token allocations, successfully bootstrapping the registration pool.
 
 ### Validator Syndicates & dTAO Backing

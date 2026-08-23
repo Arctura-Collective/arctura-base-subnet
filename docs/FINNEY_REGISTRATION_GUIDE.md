@@ -1,8 +1,8 @@
 # Arctura Base Subnet: Finney Registration & AWS Deployment Guide
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repository:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 
 ---
 
@@ -11,7 +11,7 @@
 To launch a new subnet on Bittensor Finney mainnet, operators must navigate dynamic economic parameters governed by supply, demand, and block-based decay curves [3].
 
 ### Subnet Slot Creation (`btcli subnet create`)
-- **Mechanism:** Registering a brand-new subnet requires locking/burning TAO via the owner coldkey [11] [12]. 
+- **Mechanism:** Registering a brand-new subnet requires locking/burning TAO via the owner coldkey [11] [12].
 - **Burn Cost Dynamics:** The cost is dynamic and floats based on network demand [15]. When slots are congested, registration costs rise significantly (historically ranging from 200 to over 1,500+ TAO) [6] [4]. The cost halves over a half-life block decay curve if demand subsides [3].
 - **Live Check Command:** Always verify the live burn cost within 30 minutes of executing registration:
   ```bash
@@ -44,7 +44,7 @@ To eliminate manual configuration errors and ensure 24/7 reliability, the reposi
 ### B. Automated Deployment Script
 SSH into your AWS instance and run the deployment script:
 ```bash
-git clone https://github.com/bittensaur/arctura-base-subnet.git
+git clone https://github.com/Arctura-Collective/arctura-base-subnet.git
 cd arctura-base-subnet
 bash scripts/deploy_aws.sh
 ```

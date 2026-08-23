@@ -14,15 +14,15 @@
 
 ## Current Status
 
-Arctura Base is in **founder-led testnet development**.
+Arctura Base is in **founder-led testnet hardening**.
 
-The repository has been flattened into a usable subnet layout, and the core protocol, attestation, scoring, and mocked Base RPC tests pass locally. The next milestone is live testnet hardening: running miners and validators against real Base RPC endpoints, verifying Bittensor axon/dendrite behavior, and proving weight-setting over sustained testnet operation.
+The repository has been flattened into a usable subnet layout, and the core protocol, attestation, scoring, Base RPC, Bittensor v10 runtime, and evidence-gate tests pass locally. The current milestone is the supervised 48-hour testnet evidence run: systemd-managed miner and validator services are live on testnet netuid `505`, have completed one attestation and one non-zero weight commit, and must now complete the uninterrupted endurance window before any Finney spend.
 
 Current validation:
 
 ```bash
 pytest tests/ -v
-# 63 passed
+# 113 passed
 ```
 
 This project is not yet mainnet-ready, security-audited, or production-emissions-ready. The immediate focus is proving the subnet end-to-end with repeatable local and testnet runs before expanding contributor scope.
@@ -68,7 +68,7 @@ This subnet is the bridge. First-mover. Open source. Apache-2.0.
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/bittensaur/arctura-base-subnet
+git clone https://github.com/Arctura-Collective/arctura-base-subnet
 cd arctura-base-subnet
 pip install -e ".[dev]"
 
@@ -91,6 +91,7 @@ After install, the same operator actions are available through the repo-native C
 
 ```bash
 arctura metagraph --network test --netuid 1
+arctura preflight --network test --netuid 1 --json
 arctura miner --network test --netuid 1 --wallet miner --hotkey default
 arctura validator --network test --netuid 1 --wallet validator --hotkey default
 ```
@@ -116,17 +117,17 @@ The subnet maps to the [Arctura six-layer signal stack](https://arctura.network#
 # arctura_base/protocol.py
 class BaseSubnetSynapse(bt.Synapse):
     # Mandate (validator → miner)
-    base_block_range:   tuple[int, int] = (0, 0)
-    contract_address:   Optional[str]   = None
-    query_type:         str             = ""   # "balance"|"events"|"state"|"agent_action"
-    mandate_payload:    dict            = {}
+    base_block_range: tuple[int, int] = (0, 0)
+    contract_address: Optional[str] = None
+    query_type: str = ""  # "balance"|"events"|"state"|"agent_action"
+    mandate_payload: dict = {}
 
     # Attestation (miner → validator)
-    base_state_hash:    Optional[str]   = None  # SHA-256 of execution output
-    merkle_proof:       Optional[list]  = None  # proof chain nodes
-    block_hash_anchor:  Optional[str]   = None  # anchored to live Base block hash
-    execution_trace:    Optional[dict]  = None
-    confidence:         float           = 0.0
+    base_state_hash: Optional[str] = None  # SHA-256 of execution output
+    merkle_proof: Optional[list] = None  # proof chain nodes
+    block_hash_anchor: Optional[str] = None  # anchored to live Base block hash
+    execution_trace: Optional[dict] = None
+    confidence: float = 0.0
 ```
 
 ### Resonance BFT Scoring
@@ -135,9 +136,9 @@ class BaseSubnetSynapse(bt.Synapse):
 # neurons/validator.py — simplified
 def score_response(response: BaseSubnetSynapse, live_block_hash: str) -> float:
     if not verify_merkle_proof(response.merkle_proof, response.base_state_hash):
-        return 0.0   # invalid proof → zero weight
+        return 0.0  # invalid proof → zero weight
     if response.block_hash_anchor != live_block_hash:
-        return 0.0   # stale or fabricated attestation → zero weight
+        return 0.0  # stale or fabricated attestation → zero weight
     return compute_resonance_score(response)  # 4-dimension score [0.0, 1.0]
 ```
 
@@ -266,7 +267,7 @@ Arctura Base is not running a broad builder program yet. Focused operator and re
 Local setup:
 
 ```bash
-git clone https://github.com/bittensaur/arctura-base-subnet
+git clone https://github.com/Arctura-Collective/arctura-base-subnet
 cd arctura-base-subnet
 pip install -e ".[dev]"
 pytest tests/ -v
@@ -278,11 +279,11 @@ Open a GitHub Issue using the Validator Onboarding template to register interest
 
 ## Related
 
-- [arctura.network](https://arctura.network) — Parent subnet and signal stack  
-- [arctura.network/base](https://arctura.network/base/) — This project's landing site  
-- [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet) — Core Arctura repo  
-- [docs.base.org](https://docs.base.org) — Base chain, AgentKit, CDP SDK  
-- [docs.bittensor.com](https://docs.bittensor.com) — Subnet creation, neuron development  
+- [arctura.network](https://arctura.network) — Parent subnet and signal stack
+- [arctura.network/base](https://arctura.network/base/) — This project's landing site
+- [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet) — Core Arctura repo
+- [docs.base.org](https://docs.base.org) — Base chain, AgentKit, CDP SDK
+- [docs.bittensor.com](https://docs.bittensor.com) — Subnet creation, neuron development
 
 ---
 

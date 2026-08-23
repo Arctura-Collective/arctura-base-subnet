@@ -1,14 +1,14 @@
 # Arctura Base Subnet: Success Blueprint & Cost Estimator
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repository:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 
 ---
 
 ## Executive Summary
 
-To successfully transition the **Arctura Base Subnet** from local testnet `505` to **Bittensor Finney Mainnet** by August 15, operators must master the ecosystem's foundational tooling, secure high-performance RPC and agent APIs, and maintain precise budgetary control over cloud hosting infrastructure. 
+To successfully transition the **Arctura Base Subnet** from local testnet `505` to **Bittensor Finney Mainnet** by August 15, operators must master the ecosystem's foundational tooling, secure high-performance RPC and agent APIs, and maintain precise budgetary control over cloud hosting infrastructure.
 
 This blueprint details how to leverage **Taostats**, **Blockmachine**, and the **Crucible Wallet**, outlines the exact API stack required, and provides granular monthly cost estimates for AWS and decentralized hosting options.
 

@@ -1,8 +1,8 @@
 # Arctura Base Subnet: Monitoring, Treasury Logic & Pitch Scripts
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repository:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 
 ---
 
@@ -76,21 +76,23 @@ import bittensor as bt
 
 # Distribution Ratios
 CORE_ENGINEERING_SHARE = 0.40  # 40% of treasury emissions
-SYNDICATE_SHARE = 0.30         # 30% to validator syndicates
-LIQUIDITY_POOL_SHARE = 0.30    # 30% to dTAO AMM liquidity
+SYNDICATE_SHARE = 0.30  # 30% to validator syndicates
+LIQUIDITY_POOL_SHARE = 0.30  # 30% to dTAO AMM liquidity
+
 
 def distribute_emissions(total_treasury_tao: float):
     eng_amount = total_treasury_tao * CORE_ENGINEERING_SHARE
     syn_amount = total_treasury_tao * SYNDICATE_SHARE
     liq_amount = total_treasury_tao * LIQUIDITY_POOL_SHARE
-    
+
     print(f"Total Treasury Intake: {total_treasury_tao} TAO")
     print(f" -> Core Engineering Allocation: {eng_amount:.4f} TAO")
     print(f" -> Validator Syndicate Share:   {syn_amount:.4f} TAO")
     print(f" -> dTAO Liquidity Provisioning:  {liq_amount:.4f} TAO")
-    
+
     # In production, integrate btcli wallet transfer calls here
     # bt.wallet(name="owner").substrate.transfer(...)
+
 
 if __name__ == "__main__":
     intake = float(sys.argv[1]) if len(sys.argv) > 1 else 100.0

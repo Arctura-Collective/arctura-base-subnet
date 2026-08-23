@@ -20,7 +20,9 @@ class ArcturaSynapse(bt.Synapse):
     The `prompt` field is immutable post-construction (frozen via model_config).
     """
 
-    model_config = ConfigDict(frozen=False)  # bt.Synapse base requires False; prompt immutability enforced below
+    model_config = ConfigDict(
+        frozen=False
+    )  # bt.Synapse base requires False; prompt immutability enforced below
 
     prompt: str = Field(
         default="",

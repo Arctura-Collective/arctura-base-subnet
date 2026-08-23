@@ -1,14 +1,14 @@
 # Arctura Base Subnet: Master Launch & Operations Package
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repository:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 
 ---
 
 ## Executive Summary
 
-This master launch package consolidates the complete operational framework for the **Arctura Base Subnet** as it transitions from local testnet `505` to **Bittensor Finney Mainnet**. 
+This master launch package consolidates the complete operational framework for the **Arctura Base Subnet** as it transitions from local testnet `505` to **Bittensor Finney Mainnet**.
 
 It contains three core operational pillars:
 1. **High-Impact Validator Syndicate Outreach:** Professional pitch templates tailored for Discord (`#subnet-owners`) and Telegram to secure early stake delegation and capital backing.
@@ -24,11 +24,11 @@ When approaching major Bittensor validator syndicates (e.g., Opentensor-aligned 
 ### Pitch Option A: Direct Discord / Telegram DM (Short & Punchy)
 
 ```markdown
-Hey team — we’re launching Arctura (Base L2 Intelligence Subnet) on Bittensor Finney. 
+Hey team — we’re launching Arctura (Base L2 Intelligence Subnet) on Bittensor Finney.
 
-We bridge Base state, event logs, and CDP AgentKit execution into decentralized AI through Merkle attestation and Resonance BFT scoring. 
+We bridge Base state, event logs, and CDP AgentKit execution into decentralized AI through Merkle attestation and Resonance BFT scoring.
 
-Our testnet (netuid 505) is fully hardened (63/63 pytest tests passing). We are locking in foundational validator syndicates ahead of mainnet registration. 
+Our testnet (netuid 505) is fully hardened (63/63 pytest tests passing). We are locking in foundational validator syndicates ahead of mainnet registration.
 
 What we offer early validator partners:
 - Exclusive genesis dTAO alpha allocation.
@@ -47,7 +47,7 @@ Would love to share our architecture doc and discuss a syndicate partnership. Le
 Arctura is the first decentralized subnet bringing Coinbase Base L2 intelligence, CDP SDK agent actions, and verifiable Merkle-anchored state proofs into the Bittensor ecosystem. With 10M+ daily active addresses on Base and zero existing Base subnets on Bittensor, Arctura captures high-value DeFi and agentic AI validation traffic.
 
 ## Current Technical Readiness
-- **Repository:** github.com/bittensaur/arctura-base-subnet (Apache-2.0)
+- **Repository:** github.com/Arctura-Collective/arctura-base-subnet (Apache-2.0)
 - **Testnet Validation:** Netuid 505 fully active; 63/63 unit and integration tests passing (`pytest tests/ -v`).
 - **Infrastructure:** Production AWS Docker Compose runbooks tested and operational.
 
@@ -140,7 +140,7 @@ if [ -d "$REPO_DIR" ]; then
     cd "$REPO_DIR"
     git pull origin main
 else
-    git clone https://github.com/bittensaur/arctura-base-subnet.git "$REPO_DIR"
+    git clone https://github.com/Arctura-Collective/arctura-base-subnet.git "$REPO_DIR"
     cd "$REPO_DIR"
 fi
 

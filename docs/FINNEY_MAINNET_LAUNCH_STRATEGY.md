@@ -1,15 +1,15 @@
 # Arctura Base Subnet: Finney Mainnet Launch Strategy & Operational Runbook
 
-**Prepared by:** Manus AI (World-Class Bittensor Expert)  
-**Target Execution Date:** August 15, 2026 (anticipating plan upgrade)  
-**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)  
-**Repository:** [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet)  
+**Prepared by:** Manus AI (World-Class Bittensor Expert)
+**Target Execution Date:** August 15, 2026 (anticipating plan upgrade)
+**Parent Project:** [Arctura Network](https://arctura.network) | [arctura.network/base](https://arctura.network/base/)
+**Repository:** [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet)
 
 ---
 
 ## Executive Summary
 
-The **Arctura Base Subnet** (`arctura-base-subnet`) bridges Base blockchain intelligence (state reads, transaction history, event logs, and AgentKit autonomous actions) into the Bittensor decentralized AI network through cryptographic Merkle attestation and Resonance BFT scoring. 
+The **Arctura Base Subnet** (`arctura-base-subnet`) bridges Base blockchain intelligence (state reads, transaction history, event logs, and AgentKit autonomous actions) into the Bittensor decentralized AI network through cryptographic Merkle attestation and Resonance BFT scoring.
 
 Currently operating successfully as a local testnet deployment on netuid `505`, the subnet is structured for migration to **Bittensor Finney Mainnet**. Because local workstation hosting is constrained, this strategy defines a robust, cost-effective cloud architecture utilizing AWS and decentralized infrastructure providers (such as Chutes and Lium) to run validators and miners securely, handle dynamic TAO (dTAO) registration economics, and ensure 24/7 uptime prior to the August 15 go-live window.
 
@@ -36,7 +36,7 @@ Moving from local testnet `505` to Finney Mainnet requires understanding key str
 
 ## 2. Infrastructure & Hosting Architecture: AWS vs. Decentralized Compute
 
-To operate a production-grade subnet on Finney, your infrastructure must guarantee low latency, static public IP addresses, and high availability (99.9% uptime for validators, 99.0% for miners). 
+To operate a production-grade subnet on Finney, your infrastructure must guarantee low latency, static public IP addresses, and high availability (99.9% uptime for validators, 99.0% for miners).
 
 ### Recommended Hybrid Topology
 
@@ -81,7 +81,7 @@ To operate a production-grade subnet on Finney, your infrastructure must guarant
 ### Phase B — Environment & Wallet Setup
 SSH into your cloud instances and initialize the repository:
 ```bash
-git clone https://github.com/bittensaur/arctura-base-subnet.git
+git clone https://github.com/Arctura-Collective/arctura-base-subnet.git
 cd arctura-base-subnet
 pip install -e ".[dev]"
 cp .env.example .env
