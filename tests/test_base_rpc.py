@@ -9,7 +9,7 @@ from arctura_base.base_rpc import BaseRPCClient
 
 @pytest.fixture
 def mock_client():
-    with patch("arctura_base.base_rpc.Web3") as mock_web3:
+    with patch("arctura_base.base_rpc._Web3") as mock_web3:
         w3 = MagicMock()
         w3.is_connected.return_value = True
         w3.eth.chain_id = 8453

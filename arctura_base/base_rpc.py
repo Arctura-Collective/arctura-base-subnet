@@ -43,11 +43,10 @@ except ImportError:  # pragma: no cover - dependency is declared for normal inst
 else:
     load_dotenv = _load_dotenv
 
-Web3: Any
 try:
-    from web3 import Web3
+    from web3 import Web3 as _Web3
 except ImportError:  # pragma: no cover - exercised when optional runtime deps are absent
-    Web3 = None
+    _Web3 = None
 
 BlockIdentifier = int | str
 
@@ -83,11 +82,11 @@ class BaseRPCClient:
         if load_dotenv is not None:
             load_dotenv()
         url = rpc_url or os.environ.get("BASE_RPC_URL", "https://mainnet.base.org")
-        if Web3 is None:
+        if _Web3 is None:
             raise ImportError(
                 "web3 is required for BaseRPCClient. Install project dependencies first."
             )
-        self.w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": timeout}))
+        self.w3 = _Web3(_Web3.HTTPProvider(url, request_kwargs={"timeout": timeout}))
         self.rpc_url = url
         self._block_hash_cache: dict[int, str] = {}
         self._verify_connection()
@@ -145,7 +144,7 @@ class BaseRPCClient:
             {"address": str, "balance": int, "block_number": int, "token": str | None}
         """
         block_id: Any = block_number if block_number is not None else "latest"
-        checksum_addr = Web3.to_checksum_address(address)
+        checksum_addr = _Web3.to_checksum_address(address)
 
         if token_address is None:
             # Native ETH balance
@@ -163,7 +162,7 @@ class BaseRPCClient:
                 }
             ]
             contract = self.w3.eth.contract(
-                address=Web3.to_checksum_address(token_address), abi=erc20_abi
+                address=_Web3.to_checksum_address(token_address), abi=erc20_abi
             )
             balance = contract.functions.balanceOf(checksum_addr).call(block_identifier=block_id)
             token = token_address
@@ -200,7 +199,9 @@ class BaseRPCClient:
         Returns:
             {"event": str, "from_block": int, "to_block": int, "logs": list, "count": int}
         """
-        contract = self.w3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=abi)
+        contract = self.w3.eth.contract(
+            address=_Web3.to_checksum_address(contract_address), abi=abi
+        )
         event = getattr(contract.events, event_name)
 
         # Fetch and serialize (web3 objects aren't JSON-serializable directly)
@@ -247,7 +248,9 @@ class BaseRPCClient:
         Returns:
             {"function": str, "args": list, "result": Any, "block_number": int}
         """
-        contract = self.w3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=abi)
+        contract = self.w3.eth.contract(
+            address=_Web3.to_checksum_address(contract_address), abi=abi
+        )
         func = getattr(contract.functions, function_name)
         block_id: Any = block_number if block_number is not None else "latest"
         result = func(*args).call(block_identifier=block_id)
