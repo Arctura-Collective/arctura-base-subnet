@@ -50,17 +50,10 @@ if "bittensor" not in sys.modules:
         )
 
     bittensor.Synapse = Synapse
-    bittensor.config = _config
+    bittensor.Config = _config
     bittensor.logging = _Logging()
-    bittensor.subtensor = _ArgProvider()
-    bittensor.wallet = _ArgProvider()
-    bittensor.axon = _ArgProvider()
+    bittensor.Subtensor = _ArgProvider()
+    bittensor.Wallet = _ArgProvider()
+    bittensor.Axon = _ArgProvider()
+    bittensor.Dendrite = _ArgProvider()
     sys.modules["bittensor"] = bittensor
-
-
-if "torch" not in sys.modules:
-    torch = types.ModuleType("torch")
-    torch.int64 = "int64"
-    torch.float32 = "float32"
-    torch.tensor = lambda values, dtype=None: values
-    sys.modules["torch"] = torch

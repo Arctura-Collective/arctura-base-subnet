@@ -27,7 +27,7 @@ Apache-2.0
 
 import argparse
 import time
-from typing import Optional, Tuple  # noqa: UP035 - required by Bittensor runtime typing
+from typing import Any
 
 import bittensor as bt
 
@@ -53,7 +53,7 @@ class ArcturaMiner:
         5. Calibration of confidence score
     """
 
-    def __init__(self, config: Optional[bt.config] = None) -> None:  # noqa: UP045
+    def __init__(self, config: Any | None = None) -> None:
         self.config = config or self._build_config()
 
         # Initialize logging
@@ -61,15 +61,15 @@ class ArcturaMiner:
         bt.logging.info("Initializing Arctura Base miner...")
 
         # Bittensor components
-        self.wallet = bt.wallet(config=self.config)
-        self.subtensor = bt.subtensor(config=self.config)
+        self.wallet = bt.Wallet(config=self.config)
+        self.subtensor = bt.Subtensor(config=self.config)
         self.metagraph = self.subtensor.metagraph(self.config.netuid)
 
         # Base chain client
         self.base_client = BaseRPCClient()
 
         # Axon — the miner's network-facing endpoint
-        self.axon = bt.axon(wallet=self.wallet, config=self.config)
+        self.axon = bt.Axon(wallet=self.wallet, config=self.config)
         self.axon.attach(
             forward_fn=self.forward,
             blacklist_fn=self.blacklist,
@@ -87,15 +87,15 @@ class ArcturaMiner:
     # ── Config ────────────────────────────────────────────────────────────
 
     @staticmethod
-    def _build_config() -> bt.config:
+    def _build_config() -> Any:
         parser = argparse.ArgumentParser(
             description="Arctura Base subnet miner",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
-        bt.subtensor.add_args(parser)
+        bt.Subtensor.add_args(parser)
         bt.logging.add_args(parser)
-        bt.wallet.add_args(parser)
-        bt.axon.add_args(parser)
+        bt.Wallet.add_args(parser)
+        bt.Axon.add_args(parser)
 
         parser.add_argument(
             "--netuid", type=int, default=1, help="Bittensor subnet UID to register on."
@@ -112,7 +112,7 @@ class ArcturaMiner:
             help="Allow callers without a validator permit (unsafe on mainnet).",
         )
 
-        config = bt.config(parser)
+        config = bt.Config(parser)
         config.full_path = (
             f"~/.bittensor/miners/{config.wallet.name}"
             f"/{config.wallet.hotkey}/netuid{config.netuid}/miner"
@@ -121,7 +121,7 @@ class ArcturaMiner:
 
     # ── Axon middleware ───────────────────────────────────────────────────
 
-    def blacklist(self, synapse: BaseSubnetSynapse) -> Tuple[bool, str]:  # noqa: UP006
+    def blacklist(self, synapse: BaseSubnetSynapse) -> tuple[bool, str]:
         """
         Reject synapse requests from unregistered or unknown hotkeys.
 
@@ -175,7 +175,7 @@ class ArcturaMiner:
         scores 0.0 — no TAO for failed execution.
         """
         bt.logging.info(
-            f"Mandate received | id={synapse.mandate_id[:8]}... " f"type={synapse.query_type}"
+            f"Mandate received | id={synapse.mandate_id[:8]}... type={synapse.query_type}"
         )
 
         start_ts = time.time()
@@ -236,7 +236,7 @@ class ArcturaMiner:
 
         except Exception as exc:
             bt.logging.error(
-                f"Mandate execution failed | id={synapse.mandate_id[:8]}... " f"error={exc}"
+                f"Mandate execution failed | id={synapse.mandate_id[:8]}... error={exc}"
             )
             # Return synapse with nulled attestation fields — scores 0.0
             synapse.base_state_hash = None
@@ -272,9 +272,7 @@ class ArcturaMiner:
         self.axon.serve(netuid=self.config.netuid, subtensor=self.subtensor)
 
         bt.logging.info(
-            f"Arctura Base miner live\n"
-            f"  axon:   {self.axon}\n"
-            f"  netuid: {self.config.netuid}"
+            f"Arctura Base miner live\n  axon:   {self.axon}\n  netuid: {self.config.netuid}"
         )
 
         step = 0

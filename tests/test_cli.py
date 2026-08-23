@@ -164,13 +164,13 @@ def test_preflight_reports_all_checks(monkeypatch, tmp_path):
 
     closed = []
     fake_bt = SimpleNamespace(
-        subtensor=lambda network: SimpleNamespace(
+        Subtensor=lambda network: SimpleNamespace(
             metagraph=lambda netuid: SimpleNamespace(
                 hotkeys=["miner-address", "validator-address"]
             ),
             close=lambda: closed.append(True),
         ),
-        wallet=FakeWallet,
+        Wallet=FakeWallet,
     )
     monkeypatch.setattr("arctura_base.base_rpc.BaseRPCClient", FakeClient)
     monkeypatch.setitem(__import__("sys").modules, "bittensor", fake_bt)
@@ -211,10 +211,10 @@ def test_preflight_fails_when_wallets_are_missing(monkeypatch, tmp_path):
         __import__("sys").modules,
         "bittensor",
         SimpleNamespace(
-            subtensor=lambda network: SimpleNamespace(
+            Subtensor=lambda network: SimpleNamespace(
                 metagraph=lambda netuid: SimpleNamespace(hotkeys=[])
             ),
-            wallet=lambda name, **kwargs: SimpleNamespace(
+            Wallet=lambda name, **kwargs: SimpleNamespace(
                 hotkey=SimpleNamespace(ss58_address=f"{name}-address")
             ),
         ),
@@ -241,12 +241,12 @@ def test_finney_preflight_rejects_base_sepolia(monkeypatch, tmp_path):
         __import__("sys").modules,
         "bittensor",
         SimpleNamespace(
-            subtensor=lambda network: SimpleNamespace(
+            Subtensor=lambda network: SimpleNamespace(
                 metagraph=lambda netuid: SimpleNamespace(
                     hotkeys=["miner-address", "validator-address"]
                 )
             ),
-            wallet=lambda name, **kwargs: SimpleNamespace(
+            Wallet=lambda name, **kwargs: SimpleNamespace(
                 hotkey=SimpleNamespace(ss58_address=f"{name}-address")
             ),
         ),

@@ -45,3 +45,29 @@ def test_scoring_handles_fewer_responses_than_requested():
     )
 
     assert scores == {0: 0.0, 1: 0.0}
+
+
+def test_active_miner_uids_exclude_self_and_validator_permits():
+    validator = object.__new__(ArcturaValidator)
+    validator.wallet = type(
+        "Wallet",
+        (),
+        {"hotkey": type("Hotkey", (), {"ss58_address": "validator-self"})()},
+    )()
+    validator.metagraph = type(
+        "Metagraph",
+        (),
+        {
+            "hotkeys": ["validator-self", "validator-peer", "miner-one", "miner-two"],
+            "S": [1, 1, 1, 1],
+            "validator_permit": [True, True, False, False],
+            "axons": [
+                SimpleNamespace(is_serving=True),
+                SimpleNamespace(is_serving=True),
+                SimpleNamespace(is_serving=True),
+                SimpleNamespace(is_serving=True),
+            ],
+        },
+    )()
+
+    assert validator._get_active_miner_uids() == [2, 3]

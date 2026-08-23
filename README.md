@@ -68,7 +68,7 @@ This subnet is the bridge. First-mover. Open source. Apache-2.0.
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/bittensaur/arctura-base-subnet
+git clone https://github.com/Arctura-Collective/arctura-base-subnet
 cd arctura-base-subnet
 pip install -e ".[dev]"
 
@@ -267,7 +267,7 @@ Arctura Base is not running a broad builder program yet. Focused operator and re
 Local setup:
 
 ```bash
-git clone https://github.com/bittensaur/arctura-base-subnet
+git clone https://github.com/Arctura-Collective/arctura-base-subnet
 cd arctura-base-subnet
 pip install -e ".[dev]"
 pytest tests/ -v
@@ -279,11 +279,11 @@ Open a GitHub Issue using the Validator Onboarding template to register interest
 
 ## Related
 
-- [arctura.network](https://arctura.network) — Parent subnet and signal stack  
-- [arctura.network/base](https://arctura.network/base/) — This project's landing site  
-- [github.com/bittensaur/arctura-base-subnet](https://github.com/bittensaur/arctura-base-subnet) — Core Arctura repo  
-- [docs.base.org](https://docs.base.org) — Base chain, AgentKit, CDP SDK  
-- [docs.bittensor.com](https://docs.bittensor.com) — Subnet creation, neuron development  
+- [arctura.network](https://arctura.network) — Parent subnet and signal stack
+- [arctura.network/base](https://arctura.network/base/) — This project's landing site
+- [github.com/Arctura-Collective/arctura-base-subnet](https://github.com/Arctura-Collective/arctura-base-subnet) — Core Arctura repo
+- [docs.base.org](https://docs.base.org) — Base chain, AgentKit, CDP SDK
+- [docs.bittensor.com](https://docs.bittensor.com) — Subnet creation, neuron development
 
 ---
 

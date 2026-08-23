@@ -7,12 +7,20 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
+load_dotenv: Callable[..., object] | None
+try:
+    from dotenv import load_dotenv as _load_dotenv
+except ImportError:  # pragma: no cover - dependency is declared for normal installs
+    load_dotenv = None
+else:
+    load_dotenv = _load_dotenv
 
-load_dotenv()
+if load_dotenv is not None:
+    load_dotenv()
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NETWORK = os.environ.get("ARCTURA_NETWORK", os.environ.get("BT_NETWORK", "test"))
@@ -208,11 +216,11 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
     try:
         import bittensor as bt
 
-        subtensor = bt.subtensor(network=args.network)
+        subtensor = bt.Subtensor(network=args.network)
         metagraph = subtensor.metagraph(int(args.netuid))
         registered = {}
         for role, name in (("miner", args.miner_wallet), ("validator", args.validator_wallet)):
-            address = bt.wallet(
+            address = bt.Wallet(
                 name=name, hotkey=args.hotkey, path=str(wallet_path)
             ).hotkey.ss58_address
             registered[role] = {"registered": address in metagraph.hotkeys}
@@ -308,7 +316,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    return int(args.func(args))
+    command = args.func
+    return int(command(args))
 
 
 if __name__ == "__main__":

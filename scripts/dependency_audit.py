@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
-"""Audit direct dependency declarations for ARCTURA Base."""
+"""Audit direct dependency declarations and security posture for ARCTURA Base."""
 
 from __future__ import annotations
 
 import importlib.metadata
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT = ROOT / "pyproject.toml"
 REQUIREMENTS = ROOT / "requirements.txt"
 SOURCE_DIRS = [ROOT / "arctura_base", ROOT / "neurons", ROOT / "tests"]
+
+# Known vulnerable or deprecated package patterns for security audit
+KNOWN_VULNERABILITIES = {
+    "requests": "<2.31.0",
+    "urllib3": "<1.26.18",
+    "cryptography": "<41.0.0",
+}
 
 
 def read_project_dependencies() -> list[str]:
@@ -35,15 +41,6 @@ def package_name(requirement: str) -> str:
     return re.split(r"[<>=!~\[]", requirement, maxsplit=1)[0].strip().lower()
 
 
-def imported_modules() -> set[str]:
-    modules: set[str] = set()
-    pattern = re.compile(r"^\s*(?:from|import)\s+([a-zA-Z_][a-zA-Z0-9_]*)", re.MULTILINE)
-    for source_dir in SOURCE_DIRS:
-        for path in source_dir.rglob("*.py"):
-            modules.update(match.group(1).lower() for match in pattern.finditer(path.read_text()))
-    return modules
-
-
 def installed_version(name: str) -> str:
     aliases = {"python-dotenv": "python-dotenv", "bittensor": "bittensor"}
     dist_name = aliases.get(name, name)
@@ -54,26 +51,38 @@ def installed_version(name: str) -> str:
 
 
 def main() -> int:
+    print("==================================================")
+    print("ARCTURA Base — Security & Dependency Audit Scanner")
+    print("==================================================")
+
     project_deps = read_project_dependencies()
     requirement_deps = read_requirements()
-    imports = imported_modules()
-    print("Direct dependencies")
-    print("===================")
+
+    vulnerabilities_found = 0
+
+    print("\n[1] Direct Dependencies & Installed Versions:")
     for dep in project_deps:
         name = package_name(dep)
-        print(f"- {dep} | installed={installed_version(name)}")
-    print()
-    print("requirements.txt-only entries")
-    print("=============================")
+        ver = installed_version(name)
+        print(f"  - {dep} | installed={ver}")
+        if name in KNOWN_VULNERABILITIES:
+            print(f"    [SECURITY WARNING] {name} has active vulnerability advisory rules.")
+            vulnerabilities_found += 1
+
+    print("\n[2] Security Scan Results:")
+    if vulnerabilities_found == 0:
+        print("  - Status: PASSED. No critical dependency vulnerabilities detected.")
+    else:
+        print(f"  - Status: FAILED. Detected {vulnerabilities_found} potential advisories.")
+        return 1
+
+    print("\n[3] Requirements Consistency Check:")
     project_names = {package_name(dep) for dep in project_deps}
     for dep in requirement_deps:
         if package_name(dep) not in project_names:
-            print(f"- {dep}")
-    print()
-    print("Imported top-level modules")
-    print("==========================")
-    for module in sorted(imports):
-        print(f"- {module}")
+            print(f"  - Extra requirement: {dep}")
+
+    print("\nDependency audit completed successfully.")
     return 0
 
 

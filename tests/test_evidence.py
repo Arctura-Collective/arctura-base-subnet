@@ -1,10 +1,38 @@
-"""Sustained testnet evidence gate tests."""
+"""Tests for testnet evidence templates and the sustained launch gate."""
 
+import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from arctura_base.evidence import evaluate_evidence, parse_timestamp
+from arctura_base.evidence import (
+    build_testnet_evidence_template,
+    evaluate_evidence,
+    parse_timestamp,
+    write_testnet_evidence_template,
+)
+
+
+def test_template_records_scope_without_claiming_an_outcome():
+    template = build_testnet_evidence_template(network="test", netuid=505, run_id="run-505-a")
+
+    assert template["publication_state"] == "template"
+    assert template["run"]["network"] == "test"
+    assert template["run"]["netuid"] == 505
+    assert template["run"]["id"] == "run-505-a"
+    assert all(value is None for value in template["observations"].values())
+    assert "not evidence" in template["claim_boundary"]
+
+
+def test_template_writer_refuses_to_overwrite_an_existing_artifact(tmp_path):
+    output = tmp_path / "evidence.json"
+    write_testnet_evidence_template(output, network="test", netuid=505)
+
+    written = json.loads(output.read_text(encoding="utf-8"))
+    assert written["run"]["netuid"] == 505
+
+    with pytest.raises(FileExistsError):
+        write_testnet_evidence_template(output, network="test", netuid=505)
 
 
 def test_evidence_passes_complete_48_hour_run():
@@ -48,6 +76,7 @@ def test_evidence_fails_incomplete_or_unhealthy_run(override, failed_check):
         "miner_restarts": 0,
         "validator_restarts": 0,
     }
+    override = dict(override)
     now_offset = override.pop("now_offset", None)
     values.update(override)
     if now_offset is not None:

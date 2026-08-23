@@ -36,7 +36,6 @@ from collections import defaultdict
 from typing import Any
 
 import bittensor as bt
-import torch
 
 from arctura_base.base_rpc import BaseRPCClient
 from arctura_base.incentive import (
@@ -70,16 +69,16 @@ class ArcturaValidator:
     WEIGHT_SET_RETRIES = 3
     WEIGHT_SET_RETRY_SECONDS = 5
 
-    def __init__(self, config: bt.config | None = None) -> None:
+    def __init__(self, config: Any | None = None) -> None:
         self.config = config or self._build_config()
 
         bt.logging(config=self.config, logging_dir=self.config.full_path)
         bt.logging.info("Initializing Arctura Base validator...")
 
         # Bittensor components
-        self.wallet = bt.wallet(config=self.config)
-        self.subtensor = bt.subtensor(config=self.config)
-        self.dendrite = bt.dendrite(wallet=self.wallet)
+        self.wallet = bt.Wallet(config=self.config)
+        self.subtensor = bt.Subtensor(config=self.config)
+        self.dendrite = bt.Dendrite(wallet=self.wallet)
         self.metagraph = self.subtensor.metagraph(self.config.netuid)
 
         # Base chain client (for reference block hash verification)
@@ -100,14 +99,14 @@ class ArcturaValidator:
     # ── Config ────────────────────────────────────────────────────────────
 
     @staticmethod
-    def _build_config() -> bt.config:
+    def _build_config() -> Any:
         parser = argparse.ArgumentParser(
             description="Arctura Base subnet validator",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
-        bt.subtensor.add_args(parser)
+        bt.Subtensor.add_args(parser)
         bt.logging.add_args(parser)
-        bt.wallet.add_args(parser)
+        bt.Wallet.add_args(parser)
 
         parser.add_argument("--netuid", type=int, default=1, help="Bittensor subnet UID.")
         parser.add_argument(
@@ -120,7 +119,7 @@ class ArcturaValidator:
             help="Validator scoring cadence in Bittensor blocks.",
         )
 
-        config = bt.config(parser)
+        config = bt.Config(parser)
         config.full_path = (
             f"~/.bittensor/validators/{config.wallet.name}"
             f"/{config.wallet.hotkey}/netuid{config.netuid}/validator"
@@ -190,17 +189,26 @@ class ArcturaValidator:
 
     def _get_active_miner_uids(self) -> list[int]:
         """
-        Return UIDs with serving axons, excluding the validator's own UID.
+        Return serving miner UIDs, excluding this validator and validator peers.
         """
         try:
             my_uid = self.metagraph.hotkeys.index(self.wallet.hotkey.ss58_address)
         except ValueError:
             my_uid = -1
 
+        validator_permits = getattr(self.metagraph, "validator_permit", None)
+
+        def has_validator_permit(uid: int) -> bool:
+            if validator_permits is None:
+                return False
+            return bool(validator_permits[uid])
+
         return [
             uid
             for uid in range(len(self.metagraph.S))
-            if uid != my_uid and bool(self.metagraph.axons[uid].is_serving)
+            if uid != my_uid
+            and not has_validator_permit(uid)
+            and bool(self.metagraph.axons[uid].is_serving)
         ]
 
     def _get_historical_calibration(self, hotkey: str) -> float:
@@ -246,7 +254,7 @@ class ArcturaValidator:
         sybil_flagged = detect_hash_collision(uid_hashes)
         if sybil_flagged:
             bt.logging.warning(
-                f"Potential Sybil behavior detected — " f"UIDs sharing hash: {sybil_flagged}"
+                f"Potential Sybil behavior detected — UIDs sharing hash: {sybil_flagged}"
             )
 
         for index, uid in enumerate(miner_uids):
@@ -302,22 +310,19 @@ class ArcturaValidator:
             return False
         normalized = normalize_weights(raw_weights)
 
-        uid_tensor = torch.tensor(uids, dtype=torch.int64)
-        weight_tensor = torch.tensor(normalized, dtype=torch.float32)
-
         for attempt in range(1, self.WEIGHT_SET_RETRIES + 1):
             try:
                 result = self.subtensor.set_weights(
                     wallet=self.wallet,
                     netuid=self.config.netuid,
-                    uids=uid_tensor,
-                    weights=weight_tensor,
+                    uids=uids,
+                    weights=normalized,
                     wait_for_inclusion=True,
                 )
                 if isinstance(result, tuple):
                     success, msg = result
                 else:
-                    success = bool(getattr(result, "is_success", result))
+                    success = bool(getattr(result, "success", getattr(result, "is_success", False)))
                     msg = getattr(result, "error_message", "") or getattr(result, "message", "")
             except Exception as exc:
                 success = False
@@ -403,8 +408,7 @@ class ArcturaValidator:
                     self._set_weights(scores)
 
                 bt.logging.info(
-                    f"Tempo complete | sleeping {sleep_seconds}s "
-                    f"(~{sleep_seconds // 60} minutes)"
+                    f"Tempo complete | sleeping {sleep_seconds}s (~{sleep_seconds // 60} minutes)"
                 )
                 time.sleep(sleep_seconds)
 

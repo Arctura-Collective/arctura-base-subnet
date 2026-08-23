@@ -28,13 +28,10 @@ classifiers = [
 requires-python = ">=3.10"
 
 dependencies = [
-    "bittensor>=9.12.0,<10.0.0",
-    "torch>=2.0.0,<3.0.0",
+    "bittensor>=10.5.0,<11.0.0",
     "web3>=6.0.0,<8.0.0",
     "pydantic>=2.0.0,<3.0.0",
-    "httpx>=0.24.0,<1.0.0",
     "python-dotenv>=1.0.0,<2.0.0",
-    "rich>=13.0.0,<16.0.0",
 ]
 
 [project.optional-dependencies]
@@ -55,9 +52,9 @@ dev = [
 
 [project.urls]
 Homepage = "https://arctura.network/base/"
-Repository = "https://github.com/bittensaur/arctura-base-subnet"
+Repository = "https://github.com/Arctura-Collective/arctura-base-subnet"
 Documentation = "https://arctura.network/base/"
-"Bug Tracker" = "https://github.com/bittensaur/arctura-base-subnet/issues"
+"Bug Tracker" = "https://github.com/Arctura-Collective/arctura-base-subnet/issues"
 
 [project.scripts]
 arctura = "arctura_base.cli:main"

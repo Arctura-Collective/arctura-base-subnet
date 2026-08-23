@@ -19,13 +19,12 @@ Apache-2.0
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
-from dataclasses import dataclass, field
+import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
-
-import httpx
 
 # ── Schema ────────────────────────────────────────────────────────────────
 
@@ -34,10 +33,10 @@ import httpx
 class EnvVar:
     key: str
     description: str
-    default: Optional[str]
+    default: str | None
     required: bool
     secret: bool = False  # mask in output
-    validate_fn: Optional[str] = None  # name of a validator method
+    validate_fn: str | None = None  # name of a validator method
 
 
 ENV_SCHEMA: list[EnvVar] = [
@@ -103,19 +102,19 @@ VALID_LOG_LEVELS = {"debug", "info", "warning", "error"}
 # ── Validators ────────────────────────────────────────────────────────────
 
 
-def validate_network(value: str) -> Optional[str]:
+def validate_network(value: str) -> str | None:
     if value not in VALID_NETWORKS:
         return f"Must be one of: {', '.join(sorted(VALID_NETWORKS))}"
     return None
 
 
-def validate_energy_tag(value: str) -> Optional[str]:
+def validate_energy_tag(value: str) -> str | None:
     if value not in VALID_ENERGY_TAGS:
         return f"Must be one of: {', '.join(sorted(VALID_ENERGY_TAGS))}"
     return None
 
 
-def validate_log_level(value: str) -> Optional[str]:
+def validate_log_level(value: str) -> str | None:
     if value not in VALID_LOG_LEVELS:
         return f"Must be one of: {', '.join(sorted(VALID_LOG_LEVELS))}"
     return None
@@ -166,14 +165,15 @@ def check_rpc(url: str, timeout: int = 5) -> tuple[bool, str]:
     if not url.startswith(("https://", "http://")):
         return False, "RPC URL must use http:// or https://"
     try:
-        response = httpx.post(
+        payload = json.dumps({"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1})
+        req = urllib.request.Request(
             url,
-            json={"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1},
+            data=payload.encode("utf-8"),
             headers={"Content-Type": "application/json"},
-            timeout=timeout,
+            method="POST",
         )
-        response.raise_for_status()
-        data = response.json()
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
         if "result" in data:
             block = int(data["result"], 16)
             return True, f"block #{block:,}"
@@ -228,7 +228,7 @@ def write_env(path: Path, values: dict[str, str]) -> None:
     neuron_keys = ["MINER_AXON_PORT", "VALIDATOR_TIMEOUT", "VALIDATOR_TEMPO"]
     other_keys = ["ARCTURA_ENERGY_TAG", "CDP_API_KEY_NAME", "CDP_API_KEY_PRIVATE_KEY", "LOG_LEVEL"]
 
-    def emit(keys: list[str], header: Optional[str] = None):
+    def emit(keys: list[str], header: str | None = None):
         if header:
             lines.append(f"\n# ── {header} {'─' * max(0, 45 - len(header))}")
         for k in keys:

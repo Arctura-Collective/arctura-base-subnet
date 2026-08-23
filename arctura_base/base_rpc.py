@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Callable
 from typing import Any
 
 try:
@@ -34,9 +35,21 @@ except ImportError:  # pragma: no cover - exercised in lightweight tooling envir
 
     bt = type("_FallbackBittensor", (), {"logging": _FallbackLogging()})()
 
-from dotenv import load_dotenv
-from web3 import Web3
-from web3.types import BlockIdentifier
+load_dotenv: Callable[..., object] | None
+try:
+    from dotenv import load_dotenv as _load_dotenv
+except ImportError:  # pragma: no cover - dependency is declared for normal installs
+    load_dotenv = None
+else:
+    load_dotenv = _load_dotenv
+
+Web3: Any
+try:
+    from web3 import Web3
+except ImportError:  # pragma: no cover - exercised when optional runtime deps are absent
+    Web3 = None
+
+BlockIdentifier = int | str
 
 
 class BaseRPCClient:
@@ -67,8 +80,13 @@ class BaseRPCClient:
                       then Coinbase's public endpoint.
             timeout:  HTTP request timeout in seconds.
         """
-        load_dotenv()
+        if load_dotenv is not None:
+            load_dotenv()
         url = rpc_url or os.environ.get("BASE_RPC_URL", "https://mainnet.base.org")
+        if Web3 is None:
+            raise ImportError(
+                "web3 is required for BaseRPCClient. Install project dependencies first."
+            )
         self.w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": timeout}))
         self.rpc_url = url
         self._block_hash_cache: dict[int, str] = {}
@@ -92,7 +110,7 @@ class BaseRPCClient:
 
     def get_latest_block_number(self) -> int:
         """Return the current latest block number on Base."""
-        return self.w3.eth.block_number
+        return int(self.w3.eth.block_number)
 
     def get_block_hash(self, block_number: int) -> str:
         """
@@ -105,7 +123,7 @@ class BaseRPCClient:
         if block_number in self._block_hash_cache:
             return self._block_hash_cache[block_number]
         block = self.w3.eth.get_block(block_number)
-        block_hash = block["hash"].hex()
+        block_hash = str(block["hash"].hex())
         self._block_hash_cache[block_number] = block_hash
         return block_hash
 
@@ -126,7 +144,7 @@ class BaseRPCClient:
         Returns:
             {"address": str, "balance": int, "block_number": int, "token": str | None}
         """
-        block_id: BlockIdentifier = block_number if block_number is not None else "latest"
+        block_id: Any = block_number if block_number is not None else "latest"
         checksum_addr = Web3.to_checksum_address(address)
 
         if token_address is None:
@@ -231,7 +249,7 @@ class BaseRPCClient:
         """
         contract = self.w3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=abi)
         func = getattr(contract.functions, function_name)
-        block_id: BlockIdentifier = block_number if block_number is not None else "latest"
+        block_id: Any = block_number if block_number is not None else "latest"
         result = func(*args).call(block_identifier=block_id)
 
         actual_block = block_number if block_number is not None else self.w3.eth.block_number
