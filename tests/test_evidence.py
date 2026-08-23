@@ -8,6 +8,7 @@ import pytest
 from arctura_base.evidence import (
     build_testnet_evidence_template,
     evaluate_evidence,
+    log_from_marker,
     parse_timestamp,
     write_testnet_evidence_template,
 )
@@ -50,6 +51,37 @@ def test_evidence_passes_complete_48_hour_run():
     assert report["ok"] is True
     assert all(report["checks"].values())
     assert report["metrics"]["health_passes"] == 576
+
+
+def test_log_from_marker_keeps_full_log_when_marker_is_missing():
+    assert log_from_marker("Traceback\ninitializing", "live") == "Traceback\ninitializing"
+
+
+def test_startup_traceback_before_live_marker_does_not_fail_gate():
+    started = datetime(2026, 6, 17, tzinfo=timezone.utc)
+    report = evaluate_evidence(
+        started_at=started,
+        now=started + timedelta(hours=49),
+        miner_log=(
+            "Traceback (most recent call last)\n"
+            "websockets.exceptions.ConnectionClosedError\n"
+            "Arctura Base miner live\n"
+            "Mandate attested\n"
+        ),
+        validator_log=(
+            "Traceback (most recent call last)\n"
+            "websockets.exceptions.ConnectionClosedError\n"
+            "Arctura Base validator live\n"
+            "Weights set\n"
+            "Weights set\n"
+        ),
+        health_log='{"ok": true}\n' * 576,
+        miner_restarts=0,
+        validator_restarts=0,
+    )
+
+    assert report["checks"]["no_fatal_errors"] is True
+    assert report["metrics"]["fatal_counts"]["Traceback (most recent call last)"] == 0
 
 
 @pytest.mark.parametrize(
