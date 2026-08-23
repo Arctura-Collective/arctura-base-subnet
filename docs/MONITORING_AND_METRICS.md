@@ -80,6 +80,11 @@ single-host scrape example for node-exporter:
 prometheus --config.file=deploy/prometheus/prometheus.yml
 ```
 
+For AWS production deployments, `deploy/aws/asg/` includes CloudWatch alarms and
+a Lambda bridge that forwards alarm state changes to an Alertmanager-compatible
+`/api/v2/alerts` endpoint. This connects EC2 Auto Scaling health signals to the
+same Prometheus/Grafana alerting surface used by launch evidence metrics.
+
 ## Grafana Panels
 
 Import `deploy/grafana/arctura-launch-dashboard.json` into Grafana and point

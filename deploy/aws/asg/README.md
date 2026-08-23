@@ -1,0 +1,46 @@
+# Arctura AWS Auto Scaling and Health Alarms
+
+This Terraform module is the production infrastructure artifact for GitHub issue
+#4. It is intentionally declarative: reviewing or testing this repository never
+provisions AWS resources.
+
+## What it defines
+
+- EC2 launch template for miner nodes.
+- Auto Scaling Group for miner axons across supplied subnets.
+- CPU target-tracking scaling policy.
+- mandate-load step scaling policy backed by a custom CloudWatch metric named
+  `Arctura/Miner` / `MandatesPerMinute`.
+- CloudWatch alarms for miner CPU pressure, mandate-load pressure, unhealthy
+  ASG capacity, and validator health-check failures.
+- SNS topic plus Lambda bridge that converts CloudWatch alarm notifications into
+  Alertmanager-compatible Prometheus webhook alerts.
+
+## Required inputs
+
+Copy `terraform.tfvars.example` to `terraform.tfvars` outside version control and
+fill in real VPC/subnet/security-group/AMI values.
+
+Do not place coldkeys, mnemonics, or owner credentials on EC2 instances. This
+module is for hotkey-operated runtime nodes only.
+
+## Deployment outline
+
+```bash
+cd deploy/aws/asg
+terraform init
+terraform plan -out arctura-asg.plan
+terraform apply arctura-asg.plan
+```
+
+Before applying:
+
+1. Confirm the AMI contains Ubuntu 24.04, Python 3.12, systemd user lingering,
+   and the Arctura repo checkout.
+2. Confirm the security group exposes only SSH from operator IPs and the miner
+   axon port from intended Bittensor peers.
+3. Confirm `alertmanager_webhook_url` points at an authenticated/isolated
+   Alertmanager endpoint.
+4. Confirm no coldkey material is present in user data, AMI snapshots, or SSM
+   parameters.
+

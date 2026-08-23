@@ -69,6 +69,23 @@ To operate a production-grade subnet on Finney, your infrastructure must guarant
 ## 3. Step-by-Step Mainnet Launch Runbook (August 15 Target)
 
 ### Phase A — Infrastructure Provisioning (AWS)
+The production miner scaling artifact is `deploy/aws/asg/`. It defines the EC2
+launch template, miner Auto Scaling Group, CPU and mandate-load scaling
+policies, CloudWatch health alarms, and the CloudWatch-to-Alertmanager bridge
+used by the Prometheus/Grafana monitoring stack. Review and plan it before any
+AWS apply:
+
+```bash
+cd deploy/aws/asg
+cp terraform.tfvars.example terraform.tfvars
+# Fill in real AMI, subnet, security group, instance profile, netuid, and
+# Alertmanager endpoint values before planning.
+terraform init
+terraform plan -out arctura-asg.plan
+```
+
+Manual fallback:
+
 1. **Launch Validator EC2 Instance:**
    - Instance Type: `c6i.2xlarge` (8 vCPU, 16 GB RAM) running Ubuntu 24.04 LTS.
    - Storage: 250 GB NVMe SSD (for subtensor light client / local caching).
