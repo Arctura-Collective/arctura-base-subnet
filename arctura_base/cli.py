@@ -15,11 +15,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_NETWORK = os.environ.get("ARCTURA_NETWORK", "test")
-DEFAULT_NETUID = os.environ.get("ARCTURA_NETUID", "1")
-DEFAULT_MINER_WALLET = os.environ.get("ARCTURA_MINER_WALLET", "miner")
-DEFAULT_VALIDATOR_WALLET = os.environ.get("ARCTURA_VALIDATOR_WALLET", "validator")
-DEFAULT_HOTKEY = os.environ.get("ARCTURA_HOTKEY", "default")
+DEFAULT_NETWORK = os.environ.get("ARCTURA_NETWORK", os.environ.get("BT_NETWORK", "test"))
+DEFAULT_NETUID = os.environ.get("ARCTURA_NETUID", os.environ.get("BT_NETUID", "1"))
+DEFAULT_MINER_WALLET = os.environ.get(
+    "ARCTURA_MINER_WALLET", os.environ.get("BT_MINER_WALLET", "miner")
+)
+DEFAULT_VALIDATOR_WALLET = os.environ.get(
+    "ARCTURA_VALIDATOR_WALLET", os.environ.get("BT_VALIDATOR_WALLET", "validator")
+)
+DEFAULT_HOTKEY = os.environ.get("ARCTURA_HOTKEY", os.environ.get("BT_DEFAULT_HOTKEY", "default"))
 DEFAULT_WALLET_PATH = Path(os.path.expanduser("~/.bittensor/wallets"))
 
 
@@ -47,6 +51,18 @@ def btcli_args(args: argparse.Namespace) -> list[str]:
     ]
 
 
+def finney_confirmed(args: argparse.Namespace, action: str) -> bool:
+    """Require an explicit acknowledgment for TAO-moving Finney commands."""
+    if args.network != "finney" or getattr(args, "confirm_finney", False):
+        return True
+    print(
+        f"Refusing to {action} on Finney without --confirm-finney. "
+        "Recheck wallet, netuid, amount, and live chain state.",
+        file=sys.stderr,
+    )
+    return False
+
+
 def command_metagraph(args: argparse.Namespace) -> int:
     return run_command(["btcli", "subnet", "metagraph", *btcli_args(args)])
 
@@ -70,6 +86,8 @@ def command_overview(args: argparse.Namespace) -> int:
 
 
 def command_register(args: argparse.Namespace) -> int:
+    if not finney_confirmed(args, "register"):
+        return 2
     return run_command(
         [
             "btcli",
@@ -85,6 +103,8 @@ def command_register(args: argparse.Namespace) -> int:
 
 
 def command_stake(args: argparse.Namespace) -> int:
+    if not finney_confirmed(args, "stake"):
+        return 2
     return run_command(
         [
             "btcli",
@@ -139,6 +159,8 @@ def command_validator(args: argparse.Namespace) -> int:
             str(args.netuid),
             "--timeout",
             str(args.timeout),
+            "--tempo",
+            str(args.tempo),
             "--logging.info",
         ]
     )
@@ -159,11 +181,16 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
     try:
         client = BaseRPCClient(timeout=args.timeout)
         block = client.get_latest_block_number()
+        chain_id = int(client.w3.eth.chain_id)
         checks["base_rpc"] = {
-            "ok": True,
+            "ok": args.network != "finney" or chain_id == 8453,
+            "chain_id": chain_id,
             "block": block,
             "block_hash": client.get_block_hash(block),
         }
+        if not checks["base_rpc"]["ok"]:
+            checks["base_rpc"]["error"] = "Finney launch requires Base mainnet chain_id 8453."
+            result["ok"] = False
     except Exception as exc:
         checks["base_rpc"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
         result["ok"] = False
@@ -240,12 +267,14 @@ def build_parser() -> argparse.ArgumentParser:
     register = subparsers.add_parser("register", help="Register a wallet hotkey on the subnet.")
     add_common_args(register)
     add_wallet_args(register, DEFAULT_MINER_WALLET)
+    register.add_argument("--confirm-finney", action="store_true")
     register.set_defaults(func=command_register)
 
     stake = subparsers.add_parser("stake", help="Stake TAO to a wallet hotkey on the subnet.")
     add_common_args(stake)
     add_wallet_args(stake, DEFAULT_MINER_WALLET)
     stake.add_argument("--amount", type=float, required=True)
+    stake.add_argument("--confirm-finney", action="store_true")
     stake.set_defaults(func=command_stake)
 
     miner = subparsers.add_parser("miner", help="Start the Arctura Base miner.")
@@ -258,6 +287,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_common_args(validator)
     add_wallet_args(validator, DEFAULT_VALIDATOR_WALLET)
     validator.add_argument("--timeout", default=os.environ.get("VALIDATOR_TIMEOUT", "30"))
+    validator.add_argument("--tempo", default=os.environ.get("VALIDATOR_TEMPO", "360"))
     validator.set_defaults(func=command_validator)
 
     preflight = subparsers.add_parser(

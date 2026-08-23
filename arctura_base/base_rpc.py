@@ -78,8 +78,7 @@ class BaseRPCClient:
         """Verify the RPC connection is live. Raises on failure."""
         if not self.w3.is_connected():
             raise ConnectionError(
-                f"Cannot connect to Base RPC. Check BASE_RPC_URL in .env\n"
-                f"Current: {self.rpc_url}"
+                f"Cannot connect to Base RPC. Check BASE_RPC_URL in .env\nCurrent: {self.rpc_url}"
             )
         chain_id = self.w3.eth.chain_id
         # Base mainnet = 8453, Base Sepolia = 84532

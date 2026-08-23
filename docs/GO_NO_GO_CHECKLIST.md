@@ -1,6 +1,8 @@
 # Mainnet Go / No-Go Checklist
 
 Every item must be checked before running `btcli subnet create` on Finney.
+Use [../MAINNET_LAUNCH_BLOCKERS.md](../MAINNET_LAUNCH_BLOCKERS.md) for the
+operator-facing blocker list and non-mutating verification commands.
 
 ## Capital
 - [ ] Burn cost checked within last 30 minutes
@@ -15,7 +17,7 @@ Every item must be checked before running `btcli subnet create` on Finney.
 - [x] `neurons/miner.py` — returns valid `merkle_proof` (verify_merkle_proof passes)
 - [x] `neurons/miner.py` — `block_hash_anchor` matches real Base block hash
 - [x] `neurons/validator.py` — submitted non-zero testnet weights successfully
-- [x] `pytest tests/ -v` passes with no failures (80 tests on 2026-06-19)
+- [x] `pytest tests/ -v` passes with no failures (103 tests on 2026-07-08)
 - [ ] No uncaught exceptions in 48h testnet run
 
 ## Network
@@ -32,8 +34,10 @@ Every item must be checked before running `btcli subnet create` on Finney.
 - [ ] Monitoring configured for axon uptime
 
 User-level service templates and a five-minute preflight timer are provided in
-`deploy/systemd/`. Check these items only after enabling them on the launch host
-and reviewing the 48-hour journal with `arctura-evidence`.
+`deploy/systemd/`. Track the supervised testnet run in
+[SYSTEMD_48H_CHECKLIST.md](SYSTEMD_48H_CHECKLIST.md). Check these items only
+after enabling them on the launch host and reviewing the 48-hour journal with
+`arctura-collect-evidence`.
 
 ## Final
 - [ ] Go/no-go reviewed by at least one other person

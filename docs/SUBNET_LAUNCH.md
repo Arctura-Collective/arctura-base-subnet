@@ -51,6 +51,8 @@ Run for **48+ hours** before proceeding. Confirm non-zero weights in metagraph.
 Install the user-level systemd units on the Linux host that owns the Bittensor
 wallets. Keep the operator environment file private; it contains deployment
 paths and may later contain a private RPC URL.
+Use [SYSTEMD_48H_CHECKLIST.md](SYSTEMD_48H_CHECKLIST.md) to track the run.
+For a more reliable always-on host, use [VPS_48H_RUN.md](VPS_48H_RUN.md).
 
 ```bash
 mkdir -p ~/.config/systemd/user ~/.config
@@ -75,31 +77,15 @@ systemctl --user show arctura-miner arctura-validator \
   --property=NRestarts,ActiveEnterTimestamp
 ```
 
-Export the evidence after 48 hours. Use the earliest `ActiveEnterTimestamp`
-from the two neuron services as `STARTED_AT`, and use each service's reported
-`NRestarts` value.
+Export and evaluate the evidence after 48 hours. The collector verifies that
+both neuron services are active, uses the later neuron start time as the start
+of the uninterrupted run, reads restart counts, and exports all three journals.
 
 ```bash
-mkdir -p runs/mainnet-evidence
-STARTED_AT="2026-06-19T00:00:00+00:00"  # replace with actual service timestamp
-journalctl --user -u arctura-miner --since "$STARTED_AT" --no-pager \
-  > runs/mainnet-evidence/miner.log
-journalctl --user -u arctura-validator --since "$STARTED_AT" --no-pager \
-  > runs/mainnet-evidence/validator.log
-journalctl --user -u arctura-health --since "$STARTED_AT" --no-pager \
-  > runs/mainnet-evidence/health.log
-
-arctura-evidence \
-  --started-at "$STARTED_AT" \
-  --miner-log runs/mainnet-evidence/miner.log \
-  --validator-log runs/mainnet-evidence/validator.log \
-  --health-log runs/mainnet-evidence/health.log \
-  --miner-restarts 0 \
-  --validator-restarts 0 \
-  --output runs/mainnet-evidence/report.json
+arctura-collect-evidence --output-dir runs/mainnet-evidence
 ```
 
-`arctura-evidence` exits nonzero unless the run lasted at least 48 hours, both
+`arctura-collect-evidence` exits nonzero unless the run lasted at least 48 hours, both
 neurons started, an attestation and weight commit succeeded, at least 500
 five-minute health samples passed, restart counts stayed within budget, and no
 fatal error markers appeared. The `runs/` directory is ignored because logs can
@@ -112,7 +98,9 @@ alone.
 
 ## Phase 3 — Mainnet Registration
 
-See [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md) before running any of these.
+See [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md) and
+[../MAINNET_LAUNCH_BLOCKERS.md](../MAINNET_LAUNCH_BLOCKERS.md) before running
+any of these.
 
 ```bash
 # Final burn cost check (run this within 30 minutes of registering)
