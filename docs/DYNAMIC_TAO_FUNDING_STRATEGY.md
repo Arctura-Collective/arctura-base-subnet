@@ -4,16 +4,16 @@ Arctura should not treat `686 TAO` as a fixed launch requirement. Finney subnet
 registration cost is dynamic and must be checked immediately before any launch
 decision.
 
-Current local check:
+Current ticker data:
 
 ```bash
-btcli subnet burn_cost --subtensor.network finney
-# Subnet burn cost: 773.1718 TAO
+python scripts/update_subnet_cost_ticker.py
+python -m json.tool docs/data/subnet_launch_cost.json
 ```
 
-This value is only a planning snapshot. The mainnet checklist still requires a
-fresh burn-cost check within 30 minutes of registration and explicit operator
-approval before any on-chain spend.
+The committed JSON and `docs/subnet-cost.html` page are planning snapshots. The
+mainnet checklist still requires a fresh burn-cost check within 30 minutes of
+registration and explicit operator approval before any on-chain spend.
 
 ## Can Arctura Launch Without Self-Funding the Full Cost?
 
