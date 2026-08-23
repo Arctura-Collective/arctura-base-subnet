@@ -159,6 +159,23 @@ systemctl --user show arctura-miner arctura-validator \
 That timestamp is the evidence window anchor. Update
 `docs/SYSTEMD_48H_CHECKLIST.md` if this VPS becomes the active evidence host.
 
+## Optional Prometheus Metrics
+
+After the neurons and health timer are running, enable the textfile metrics
+exporter:
+
+```bash
+cp deploy/systemd/arctura-metrics.service deploy/systemd/arctura-metrics.timer \
+  ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now arctura-metrics.timer
+systemctl --user start arctura-metrics.service
+cat ~/.local/share/arctura/metrics/arctura.prom
+```
+
+Point node-exporter at `~/.local/share/arctura/metrics` with its textfile
+collector and load `deploy/prometheus/arctura-alerts.yml` into Prometheus.
+
 Monitor without restarting:
 
 ```bash

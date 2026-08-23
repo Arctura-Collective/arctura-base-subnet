@@ -26,6 +26,17 @@ def test_health_timer_runs_frequently_and_persists():
     assert "--json" in service
 
 
+def test_metrics_timer_exports_prometheus_textfile():
+    timer = (SYSTEMD / "arctura-metrics.timer").read_text(encoding="utf-8")
+    service = (SYSTEMD / "arctura-metrics.service").read_text(encoding="utf-8")
+    assert "OnUnitActiveSec=1min" in timer
+    assert "Persistent=true" in timer
+    assert "EnvironmentFile=%h/.config/arctura-base-subnet.env" in service
+    assert "scripts/export_prometheus_metrics.py" in service
+    assert "NoNewPrivileges=true" in service
+    assert "PrivateTmp=true" in service
+
+
 def test_operator_example_contains_no_secret_values():
     example = (SYSTEMD / "operator.env.example").read_text(encoding="utf-8")
     assert "PRIVATE_KEY" not in example

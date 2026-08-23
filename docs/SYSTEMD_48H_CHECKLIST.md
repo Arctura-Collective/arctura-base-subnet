@@ -35,9 +35,9 @@ loginctl show-user "$USER" --property=Linger
 - [x] Validator issued a mandate to UID `1`
 - [x] Miner attested a systemd-managed mandate
 - [x] Validator scored UID `1`
-- [x] Validator commits at least one non-zero weight during the uninterrupted systemd run
+- [ ] Validator commits at least two non-zero weights during the uninterrupted systemd run
 - [x] Restart counts remain within budget
-- [ ] Health timer emits at least 500 passing samples
+- [ ] Health timer emits at least 570 passing samples
 - [ ] No fatal journal markers during the 48-hour window
 
 Verify:
@@ -91,6 +91,6 @@ python -m json.tool runs/mainnet-evidence/report.json
 - Do not count the successful foreground probe as the 48-hour run start; the
   evidence window starts from the systemd-managed neuron start.
 - A chain cooldown deferral is not a failure by itself, but the 48-hour evidence
-  gate still requires at least one successful weight commit inside the collected
+  gate still requires at least two successful weight commits inside the collected
   systemd journal window.
 - Process state alone is insufficient. The evidence report must pass.

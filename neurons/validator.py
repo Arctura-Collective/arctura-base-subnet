@@ -213,11 +213,12 @@ class ArcturaValidator:
     def _get_historical_calibration(self, hotkey: str) -> float:
         """
         Return the rolling-window average calibration accuracy for a miner.
-        Defaults to 0.5 (neutral) for new miners with no history.
+        Defaults to 0.0 for new miners with no history; unproven confidence
+        claims should not earn a calibration bonus.
         """
         history = self._calibration_history.get(hotkey, [])
         if not history:
-            return 0.5
+            return 0.0
         return sum(history) / len(history)
 
     def _update_calibration(

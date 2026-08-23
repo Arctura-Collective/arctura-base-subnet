@@ -78,6 +78,13 @@ def test_scoring_handles_fewer_responses_than_requested():
     assert scores == {0: 0.0, 1: 0.0}
 
 
+def test_new_miners_do_not_receive_calibration_bonus():
+    validator = object.__new__(ArcturaValidator)
+    validator._calibration_history = {}
+
+    assert validator._get_historical_calibration("new-hotkey") == 0.0
+
+
 def test_active_miner_uids_do_not_treat_validator_permit_as_a_role():
     validator = object.__new__(ArcturaValidator)
     validator.wallet = type(

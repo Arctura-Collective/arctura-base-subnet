@@ -19,12 +19,12 @@ def test_collect_writes_complete_evidence_bundle(tmp_path):
         if command[0] == "systemctl":
             return completed(
                 command,
-                f"ActiveEnterTimestamp={started}\nNRestarts=1\nActiveState=active\n",
+                f"ActiveEnterTimestamp={started}\nNRestarts=0\nActiveState=active\n",
             )
         service = command[command.index("-u") + 1]
         logs = {
             "arctura-miner": "Arctura Base miner live\nMandate attested\n",
-            "arctura-validator": "Arctura Base validator live\nWeights set\n",
+            "arctura-validator": "Arctura Base validator live\nWeights set\nWeights set\n",
             "arctura-health": '{"ok": true}\n' * 576,
         }
         return completed(command, logs[service])
@@ -60,7 +60,7 @@ def test_collect_preserves_each_service_start_marker(tmp_path):
         journal_since[service] = command[command.index("--since") + 1]
         logs = {
             "arctura-miner": "Arctura Base miner live\nMandate attested\n",
-            "arctura-validator": "Arctura Base validator live\nWeights set\n",
+            "arctura-validator": "Arctura Base validator live\nWeights set\nWeights set\n",
             "arctura-health": '{"ok": true}\n' * 576,
         }
         return completed(command, logs[service])
