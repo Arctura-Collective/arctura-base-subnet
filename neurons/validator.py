@@ -67,6 +67,7 @@ class ArcturaValidator:
 
     # Tempo period in blocks (default: 360 blocks = ~72 minutes)
     DEFAULT_TEMPO = 360
+    MIN_DEADLINE_BLOCKS = 30
     WEIGHT_SET_RETRIES = 3
     WEIGHT_SET_RETRY_SECONDS = 5
 
@@ -132,6 +133,11 @@ class ArcturaValidator:
 
     # ── Mandate generation ────────────────────────────────────────────────
 
+    @classmethod
+    def _deadline_offset(cls, tempo: int) -> int:
+        """Return a bounded mandate deadline offset in Bittensor blocks."""
+        return max(cls.MIN_DEADLINE_BLOCKS, tempo // 8)
+
     def _build_mandate(self) -> BaseSubnetSynapse:
         """
         Generate a Base chain mandate for this tempo period.
@@ -144,9 +150,9 @@ class ArcturaValidator:
         current_block = self.metagraph.block.item()
         latest_base = self.base_client.get_latest_block_number()
 
-        # Deadline: current Bittensor block + tempo/4 blocks
+        # Deadline: current Bittensor block + bounded tempo/8 window.
         tempo = getattr(self.config, "tempo", None) or self.DEFAULT_TEMPO
-        deadline_block = current_block + tempo // 4
+        deadline_block = current_block + self._deadline_offset(tempo)
 
         # Rotate mandate type to test different miner capabilities
         cycle = current_block % 3

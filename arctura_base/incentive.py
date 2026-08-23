@@ -18,6 +18,7 @@ Anti-gaming properties:
     • Stale attestation:   block_hash_anchor mismatch → 0.0
     • Incomplete trace:    completeness penalty → reduced score
     • Late response:       linear latency decay after deadline_block
+    • Expired response:    zero score after deadline_block + grace
     • Sybil detection:     identical hashes across UIDs flagged (see validator.py)
 
 Arctura Council · Coreweaver · arctura.network/base
@@ -155,6 +156,19 @@ def score_latency(response_block: int, deadline_block: int) -> float:
     return 1.0 - (blocks_late / LATENCY_GRACE_BLOCKS)
 
 
+def is_response_expired(response_block: int, deadline_block: int) -> bool:
+    """
+    Return True when a response arrives after the accepted latency window.
+
+    Expired responses forfeit the entire response score. This prevents miners
+    from waiting until late in the tempo, preserving attestation/completeness
+    credit, and only losing the latency component.
+    """
+    if deadline_block <= 0:
+        return False
+    return response_block >= deadline_block + LATENCY_GRACE_BLOCKS
+
+
 # ── Dimension 4: Confidence calibration ───────────────────────────────────
 
 
@@ -210,6 +224,8 @@ def score_response(
         Float [0.0, 1.0] — the Resonance BFT score.
     """
     if synapse is None or synapse.base_state_hash is None:
+        return 0.0
+    if is_response_expired(response_block, synapse.deadline_block):
         return 0.0
 
     # Compute each dimension

@@ -28,8 +28,12 @@ the branch Gordon reviewed, so use current source as authoritative.
   `docs/VPS_PROVISIONING_CHECKLIST.md`: launch preflight now checks disk and
   inode usage, and provisioning docs include journal footprint bounds. This is
   not a replacement for hosted disk alerts.
-- Remaining high-priority work: key rotation procedure, stricter
-  latency/deadline scoring, and deeper calibration hardening.
+- Finding 1.2 is addressed in `neurons/validator.py` and
+  `arctura_base/incentive.py`: mandate deadlines use a tighter bounded window,
+  and responses after `deadline_block + LATENCY_GRACE_BLOCKS` forfeit the full
+  response score.
+- Remaining high-priority work: key rotation procedure and deeper calibration
+  hardening.
 
 ---
 

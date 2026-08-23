@@ -85,7 +85,7 @@ class BaseSubnetSynapse(bt.Synapse):
     """
     Bittensor block number by which the miner must respond.
     Responses after this block receive a latency penalty in Resonance BFT scoring.
-    Validators should set: deadline_block = current_block + tempo_blocks // 4
+    Validators should set: deadline_block = current_block + max(30, tempo_blocks // 8)
     """
 
     # ── Attestation fields (miner → validator) ────────────────────────────

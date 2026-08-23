@@ -5,10 +5,12 @@ from arctura_base.incentive import (
     apply_stewardship_modifier,
     compute_calibration_accuracy,
     detect_hash_collision,
+    is_response_expired,
     normalize_weights,
     score_attestation,
     score_completeness,
     score_latency,
+    score_response,
 )
 from arctura_base.protocol import BaseSubnetSynapse
 from arctura_base.utils import build_merkle_proof, hash_output
@@ -77,8 +79,24 @@ class TestLatencyScoring:
     def test_very_late_scores_zero(self):
         assert score_latency(response_block=200, deadline_block=100) == 0.0
 
+    def test_expired_response_is_detected_after_grace(self):
+        assert is_response_expired(response_block=112, deadline_block=100) is True
+        assert is_response_expired(response_block=111, deadline_block=100) is False
+
     def test_no_deadline_scores_one(self):
         assert score_latency(response_block=999, deadline_block=0) == 1.0
+        assert is_response_expired(response_block=999, deadline_block=0) is False
+
+    def test_expired_response_forfeits_full_score(self):
+        s = make_valid_synapse()
+        score = score_response(
+            synapse=s,
+            live_block_hash=FAKE_BLOCK_HASH,
+            response_block=s.deadline_block + 12,
+            historical_calibration=1.0,
+        )
+
+        assert score == 0.0
 
 
 class TestStewardshipModifier:
