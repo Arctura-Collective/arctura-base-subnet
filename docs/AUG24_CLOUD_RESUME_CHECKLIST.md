@@ -34,6 +34,8 @@ This runbook begins only after the Ubuntu cloud computer is available again. It 
 ## 3. Non-Broadcast Finney Registration Readiness
 
 Before **any** registration attempt, complete the checklist in `docs/GO_NO_GO_CHECKLIST.md`, including live burn-cost validation, wallet balances with buffer, test results, axon reachability, monitoring, and independent review.
+Also review `docs/KEY_ROTATION_AND_CUSTODY.md` and confirm the cloud computer
+does not hold owner coldkey or treasury signing authority.
 
 > **Safety boundary:** Do not invoke `btcli subnet create`, sign an extrinsic, or move funds from the cloud computer until the owner provides a separate explicit multisig authorization. Ledger or other hardware wallet confirmation remains required for every on-chain signing action.
 

@@ -35,7 +35,12 @@ the branch Gordon reviewed, so use current source as authoritative.
 - Finding 1.3 is further hardened in `neurons/validator.py`: calibration now
   requires warm-up samples and applies a variance penalty to unstable confidence
   histories. `score_response` also defaults unproven calibration to `0.0`.
-- Remaining high-priority work: key rotation procedure.
+- Finding 3.3 is addressed in `docs/KEY_ROTATION_AND_CUSTODY.md`: owner,
+  validator, miner, and treasury custody now have planned rotation, emergency
+  revocation, incident escalation, and approval boundaries documented.
+- Remaining high-priority work: none from the Gordon high-priority triage list;
+  mainnet remains blocked by live evidence, funding, multisig/operator approval,
+  and unresolved repository issues.
 
 ---
 

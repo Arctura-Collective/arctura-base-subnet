@@ -39,6 +39,8 @@ Non-goals:
 
 - Do not register Finney without the 48-hour evidence gate.
 - Do not use an operational hot wallet as the permanent subnet owner.
+- Do not fund registration until owner custody and key rotation procedures are
+  reviewed in `docs/KEY_ROTATION_AND_CUSTODY.md`.
 - Do not present the old `686 TAO` figure as current.
 - Do not promise emissions, alpha allocations, or treasury distributions without
   written governance terms.
