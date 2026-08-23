@@ -32,8 +32,10 @@ the branch Gordon reviewed, so use current source as authoritative.
   `arctura_base/incentive.py`: mandate deadlines use a tighter bounded window,
   and responses after `deadline_block + LATENCY_GRACE_BLOCKS` forfeit the full
   response score.
-- Remaining high-priority work: key rotation procedure and deeper calibration
-  hardening.
+- Finding 1.3 is further hardened in `neurons/validator.py`: calibration now
+  requires warm-up samples and applies a variance penalty to unstable confidence
+  histories. `score_response` also defaults unproven calibration to `0.0`.
+- Remaining high-priority work: key rotation procedure.
 
 ---
 

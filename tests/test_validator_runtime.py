@@ -90,6 +90,19 @@ def test_new_miners_do_not_receive_calibration_bonus():
     assert validator._get_historical_calibration("new-hotkey") == 0.0
 
 
+def test_calibration_requires_warmup_samples():
+    assert ArcturaValidator._score_calibration_history([1.0, 1.0, 1.0, 1.0]) == 0.0
+    assert ArcturaValidator._score_calibration_history([1.0, 1.0, 1.0, 1.0, 1.0]) == 1.0
+
+
+def test_calibration_penalizes_unstable_history():
+    stable = ArcturaValidator._score_calibration_history([0.8, 0.8, 0.8, 0.8, 0.8])
+    unstable = ArcturaValidator._score_calibration_history([1.0, 0.0, 1.0, 0.0, 1.0])
+
+    assert stable == 0.8
+    assert unstable < 0.6
+
+
 def test_active_miner_uids_do_not_treat_validator_permit_as_a_role():
     validator = object.__new__(ArcturaValidator)
     validator.wallet = type(

@@ -157,3 +157,8 @@ class TestCalibration:
     def test_partial_calibration(self):
         acc = compute_calibration_accuracy(0.6, 0.8)
         assert abs(acc - 0.8) < 0.01
+
+    def test_response_default_calibration_is_zero_for_unproven_miners(self):
+        s = make_valid_synapse()
+
+        assert score_response(s, FAKE_BLOCK_HASH, response_block=100) == 0.9
