@@ -8,7 +8,9 @@
 [![Phase](https://img.shields.io/badge/status-Phase%200%20%E2%80%94%20Active-00e5a0.svg)](https://arctura.network/base/)
 [![Council](https://img.shields.io/badge/council-Arcturian%20%C3%97%20Coreweaver-c8a96e.svg)](https://arctura.network)
 
-**[arctura.network/base](https://arctura.network/base/)** · Part of the [Arctura Network](https://arctura.network) · Funded by Base
+**[arctura.network/base](https://arctura.network/base/)** ·
+**[GitHub Pages launch portal](https://arctura-collective.github.io/arctura-base-subnet/)** ·
+Part of the [Arctura Network](https://arctura.network) · Funded by Base
 
 ---
 
@@ -17,6 +19,10 @@
 Arctura Base is in **founder-led testnet hardening**.
 
 The repository has been flattened into a usable subnet layout, and the core protocol, attestation, scoring, Base RPC, Bittensor v10 runtime, and evidence-gate tests pass locally. The current milestone is the supervised 48-hour testnet evidence run: systemd-managed miner and validator services are live on testnet netuid `505`, have completed one attestation and one non-zero weight commit, and must now complete the uninterrupted endurance window before any Finney spend.
+
+Public operator-facing launch materials are served from `docs/` through GitHub
+Pages: pitch deck, live launch-cost ticker, custody runbook, monitoring guide,
+and go/no-go checklists.
 
 Current validation:
 
