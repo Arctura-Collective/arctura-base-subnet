@@ -1,0 +1,53 @@
+"""Static checks for Prometheus and Grafana launch monitoring artifacts."""
+
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_prometheus_config_scrapes_node_exporter_textfile_metrics():
+    config = (ROOT / "deploy" / "prometheus" / "prometheus.yml").read_text(encoding="utf-8")
+
+    assert "job_name: arctura-node" in config
+    assert "localhost:9100" in config
+    assert "arctura-alerts.yml" in config
+    assert 'regex: "arctura_.*"' in config
+
+
+def test_alert_rules_cover_service_down_stale_metrics_and_weight_stall():
+    rules = (ROOT / "deploy" / "prometheus" / "arctura-alerts.yml").read_text(encoding="utf-8")
+
+    assert "ArcturaNeuronServiceDown" in rules
+    assert "ArcturaMetricsStale" in rules
+    assert "ArcturaWeightCommitStalled" in rules
+    assert "arctura_weight_commits_total == 0" in rules
+
+
+def test_grafana_dashboard_imports_and_references_exported_metrics():
+    dashboard_path = ROOT / "deploy" / "grafana" / "arctura-launch-dashboard.json"
+    dashboard = json.loads(dashboard_path.read_text(encoding="utf-8"))
+    serialized = json.dumps(dashboard)
+
+    assert dashboard["uid"] == "arctura-launch-readiness"
+    assert dashboard["title"] == "Arctura Launch Readiness"
+    assert "DS_PROMETHEUS" in serialized
+    for metric in (
+        "arctura_evidence_gate_ok",
+        "arctura_evidence_elapsed_hours",
+        "arctura_evidence_check_pass",
+        "arctura_health_passes_total",
+        "arctura_attestations_total",
+        "arctura_weight_commits_total",
+        "arctura_service_active",
+        "arctura_service_restarts_total",
+    ):
+        assert metric in serialized
+
+
+def test_monitoring_docs_link_deployable_artifacts():
+    docs = (ROOT / "docs" / "MONITORING_AND_METRICS.md").read_text(encoding="utf-8")
+
+    assert "deploy/prometheus/prometheus.yml" in docs
+    assert "deploy/prometheus/arctura-alerts.yml" in docs
+    assert "deploy/grafana/arctura-launch-dashboard.json" in docs

@@ -70,10 +70,21 @@ rule files. The included rules cover:
 - neuron restart during the monitored window
 - fatal journal marker
 - evidence gate still red after 48 hours
+- stale metrics collection
+- no weight commit after the initial launch window
+
+The repository also includes `deploy/prometheus/prometheus.yml` as a minimal
+single-host scrape example for node-exporter:
+
+```bash
+prometheus --config.file=deploy/prometheus/prometheus.yml
+```
 
 ## Grafana Panels
 
-Recommended panels:
+Import `deploy/grafana/arctura-launch-dashboard.json` into Grafana and point
+the `DS_PROMETHEUS` datasource variable at the Prometheus instance that scrapes
+node-exporter. The dashboard includes:
 
 - SingleStat: `arctura_evidence_gate_ok`
 - Gauge: `arctura_evidence_elapsed_hours`

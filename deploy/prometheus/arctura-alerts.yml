@@ -45,3 +45,21 @@ groups:
         annotations:
           summary: "Arctura evidence gate still red after 48 hours"
           description: "The evidence run reached 48 hours but at least one launch gate is still failing."
+
+      - alert: ArcturaMetricsStale
+        expr: time() - arctura_evidence_collected_at_seconds > 180
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Arctura launch metrics are stale"
+          description: "The metrics textfile has not been refreshed for more than three minutes."
+
+      - alert: ArcturaWeightCommitStalled
+        expr: arctura_evidence_elapsed_hours > 3 and arctura_weight_commits_total == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No Arctura weight commit observed after three hours"
+          description: "The validator is live but no successful weight commit has appeared in the evidence window."
