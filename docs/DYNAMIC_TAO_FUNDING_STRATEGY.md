@@ -1,0 +1,59 @@
+# Dynamic TAO Funding Strategy
+
+Arctura should not treat `686 TAO` as a fixed launch requirement. Finney subnet
+registration cost is dynamic and must be checked immediately before any launch
+decision.
+
+Current local check:
+
+```bash
+btcli subnet burn_cost --subtensor.network finney
+# Subnet burn cost: 773.1718 TAO
+```
+
+This value is only a planning snapshot. The mainnet checklist still requires a
+fresh burn-cost check within 30 minutes of registration and explicit operator
+approval before any on-chain spend.
+
+## Can Arctura Launch Without Self-Funding the Full Cost?
+
+For an owner-controlled new Finney subnet, no. The chain registration still
+requires the current subnet registration cost to be supplied by an owner account
+or a governance-controlled funding path.
+
+The practical question is not whether the cost can be skipped; it is whether
+Arctura can avoid one founder personally fronting the whole amount. Viable paths:
+
+- Validator or ecosystem syndicate funds the registration wallet or multisig in
+  exchange for documented alpha-token/economic participation.
+- Community crowdfunding or launchpad campaign raises TAO into a controlled
+  owner account after the 48-hour testnet evidence report passes.
+- Grant and sponsor funding covers infrastructure and frees treasury capital for
+  registration.
+- A partner with an existing subnet owner account handles registration under a
+  written governance agreement.
+- Arctura continues on testnet or as an off-chain Base intelligence service until
+  the registration cost decays or funding is secured.
+
+Non-goals:
+
+- Do not register Finney without the 48-hour evidence gate.
+- Do not use an operational hot wallet as the permanent subnet owner.
+- Do not present the old `686 TAO` figure as current.
+- Do not promise emissions, alpha allocations, or treasury distributions without
+  written governance terms.
+
+## Current Fundraising Leverage
+
+- PR #9 merged into `main` with GitHub CI green.
+- Local suite passes with 113 tests.
+- Testnet netuid `505` has produced a systemd-managed attestation and non-zero
+  weight commit.
+- The 48-hour evidence run is active but not complete.
+
+## Next Funding Milestone
+
+Wait for `arctura-collect-evidence --output-dir runs/mainnet-evidence` to return
+`ok: true`. That gives backers a concrete proof package: uninterrupted services,
+attestations, weight commits, health samples, zero fatal logs, and restart budget
+compliance.
