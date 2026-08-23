@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - arctura-alerts.yml
+
+scrape_configs:
+  - job_name: arctura-node
+    static_configs:
+      - targets:
+          - localhost:9100
+        labels:
+          role: arctura-launch-host
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "arctura_.*"
+        action: keep
+
