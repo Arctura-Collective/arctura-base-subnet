@@ -320,6 +320,43 @@ class ArcturaValidator:
 
     # ── Weight setting ────────────────────────────────────────────────────
 
+    def _weights_rate_limited(self) -> bool:
+        """
+        Return True when Bittensor's weight rate limit is still active.
+
+        Bittensor v10 can return an unsuccessful ExtrinsicResponse with no
+        message when no attempt is made because `blocks_since_last_update` is
+        not greater than `weights_rate_limit`. Querying the same guard directly
+        gives operators an auditable cooldown reason and avoids futile retries.
+        """
+        try:
+            uid = self.subtensor.get_uid_for_hotkey_on_subnet(
+                self.wallet.hotkey.ss58_address, self.config.netuid
+            )
+            if uid is None:
+                bt.logging.warning(
+                    f"Skipping weight submission: validator hotkey is not registered "
+                    f"on netuid={self.config.netuid}."
+                )
+                return True
+
+            blocks_since_update = int(
+                self.subtensor.blocks_since_last_update(self.config.netuid, int(uid))
+            )
+            weight_rate_limit = int(self.subtensor.weights_rate_limit(self.config.netuid))
+        except Exception as exc:
+            bt.logging.warning(f"Could not preflight weight rate limit: {exc}")
+            return False
+
+        if blocks_since_update <= weight_rate_limit:
+            bt.logging.info(
+                "Weight submission deferred by chain cooldown | "
+                f"uid={uid} | blocks_since_last_update={blocks_since_update} | "
+                f"weights_rate_limit={weight_rate_limit}"
+            )
+            return True
+        return False
+
     def _set_weights(self, scores: dict[int, float]) -> bool:
         """Normalize scores and submit weights to Yuma Consensus on-chain."""
         uids = list(scores.keys())
@@ -328,6 +365,9 @@ class ArcturaValidator:
             bt.logging.warning("Skipping weight submission: no miner earned a positive score.")
             return False
         normalized = normalize_weights(raw_weights)
+
+        if self._weights_rate_limited():
+            return False
 
         for attempt in range(1, self.WEIGHT_SET_RETRIES + 1):
             try:
@@ -358,6 +398,9 @@ class ArcturaValidator:
             if "too soon to commit weights" in str(msg).lower():
                 bt.logging.info(f"Weight submission deferred by chain cooldown: {msg}")
                 return False
+
+            if msg in (None, ""):
+                msg = f"unsuccessful response without message: {result!r}"
 
             if attempt < self.WEIGHT_SET_RETRIES:
                 bt.logging.warning(
