@@ -30,6 +30,8 @@ Key metrics:
 - `arctura_attestations_total`
 - `arctura_weight_commits_total`
 - `arctura_health_passes_total`
+- `arctura_validator_cycle_latest_seconds`
+- `arctura_validator_cycle_max_seconds`
 - `arctura_service_active{service="arctura-miner"}`
 - `arctura_service_restarts_total{service="arctura-validator"}`
 - `arctura_fatal_markers_total{marker="Traceback_..."}`
@@ -72,6 +74,7 @@ rule files. The included rules cover:
 - evidence gate still red after 48 hours
 - stale metrics collection
 - no weight commit after the initial launch window
+- high validator mandate-cycle latency
 
 The repository also includes `deploy/prometheus/prometheus.yml` as a minimal
 single-host scrape example for node-exporter:
@@ -134,6 +137,7 @@ node-exporter. The dashboard includes:
 - Timeseries: `arctura_health_passes_total`
 - Timeseries: `arctura_attestations_total`
 - Timeseries: `arctura_weight_commits_total`
+- Timeseries: `arctura_validator_cycle_latest_seconds`
 - Timeseries: `arctura_service_restarts_total`
 
 Monitoring does not replace the launch gate. Mainnet remains blocked until

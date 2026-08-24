@@ -242,6 +242,39 @@
       ],
       "title": "Neuron Service Health",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "arctura_validator_cycle_latest_seconds",
+          "legendFormat": "Latest validator cycle",
+          "refId": "A"
+        },
+        {
+          "expr": "arctura_validator_cycle_max_seconds",
+          "legendFormat": "Max validator cycle",
+          "refId": "B"
+        }
+      ],
+      "title": "Validator Cycle Latency",
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
@@ -278,4 +311,3 @@
   "version": 1,
   "weekStart": ""
 }
-

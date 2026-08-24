@@ -63,3 +63,12 @@ groups:
         annotations:
           summary: "No Arctura weight commit observed after three hours"
           description: "The validator is live but no successful weight commit has appeared in the evidence window."
+
+      - alert: ArcturaValidatorCycleLatencyHigh
+        expr: arctura_validator_cycle_latest_seconds > 120
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Arctura validator cycle latency is high"
+          description: "The latest validator mandate cycle took {{ $value }} seconds from mandate issue to tempo completion."

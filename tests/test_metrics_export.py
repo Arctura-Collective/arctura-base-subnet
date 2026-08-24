@@ -20,6 +20,9 @@ def sample_report() -> dict:
             "health_passes": 12,
             "miner_restarts": 0,
             "validator_restarts": 1,
+            "validator_cycles": 3,
+            "validator_cycle_latest_seconds": 2.37,
+            "validator_cycle_max_seconds": 9.5,
             "fatal_counts": {
                 "Traceback (most recent call last)": 0,
                 "uncaught exception": 0,
@@ -52,6 +55,9 @@ def test_render_prometheus_contains_launch_metrics() -> None:
     assert 'arctura_evidence_check_pass{check="duration"} 0' in rendered
     assert "arctura_evidence_elapsed_hours 1.25" in rendered
     assert "arctura_attestations_total 2" in rendered
+    assert "arctura_validator_cycles_total 3" in rendered
+    assert "arctura_validator_cycle_latest_seconds 2.37" in rendered
+    assert "arctura_validator_cycle_max_seconds 9.5" in rendered
     assert 'arctura_service_restarts_total{service="arctura-validator"} 1' in rendered
     assert 'arctura_service_active{service="arctura-miner"} 1' in rendered
     assert "arctura_evidence_started_at_seconds 1787524482" in rendered

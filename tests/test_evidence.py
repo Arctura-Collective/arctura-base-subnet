@@ -10,6 +10,7 @@ from arctura_base.evidence import (
     evaluate_evidence,
     log_from_marker,
     parse_timestamp,
+    validator_cycle_latencies,
     write_testnet_evidence_template,
 )
 
@@ -51,6 +52,7 @@ def test_evidence_passes_complete_48_hour_run():
     assert report["ok"] is True
     assert all(report["checks"].values())
     assert report["metrics"]["health_passes"] == 576
+    assert report["metrics"]["validator_cycles"] == 0
 
 
 def test_log_from_marker_keeps_full_log_when_marker_is_missing():
@@ -118,6 +120,41 @@ def test_evidence_fails_incomplete_or_unhealthy_run(override, failed_check):
 
     assert report["ok"] is False
     assert report["checks"][failed_check] is False
+
+
+def test_validator_cycle_latencies_from_journal_markers():
+    log = "\n".join(
+        [
+            "\x1b[34m2026-08-23 17:17:36.745\x1b[39m | INFO | Issuing mandate | id=abc",
+            "\x1b[34m2026-08-23 17:17:39.115\x1b[39m | INFO | Tempo complete | sleeping 4320s",
+            "2026-08-23 18:29:41.000 | INFO | Issuing mandate | id=def",
+            "2026-08-23 18:29:45.250 | INFO | Tempo complete | sleeping 4320s",
+        ]
+    )
+
+    assert validator_cycle_latencies(log) == [2.37, 4.25]
+
+
+def test_evidence_reports_validator_cycle_latency_metrics():
+    started = datetime(2026, 6, 17, tzinfo=timezone.utc)
+    report = evaluate_evidence(
+        started_at=started,
+        now=started + timedelta(hours=49),
+        miner_log="Arctura Base miner live\nMandate attested\n",
+        validator_log=(
+            "Arctura Base validator live\n"
+            "2026-08-23 17:17:36.000 | INFO | Issuing mandate | id=abc\n"
+            "2026-08-23 17:17:39.500 | INFO | Tempo complete | sleeping 4320s\n"
+            "Weights set\nWeights set\n"
+        ),
+        health_log='{"ok": true}\n' * 576,
+        miner_restarts=0,
+        validator_restarts=0,
+    )
+
+    assert report["metrics"]["validator_cycles"] == 1
+    assert report["metrics"]["validator_cycle_latest_seconds"] == 3.5
+    assert report["metrics"]["validator_cycle_max_seconds"] == 3.5
 
 
 def test_parse_timestamp_requires_timezone():
