@@ -1,0 +1,51 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/arctura-alerts.yml:/etc/prometheus/arctura-alerts.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - node-exporter
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    command:
+      - --path.rootfs=/host
+      - --collector.textfile.directory=/textfile
+    ports:
+      - "9100:9100"
+    volumes:
+      - /:/host:ro,rslave
+      - ${ARCTURA_TEXTFILE_DIR:-$HOME/.local/share/arctura/metrics}:/textfile:ro
+    pid: host
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me-before-exposure}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../grafana/arctura-launch-dashboard.json:/var/lib/grafana/dashboards/arctura-launch-dashboard.json:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
