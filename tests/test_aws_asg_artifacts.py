@@ -58,6 +58,16 @@ def test_aws_asg_readme_sets_safe_deployment_boundary():
     assert "CloudWatch" in readme
     assert "Auto Scaling Group" in readme
     assert "Alertmanager" in readme
+    assert "arctura-validator-failover-plan" in readme
+    assert "never stops a" in readme
+
+
+def test_validator_failover_probe_template_is_non_executing():
+    template = (AWS_ASG / "validator-probe.example.json").read_text(encoding="utf-8")
+
+    assert "primary_validator" in template
+    assert "standby_validator" in template
+    assert "operator_approved" in template
 
 
 def test_aws_asg_artifact_is_linked_from_launch_and_monitoring_docs():

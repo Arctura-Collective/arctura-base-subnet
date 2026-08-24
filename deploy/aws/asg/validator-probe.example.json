@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-08-24T00:00:00Z",
+  "primary_validator": {
+    "name": "primary-validator",
+    "healthy": false,
+    "consecutive_failures": 3,
+    "latency_ms": 0,
+    "error": "replace with observed probe error"
+  },
+  "standby_validator": {
+    "name": "standby-validator",
+    "healthy": true,
+    "operator_approved": false,
+    "notes": "Set operator_approved=true only after the standby host, wallet boundary, and network routing are reviewed."
+  }
+}
