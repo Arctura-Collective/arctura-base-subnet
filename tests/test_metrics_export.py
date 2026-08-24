@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from arctura_base.metrics_export import render_collector_error, render_prometheus, write_textfile
+import pytest
+
+from arctura_base.metrics_export import (
+    render_collector_error,
+    render_metagraph_emissions,
+    render_prometheus,
+    write_textfile,
+)
 
 
 def sample_report() -> dict:
@@ -87,3 +94,32 @@ def test_render_prometheus_parses_systemd_display_timestamps() -> None:
     rendered = render_prometheus(report)
 
     assert 'arctura_service_started_at_seconds{service="arctura-miner"} 1787524278' in rendered
+
+
+def test_render_metagraph_emissions_contains_network_and_treasury_metrics() -> None:
+    rendered = render_metagraph_emissions(
+        {
+            "schema_version": 1,
+            "network": "finney",
+            "netuid": 505,
+            "collected_at": "2026-08-24T00:00:00Z",
+            "treasury_share": "0.18",
+            "emissions": {
+                "tao_per_day": "12.5",
+                "alpha_per_day": "240",
+            },
+        }
+    )
+
+    assert 'arctura_metagraph_snapshot_available{netuid="505",network="finney"} 1' in rendered
+    assert (
+        'arctura_metagraph_snapshot_collected_at_seconds{netuid="505",network="finney"} 1787529600'
+    ) in rendered
+    assert 'arctura_network_emission_tao_per_day{netuid="505",network="finney"} 12.5' in rendered
+    assert 'arctura_treasury_emission_tao_per_day{netuid="505",network="finney"} 2.25' in rendered
+    assert 'arctura_network_emission_alpha_per_day{netuid="505",network="finney"} 240' in rendered
+
+
+def test_render_metagraph_emissions_rejects_bad_snapshot() -> None:
+    with pytest.raises(ValueError, match="schema_version"):
+        render_metagraph_emissions({"schema_version": 2})

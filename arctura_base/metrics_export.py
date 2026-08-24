@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import re
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
@@ -54,6 +55,80 @@ def _timestamp_seconds(value: str | None) -> int:
             return 0
         aware = parsed.replace(tzinfo=timezone(timedelta(hours=offsets[fields[3]])))
         return int(aware.timestamp())
+
+
+def _metric_number(value: object, field_name: str) -> float:
+    try:
+        parsed = Decimal(str(value))
+    except (InvalidOperation, ValueError) as exc:
+        raise ValueError(f"{field_name} must be a decimal value") from exc
+    if parsed.is_nan() or parsed < 0:
+        raise ValueError(f"{field_name} must be a non-negative decimal value")
+    return float(parsed)
+
+
+def render_metagraph_emissions(snapshot: dict[str, Any]) -> str:
+    """Render a manually collected metagraph/emissions snapshot as Prometheus metrics."""
+    if int(snapshot.get("schema_version", 0)) != 1:
+        raise ValueError("metagraph emissions snapshot schema_version must be 1")
+    network = str(snapshot.get("network", "")).strip()
+    netuid = str(snapshot.get("netuid", "")).strip()
+    collected_at = str(snapshot.get("collected_at", "")).strip()
+    if not network:
+        raise ValueError("network is required")
+    if not netuid:
+        raise ValueError("netuid is required")
+    if not collected_at:
+        raise ValueError("collected_at is required")
+
+    emissions = snapshot.get("emissions", {})
+    labels: dict[str, object] = {"network": network, "netuid": netuid}
+    lines = [
+        "# HELP arctura_metagraph_snapshot_available Whether a metagraph emissions snapshot was rendered.",
+        "# TYPE arctura_metagraph_snapshot_available gauge",
+        _sample("arctura_metagraph_snapshot_available", 1, labels),
+        "# HELP arctura_metagraph_snapshot_collected_at_seconds Unix timestamp for the metagraph emissions snapshot.",
+        "# TYPE arctura_metagraph_snapshot_collected_at_seconds gauge",
+        _sample(
+            "arctura_metagraph_snapshot_collected_at_seconds",
+            _timestamp_seconds(collected_at),
+            labels,
+        ),
+    ]
+    if "tao_per_day" in emissions:
+        tao_per_day = _metric_number(emissions["tao_per_day"], "emissions.tao_per_day")
+        lines.extend(
+            [
+                "# HELP arctura_network_emission_tao_per_day Observed subnet TAO emissions per day.",
+                "# TYPE arctura_network_emission_tao_per_day gauge",
+                _sample("arctura_network_emission_tao_per_day", tao_per_day, labels),
+            ]
+        )
+        treasury_share = _metric_number(snapshot.get("treasury_share", "0.18"), "treasury_share")
+        lines.extend(
+            [
+                "# HELP arctura_treasury_emission_tao_per_day Expected treasury TAO emissions per day using the configured treasury share.",
+                "# TYPE arctura_treasury_emission_tao_per_day gauge",
+                _sample(
+                    "arctura_treasury_emission_tao_per_day",
+                    tao_per_day * treasury_share,
+                    labels,
+                ),
+            ]
+        )
+    if "alpha_per_day" in emissions:
+        lines.extend(
+            [
+                "# HELP arctura_network_emission_alpha_per_day Observed subnet alpha emissions per day.",
+                "# TYPE arctura_network_emission_alpha_per_day gauge",
+                _sample(
+                    "arctura_network_emission_alpha_per_day",
+                    _metric_number(emissions["alpha_per_day"], "emissions.alpha_per_day"),
+                    labels,
+                ),
+            ]
+        )
+    return "\n".join(lines) + "\n"
 
 
 def render_prometheus(report: dict[str, Any], *, collected_at: datetime | None = None) -> str:

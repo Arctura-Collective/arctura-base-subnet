@@ -32,6 +32,8 @@ Key metrics:
 - `arctura_health_passes_total`
 - `arctura_validator_cycle_latest_seconds`
 - `arctura_validator_cycle_max_seconds`
+- `arctura_network_emission_tao_per_day`
+- `arctura_treasury_emission_tao_per_day`
 - `arctura_service_active{service="arctura-miner"}`
 - `arctura_service_restarts_total{service="arctura-validator"}`
 - `arctura_fatal_markers_total{marker="Traceback_..."}`
@@ -54,6 +56,31 @@ systemctl --user status arctura-metrics.timer
 systemctl --user start arctura-metrics.service
 cat ~/.local/share/arctura/metrics/arctura.prom
 ```
+
+## Optional metagraph emissions snapshot
+
+Issue #6 requires visibility into weight commits and network emissions. Weight
+commits come from the evidence journal. Emissions must come from an operator
+snapshot after the subnet exists on mainnet.
+
+Use `deploy/monitoring/metagraph-emissions.example.json` as the schema, replace
+the placeholder values with observed Finney metagraph/emission data, and place
+the reviewed file at:
+
+```text
+runs/mainnet-evidence/metagraph-emissions.json
+```
+
+`scripts/export_prometheus_metrics.py` appends the emissions metrics when that
+file exists. To render only the emissions snapshot:
+
+```bash
+python scripts/render_metagraph_emissions.py \
+  --snapshot runs/mainnet-evidence/metagraph-emissions.json
+```
+
+This path does not query chain state or fabricate emissions. It only renders
+operator-provided observations into Prometheus textfile format.
 
 ## Prometheus Integration
 
@@ -138,6 +165,7 @@ node-exporter. The dashboard includes:
 - Timeseries: `arctura_attestations_total`
 - Timeseries: `arctura_weight_commits_total`
 - Timeseries: `arctura_validator_cycle_latest_seconds`
+- Timeseries: `arctura_network_emission_tao_per_day`
 - Timeseries: `arctura_service_restarts_total`
 
 Monitoring does not replace the launch gate. Mainnet remains blocked until

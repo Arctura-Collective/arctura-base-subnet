@@ -42,6 +42,8 @@ def test_grafana_dashboard_imports_and_references_exported_metrics():
         "arctura_attestations_total",
         "arctura_weight_commits_total",
         "arctura_validator_cycle_latest_seconds",
+        "arctura_network_emission_tao_per_day",
+        "arctura_treasury_emission_tao_per_day",
         "arctura_service_active",
         "arctura_service_restarts_total",
     ):
@@ -55,6 +57,7 @@ def test_monitoring_docs_link_deployable_artifacts():
     assert "deploy/prometheus/arctura-alerts.yml" in docs
     assert "deploy/grafana/arctura-launch-dashboard.json" in docs
     assert "deploy/monitoring/docker-compose.yml" in docs
+    assert "metagraph-emissions.example.json" in docs
 
 
 def test_compose_monitoring_stack_wires_prometheus_node_exporter_and_grafana():

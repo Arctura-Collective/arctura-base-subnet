@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "network": "finney",
+  "netuid": "REPLACE_WITH_MAINNET_NETUID",
+  "collected_at": "2026-08-24T00:00:00Z",
+  "source": "manual operator snapshot from btcli, subtensor, or Taostats",
+  "treasury_share": "0.18",
+  "emissions": {
+    "tao_per_day": "0",
+    "alpha_per_day": "0"
+  },
+  "warning": "Template only. Replace values with observed mainnet metagraph/emission data before publishing metrics."
+}

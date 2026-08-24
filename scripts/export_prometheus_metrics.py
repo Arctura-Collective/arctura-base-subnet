@@ -9,7 +9,12 @@ import subprocess
 from pathlib import Path
 
 from arctura_base.evidence_collect import collect
-from arctura_base.metrics_export import render_collector_error, render_prometheus, write_textfile
+from arctura_base.metrics_export import (
+    render_collector_error,
+    render_metagraph_emissions,
+    render_prometheus,
+    write_textfile,
+)
 
 
 def default_output() -> Path:
@@ -20,6 +25,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Write Arctura Prometheus textfile metrics.")
     parser.add_argument("--output", type=Path, default=default_output())
     parser.add_argument("--evidence-dir", type=Path, default=Path("runs/mainnet-evidence"))
+    parser.add_argument(
+        "--metagraph-snapshot",
+        type=Path,
+        default=Path("runs/mainnet-evidence/metagraph-emissions.json"),
+        help="Optional manually collected metagraph/emissions JSON snapshot to append.",
+    )
     parser.add_argument(
         "--strict",
         action="store_true",
@@ -38,7 +49,10 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"ok": False, "metrics": str(args.output), "error": str(exc)}))
         return 2 if args.strict else 0
 
-    write_textfile(args.output, render_prometheus(report))
+    content = render_prometheus(report)
+    if args.metagraph_snapshot.is_file():
+        content += render_metagraph_emissions(json.loads(args.metagraph_snapshot.read_text()))
+    write_textfile(args.output, content)
     print(json.dumps({"ok": report["ok"], "metrics": str(args.output)}))
     return 0 if report["ok"] or not args.strict else 1
 
