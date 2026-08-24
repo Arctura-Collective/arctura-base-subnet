@@ -24,6 +24,7 @@ def sample_report() -> dict:
             "elapsed_hours": 1.25,
             "attestations": 2,
             "weight_commits": 1,
+            "weight_commit_markers": 2,
             "health_passes": 12,
             "miner_restarts": 0,
             "validator_restarts": 1,

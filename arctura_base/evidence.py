@@ -20,6 +20,7 @@ FATAL_MARKERS = (
 )
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 LOG_TIMESTAMP_PATTERN = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?)")
+TOP_WEIGHT_PATTERN = re.compile(r"\btop_weight=([0-9]+(?:\.[0-9]+)?)\b")
 
 
 def parse_timestamp(value: str) -> datetime:
@@ -79,6 +80,18 @@ def validator_cycle_latencies(validator_log: str) -> list[float]:
     return latencies
 
 
+def nonzero_weight_commits(validator_log: str) -> int:
+    """Count successful weight commits that explicitly report a positive top weight."""
+    commits = 0
+    for line in validator_log.splitlines():
+        if "Weights set" not in line:
+            continue
+        match = TOP_WEIGHT_PATTERN.search(line)
+        if match and float(match.group(1)) > 0:
+            commits += 1
+    return commits
+
+
 def evaluate_evidence(
     *,
     started_at: datetime,
@@ -106,7 +119,8 @@ def evaluate_evidence(
     )
     fatal_counts = {marker: fatal_window.lower().count(marker.lower()) for marker in FATAL_MARKERS}
     attestations = miner_log.count("Mandate attested")
-    weight_commits = validator_log.count("Weights set")
+    weight_commits = nonzero_weight_commits(validator_log)
+    weight_commit_markers = validator_log.count("Weights set")
     health_passes = health_log.count('"ok": true')
     cycle_latencies = validator_cycle_latencies(validator_log)
 
@@ -127,6 +141,7 @@ def evaluate_evidence(
             "elapsed_hours": round(elapsed_hours, 3),
             "attestations": attestations,
             "weight_commits": weight_commits,
+            "weight_commit_markers": weight_commit_markers,
             "health_passes": health_passes,
             "miner_restarts": miner_restarts,
             "validator_restarts": validator_restarts,
