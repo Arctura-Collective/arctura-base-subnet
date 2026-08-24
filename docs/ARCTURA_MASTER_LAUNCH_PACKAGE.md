@@ -6,6 +6,14 @@
 
 ---
 
+> [!WARNING]
+> This is a historical launch package, not spend authorization. Before any
+> Finney `subnet create`, recycle registration, staking, AWS production apply,
+> or funding action, complete [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md),
+> confirm `arctura-readiness-audit` returns `ok: true`, generate a reviewed
+> `arctura-mainnet-approval` packet, and obtain separate final operator
+> approval for the exact command.
+
 ## Executive Summary
 
 This master launch package consolidates the complete operational framework for the **Arctura Base Subnet** as it transitions from local testnet `505` to **Bittensor Finney Mainnet**.
@@ -28,12 +36,15 @@ Hey team — we’re launching Arctura (Base L2 Intelligence Subnet) on Bittenso
 
 We bridge Base state, event logs, and CDP AgentKit execution into decentralized AI through Merkle attestation and Resonance BFT scoring.
 
-Our testnet (netuid 505) is fully hardened (63/63 pytest tests passing). We are locking in foundational validator syndicates ahead of mainnet registration.
+Our testnet netuid 505 evidence run is active, and the current local suite has
+276 passing tests. We are locking in foundational validator syndicates ahead of
+mainnet registration.
 
 What we offer early validator partners:
 - Exclusive genesis dTAO alpha allocation.
 - Guaranteed initial stake weight commitments during the 4-month immunity period.
-- Production AWS Docker runbooks pre-configured for instant deployment.
+- Production AWS and monitoring artifacts prepared for audited deployment after
+  the readiness gate is green.
 
 Would love to share our architecture doc and discuss a syndicate partnership. Let me know if you're open to a brief chat!
 ```
@@ -48,8 +59,11 @@ Arctura is the first decentralized subnet bringing Coinbase Base L2 intelligence
 
 ## Current Technical Readiness
 - **Repository:** github.com/Arctura-Collective/arctura-base-subnet (Apache-2.0)
-- **Testnet Validation:** Netuid 505 fully active; 63/63 unit and integration tests passing (`pytest tests/ -v`).
-- **Infrastructure:** Production AWS Docker Compose runbooks tested and operational.
+- **Testnet Validation:** Netuid 505 evidence run active; launch requires green
+  `arctura-readiness-audit` output before any Finney spend.
+- **Infrastructure:** Production AWS and monitoring artifacts exist, but real
+  AWS tfvars, Terraform plan/apply evidence, and hosted monitoring proof remain
+  external launch blockers.
 
 ## Syndicate Value Proposition
 1. **Alpha Allocation:** 10% of founder genesis alpha token emissions allocated to participating syndicate validators, vested linearly over 6 months.

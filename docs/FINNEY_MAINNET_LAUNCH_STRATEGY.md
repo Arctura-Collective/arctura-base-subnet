@@ -7,6 +7,14 @@
 
 ---
 
+> [!WARNING]
+> This is a historical strategy document, not spend authorization. Before any
+> Finney `subnet create`, recycle registration, staking, AWS production apply,
+> or funding action, complete [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md),
+> confirm `arctura-readiness-audit` returns `ok: true`, generate a reviewed
+> `arctura-mainnet-approval` packet, and obtain separate final operator
+> approval for the exact command.
+
 ## Executive Summary
 
 The **Arctura Base Subnet** (`arctura-base-subnet`) bridges Base blockchain intelligence (state reads, transaction history, event logs, and AgentKit autonomous actions) into the Bittensor decentralized AI network through cryptographic Merkle attestation and Resonance BFT scoring.
@@ -51,7 +59,7 @@ To operate a production-grade subnet on Finney, your infrastructure must guarant
    │ AWS EC2 Validator     │                        │ Decentralized Miner   │
    │ (c6i.2xlarge / 8 vCPU)│                        │ (Chutes / Lium / AWS) │
    │ - Static IP (EIP)     │                        │ - Base RPC Connector  │
-   │ - Port 8092 (Axon)    │                        │ - Port 8091 (Axon)    │
+   │ - Dendrite-only       │                        │ - Port 8091 (Axon)    │
    │ - Resonance BFT Engine│                        │ - Merkle Attestation  │
    └───────────────────────┘                        └───────────────────────┘
 ```
@@ -89,11 +97,15 @@ Manual fallback:
 1. **Launch Validator EC2 Instance:**
    - Instance Type: `c6i.2xlarge` (8 vCPU, 16 GB RAM) running Ubuntu 24.04 LTS.
    - Storage: 250 GB NVMe SSD (for subtensor light client / local caching).
-   - Security Group: Open inbound TCP ports `22` (SSH), `8092` (Validator Axon), and allow outbound Bittensor P2P ports (`30333`).
+   - Security Group: open inbound TCP `22` only from the operator IP/VPN; no
+     public validator axon is required by the current dendrite-only validator.
+     Allow outbound Bittensor P2P/chain and HTTPS egress.
    - Elastic IP (EIP): Attach a static public IP.
 2. **Launch Miner EC2 Instance (or Chutes/Lium node):**
    - Instance Type: `c6i.xlarge` (4 vCPU, 8 GB RAM) or GPU instance if running heavy AgentKit local LLM inference.
-   - Security Group: Open inbound TCP ports `22` and `8091` (Miner Axon).
+   - Security Group: open inbound TCP `22` only from the operator IP/VPN and
+     the miner axon port (`8091` for production AWS, `8191` on the active
+     testnet evidence host) from intended Bittensor peers.
 
 ### Phase B — Environment & Wallet Setup
 SSH into your cloud instances and initialize the repository:

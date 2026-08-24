@@ -28,7 +28,7 @@ Current validation:
 
 ```bash
 pytest tests/ -v
-# 273 passed
+# 276 passed
 ```
 
 This project is not yet mainnet-ready, security-audited, or production-emissions-ready. The immediate focus is proving the subnet end-to-end with repeatable local and testnet runs before expanding contributor scope.
