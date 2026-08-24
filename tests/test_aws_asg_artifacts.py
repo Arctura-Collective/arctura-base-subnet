@@ -8,10 +8,17 @@ AWS_ASG = ROOT / "deploy" / "aws" / "asg"
 
 def test_aws_asg_module_contains_miner_autoscaling_resources():
     main_tf = (AWS_ASG / "main.tf").read_text(encoding="utf-8")
+    variables_tf = (AWS_ASG / "variables.tf").read_text(encoding="utf-8")
+    tfvars = (AWS_ASG / "terraform.tfvars.example").read_text(encoding="utf-8")
 
     assert 'resource "aws_launch_template" "miner"' in main_tf
     assert 'resource "aws_autoscaling_group" "miners"' in main_tf
     assert 'health_check_type         = "EC2"' in main_tf
+    assert 'volume_type           = "gp3"' in main_tf
+    assert "encrypted             = true" in main_tf
+    assert 'variable "root_volume_size_gb"' in variables_tf
+    assert "default     = 200" in variables_tf
+    assert "root_volume_size_gb     = 200" in tfvars
     assert 'resource "aws_autoscaling_policy" "miner_cpu_target"' in main_tf
     assert 'policy_type            = "TargetTrackingScaling"' in main_tf
     assert 'resource "aws_autoscaling_policy" "miner_mandate_step_out"' in main_tf

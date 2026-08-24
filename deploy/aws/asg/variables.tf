@@ -80,7 +80,7 @@ variable "root_device_name" {
 variable "root_volume_size_gb" {
   description = "Encrypted gp3 root volume size."
   type        = number
-  default     = 100
+  default     = 200
 }
 
 variable "miner_wallet_name" {

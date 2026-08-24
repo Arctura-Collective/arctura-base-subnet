@@ -29,6 +29,7 @@ def test_example_tfvars_audit_fails_placeholders_without_aws_actions() -> None:
     assert audit["audit_type"] == "aws_asg_tfvars_readiness_audit"
     assert audit["ok"] is False
     assert audit["checks"]["bt_netuid_positive"] is False
+    assert audit["checks"]["root_volume_size_gb_at_least_200"] is True
     assert audit["checks"]["no_placeholders"] is False
     assert "miner_ami_id" in audit["findings"]["placeholder_fields"]
     assert "security_group_ids" in audit["findings"]["placeholder_fields"]
@@ -50,10 +51,26 @@ def test_realistic_tfvars_audit_passes_without_calling_aws_or_terraform() -> Non
         miner_desired_capacity = 2
         miner_max_size = 3
         miner_port = 8191
+        root_volume_size_gb = 200
         """)
 
     assert audit["ok"] is True
     assert all(audit["checks"].values())
+
+
+def test_tfvars_audit_rejects_small_root_volume() -> None:
+    audit = audit_tfvars("""
+        bt_netuid = 505
+        miner_ami_id = "ami-1234567890abcdef0"
+        instance_profile_name = "arctura-ec2-runtime"
+        security_group_ids = ["sg-1234567890abcdef0"]
+        subnet_ids = ["subnet-1234567890abcdef0", "subnet-abcdef1234567890a"]
+        alertmanager_webhook_url = "https://alerts.arctura.invalid/api/v2/alerts"
+        root_volume_size_gb = 100
+        """)
+
+    assert audit["ok"] is False
+    assert audit["checks"]["root_volume_size_gb_at_least_200"] is False
 
 
 def test_tfvars_audit_flags_secret_markers() -> None:

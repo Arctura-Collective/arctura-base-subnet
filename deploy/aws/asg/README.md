@@ -68,9 +68,11 @@ Before applying:
 
 1. Confirm the AMI contains Ubuntu 24.04, Python 3.12, systemd user lingering,
    and the Arctura repo checkout.
-2. Confirm the security group exposes only SSH from operator IPs and the miner
+2. Confirm the launch template uses an encrypted 200 GB gp3 root volume unless a
+   smaller tested AMI-specific value has been explicitly approved.
+3. Confirm the security group exposes only SSH from operator IPs and the miner
    axon port from intended Bittensor peers.
-3. Confirm `alertmanager_webhook_url` points at an authenticated/isolated
+4. Confirm `alertmanager_webhook_url` points at an authenticated/isolated
    Alertmanager endpoint.
-4. Confirm no coldkey material is present in user data, AMI snapshots, or SSM
+5. Confirm no coldkey material is present in user data, AMI snapshots, or SSM
    parameters.
