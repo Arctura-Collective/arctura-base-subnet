@@ -6,6 +6,7 @@ single-host production monitoring. It does not provision cloud resources.
 It runs:
 
 - Prometheus on `:9090`
+- Alertmanager on `:9093`
 - node-exporter on `:9100` with the textfile collector enabled
 - Grafana on `:3000`
 
@@ -34,6 +35,10 @@ cd deploy/monitoring
 GRAFANA_ADMIN_PASSWORD='replace-this-before-exposure' docker compose up -d
 ```
 
+Before exposing this stack outside a private host/network, replace the
+placeholder receiver in `alertmanager.yml` with an internal webhook endpoint and
+put Grafana/Prometheus/Alertmanager behind authenticated access.
+
 If the textfile collector directory is not the default, set:
 
 ```bash
@@ -42,6 +47,6 @@ ARCTURA_TEXTFILE_DIR=/path/to/metrics docker compose up -d
 
 ## Safety boundary
 
-This stack reads Prometheus textfile metrics only. It does not read wallet
-mnemonics, submit weights, register subnets, transfer funds, or mutate AWS.
-
+This stack reads Prometheus textfile metrics and sends alert notifications to
+the configured Alertmanager webhook only. It does not read wallet mnemonics,
+submit weights, register subnets, transfer funds, or mutate AWS.

@@ -5,6 +5,12 @@ global:
 rule_files:
   - /etc/prometheus/arctura-alerts.yml
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
 scrape_configs:
   - job_name: arctura-node
     static_configs:
@@ -16,4 +22,3 @@ scrape_configs:
       - source_labels: [__name__]
         regex: "arctura_.*"
         action: keep
-
