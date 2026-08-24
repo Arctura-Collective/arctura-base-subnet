@@ -51,8 +51,27 @@ def fresh_cost() -> dict:
     }
 
 
+def green_readiness() -> dict:
+    return {
+        "schema_version": 1,
+        "audit_type": "arctura_mainnet_readiness_audit",
+        "ok": True,
+        "created_at": "2026-08-23T00:25:00Z",
+        "blockers": [],
+        "sections": {
+            "evidence": {"ok": True},
+            "burn_cost": {"ok": True},
+            "aws_asg": {"ok": True},
+            "monitoring": {"ok": True},
+            "custody": {"ok": True},
+            "treasury": {"ok": True},
+        },
+    }
+
+
 def test_build_approval_packet_records_non_signing_boundary() -> None:
     packet = build_approval_packet(
+        readiness_report=green_readiness(),
         evidence_report=green_evidence(),
         cost_payload=fresh_cost(),
         operator="owner-operator",
@@ -72,7 +91,24 @@ def test_build_approval_packet_records_non_signing_boundary() -> None:
     assert packet["launch_command"] == DEFAULT_CREATE_COMMAND
     assert packet["validated_inputs"]["burn_cost_tao"] == str(Decimal("686.125"))
     assert packet["validated_inputs"]["burn_cost_age_minutes"] == 10.0
+    assert packet["validated_inputs"]["readiness_blockers"] == []
+    assert "custody" in packet["readiness_sections"]
+    assert "monitoring" in packet["readiness_sections"]
     assert packet["evidence_metrics"]["weight_commits"] == 2
+
+
+def test_approval_packet_rejects_red_aggregate_readiness() -> None:
+    readiness = green_readiness()
+    readiness["ok"] = False
+    readiness["blockers"] = ["monitoring"]
+
+    with pytest.raises(ValueError, match="aggregate readiness report is not green"):
+        validate_inputs(
+            readiness_report=readiness,
+            evidence_report=green_evidence(),
+            cost_payload=fresh_cost(),
+            now=datetime(2026, 8, 23, 0, 30, tzinfo=timezone.utc),
+        )
 
 
 def test_approval_packet_rejects_red_evidence() -> None:
@@ -81,6 +117,7 @@ def test_approval_packet_rejects_red_evidence() -> None:
 
     with pytest.raises(ValueError, match="evidence report is not green"):
         validate_inputs(
+            readiness_report=green_readiness(),
             evidence_report=evidence,
             cost_payload=fresh_cost(),
             now=datetime(2026, 8, 23, 0, 30, tzinfo=timezone.utc),
@@ -94,6 +131,7 @@ def test_approval_packet_rejects_unavailable_cost() -> None:
 
     with pytest.raises(ValueError, match="burn-cost payload is unavailable"):
         validate_inputs(
+            readiness_report=green_readiness(),
             evidence_report=green_evidence(),
             cost_payload=cost,
             now=datetime(2026, 8, 23, 0, 30, tzinfo=timezone.utc),
@@ -103,6 +141,7 @@ def test_approval_packet_rejects_unavailable_cost() -> None:
 def test_approval_packet_rejects_stale_cost() -> None:
     with pytest.raises(ValueError, match="stale"):
         validate_inputs(
+            readiness_report=green_readiness(),
             evidence_report=green_evidence(),
             cost_payload=fresh_cost(),
             now=datetime(2026, 8, 23, 1, 0, 1, tzinfo=timezone.utc),
@@ -112,6 +151,7 @@ def test_approval_packet_rejects_stale_cost() -> None:
 def test_approval_packet_requires_human_fields() -> None:
     with pytest.raises(ValueError, match="reviewer is required"):
         build_approval_packet(
+            readiness_report=green_readiness(),
             evidence_report=green_evidence(),
             cost_payload=fresh_cost(),
             operator="owner-operator",

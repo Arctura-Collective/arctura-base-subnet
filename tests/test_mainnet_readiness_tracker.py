@@ -55,5 +55,6 @@ def test_go_no_go_checklist_does_not_precheck_unproven_weight_commits():
 
     assert "- [ ] `neurons/validator.py` — submitted at least two non-zero testnet weights" in text
     assert "- [ ] Bittensor v10.5 testnet miner and validator complete one attestation" in text
-    assert "286 tests on 2026-08-24" in text
+    assert "287 tests on 2026-08-24" in text
     assert "arctura-readiness-audit" in text
+    assert "green aggregate" in text

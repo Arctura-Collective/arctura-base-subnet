@@ -72,11 +72,12 @@ approved governance decision before any separate treasury transaction is built.
 ## Final launch approval packet
 
 Before any Finney subnet registration spend, create a separate non-signing
-approval packet from the green 48-hour evidence report and a fresh burn-cost
-snapshot:
+approval packet from the green aggregate readiness report, green 48-hour
+evidence report, and a fresh burn-cost snapshot:
 
 ```bash
 arctura-mainnet-approval \
+  --readiness-report runs/mainnet-evidence/readiness.json \
   --evidence-report runs/mainnet-evidence/report.json \
   --cost-payload docs/data/subnet_launch_cost.json \
   --operator OWNER_NAME_OR_ID \
@@ -87,7 +88,8 @@ arctura-mainnet-approval \
   --output /secure/review/arctura-mainnet-approval.json
 ```
 
-The command refuses to render a packet if the evidence report is red, if the
-burn-cost payload is unavailable, or if the burn-cost snapshot is older than 30
-minutes. The packet still does not sign, register, stake, or move funds; it is an
-audit artifact for the final hardware-wallet execution step.
+The command refuses to render a packet if the aggregate readiness report is red,
+if the evidence report is red, if the burn-cost payload is unavailable, or if
+the burn-cost snapshot is older than 30 minutes. The packet still does not sign,
+register, stake, or move funds; it is an audit artifact for the final
+hardware-wallet execution step.

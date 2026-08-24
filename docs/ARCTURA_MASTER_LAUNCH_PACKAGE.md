@@ -37,7 +37,7 @@ Hey team — we’re launching Arctura (Base L2 Intelligence Subnet) on Bittenso
 We bridge Base state, event logs, and CDP AgentKit execution into decentralized AI through Merkle attestation and Resonance BFT scoring.
 
 Our testnet netuid 505 evidence run is active, and the current local suite has
-286 passing tests. We are locking in foundational validator syndicates ahead of
+287 passing tests. We are locking in foundational validator syndicates ahead of
 mainnet registration.
 
 What we offer early validator partners:

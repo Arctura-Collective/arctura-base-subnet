@@ -44,12 +44,15 @@ def _cost_age_minutes(cost_payload: dict[str, Any], now: datetime) -> float:
 
 def validate_inputs(
     *,
+    readiness_report: dict[str, Any],
     evidence_report: dict[str, Any],
     cost_payload: dict[str, Any],
     now: datetime,
     max_cost_age_minutes: int = DEFAULT_MAX_COST_AGE_MINUTES,
 ) -> dict[str, Any]:
     """Return validated input facts or raise ValueError."""
+    if readiness_report.get("ok") is not True:
+        raise ValueError("aggregate readiness report is not green; refusing approval packet")
     if evidence_report.get("ok") is not True:
         raise ValueError("evidence report is not green; refusing approval packet")
     if cost_payload.get("ok") is not True:
@@ -72,6 +75,8 @@ def validate_inputs(
         "burn_cost_tao": str(burn_cost_tao),
         "burn_cost_collected_at": str(cost_payload["collected_at"]),
         "burn_cost_age_minutes": round(age_minutes, 3),
+        "readiness_created_at": readiness_report.get("created_at"),
+        "readiness_blockers": readiness_report.get("blockers", []),
         "evidence_collected_at": evidence_report.get("run", {}).get("collected_at"),
         "evidence_started_at": evidence_report.get("run", {}).get("started_at"),
     }
@@ -79,6 +84,7 @@ def validate_inputs(
 
 def build_approval_packet(
     *,
+    readiness_report: dict[str, Any],
     evidence_report: dict[str, Any],
     cost_payload: dict[str, Any],
     operator: str,
@@ -93,6 +99,7 @@ def build_approval_packet(
     """Build a machine-readable approval packet without signing or spending."""
     observed_at = now or datetime.now(timezone.utc)
     facts = validate_inputs(
+        readiness_report=readiness_report,
         evidence_report=evidence_report,
         cost_payload=cost_payload,
         now=observed_at,
@@ -117,6 +124,7 @@ def build_approval_packet(
         },
         "launch_command": _require_text(command, "command"),
         "validated_inputs": facts,
+        "readiness_sections": sorted(readiness_report.get("sections", {})),
         "evidence_checks": evidence_report.get("checks", {}),
         "evidence_metrics": evidence_report.get("metrics", {}),
         "approval_boundary": (
@@ -130,6 +138,12 @@ def build_approval_packet(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Build a non-signing final approval packet for Finney launch."
+    )
+    parser.add_argument(
+        "--readiness-report",
+        type=Path,
+        default=Path("runs/mainnet-evidence/readiness.json"),
+        help="Green aggregate arctura-readiness-audit report.",
     )
     parser.add_argument(
         "--evidence-report",
@@ -157,6 +171,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     packet = build_approval_packet(
+        readiness_report=_load_json(args.readiness_report),
         evidence_report=_load_json(args.evidence_report),
         cost_payload=_load_json(args.cost_payload),
         operator=args.operator,
