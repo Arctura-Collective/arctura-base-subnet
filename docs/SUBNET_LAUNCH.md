@@ -96,6 +96,12 @@ continued succeeding, at least two non-zero weight commits are present, and the
 logs contain no uncaught exceptions. Do not infer success from process state
 alone.
 
+When the validator is scoring miners but Bittensor rejects weight submission due
+to cooldown, the evidence report includes `weight_cooldown_deferrals` and
+`latest_weight_cooldown.blocks_until_next_allowed`. Treat that as a timing
+diagnostic, not a successful commit; the gate still requires two later
+`Weights set` entries with positive `top_weight`.
+
 ## Phase 3 — Mainnet Registration
 
 See [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md) and

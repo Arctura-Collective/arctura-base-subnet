@@ -94,4 +94,8 @@ python -m json.tool runs/mainnet-evidence/report.json
   gate still requires at least two successful non-zero weight commits inside the
   collected systemd journal window. The collector only counts `Weights set`
   entries with a positive `top_weight`.
+- If cooldown deferrals appear, inspect
+  `metrics.latest_weight_cooldown.blocks_until_next_allowed` in
+  `runs/mainnet-evidence/report.json` to estimate the remaining Bittensor block
+  gap before the next eligible weight submission.
 - Process state alone is insufficient. The evidence report must pass.

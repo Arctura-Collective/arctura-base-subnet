@@ -12,6 +12,7 @@ from arctura_base.evidence import (
     nonzero_weight_commits,
     parse_timestamp,
     validator_cycle_latencies,
+    weight_cooldown_deferrals,
     write_testnet_evidence_template,
 )
 
@@ -174,6 +175,32 @@ def test_nonzero_weight_commits_require_positive_top_weight():
     assert nonzero_weight_commits(log) == 1
 
 
+def test_weight_cooldown_deferrals_report_remaining_block_gap():
+    log = "\n".join(
+        [
+            "Weight submission deferred by chain cooldown | "
+            "uid=2 | blocks_since_last_update=20 | weights_rate_limit=100",
+            "Weight submission deferred by chain cooldown | "
+            "uid=2 | blocks_since_last_update=101 | weights_rate_limit=100",
+        ]
+    )
+
+    assert weight_cooldown_deferrals(log) == [
+        {
+            "uid": 2,
+            "blocks_since_last_update": 20,
+            "weights_rate_limit": 100,
+            "blocks_until_next_allowed": 81,
+        },
+        {
+            "uid": 2,
+            "blocks_since_last_update": 101,
+            "weights_rate_limit": 100,
+            "blocks_until_next_allowed": 0,
+        },
+    ]
+
+
 def test_evidence_reports_validator_cycle_latency_metrics():
     started = datetime(2026, 6, 17, tzinfo=timezone.utc)
     report = evaluate_evidence(
@@ -184,6 +211,8 @@ def test_evidence_reports_validator_cycle_latency_metrics():
             "Arctura Base validator live\n"
             "2026-08-23 17:17:36.000 | INFO | Issuing mandate | id=abc\n"
             "2026-08-23 17:17:39.500 | INFO | Tempo complete | sleeping 4320s\n"
+            "Weight submission deferred by chain cooldown | "
+            "uid=2 | blocks_since_last_update=20 | weights_rate_limit=100\n"
             "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
             "Weights set | miners=1 | top_uid=1 | top_weight=0.750\n"
         ),
@@ -197,6 +226,13 @@ def test_evidence_reports_validator_cycle_latency_metrics():
     assert report["metrics"]["validator_cycle_max_seconds"] == 3.5
     assert report["metrics"]["weight_commits"] == 2
     assert report["metrics"]["weight_commit_markers"] == 2
+    assert report["metrics"]["weight_cooldown_deferrals"] == 1
+    assert report["metrics"]["latest_weight_cooldown"] == {
+        "uid": 2,
+        "blocks_since_last_update": 20,
+        "weights_rate_limit": 100,
+        "blocks_until_next_allowed": 81,
+    }
 
 
 def test_parse_timestamp_requires_timezone():

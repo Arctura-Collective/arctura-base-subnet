@@ -18,7 +18,7 @@ Part of the [Arctura Network](https://arctura.network) · Funded by Base
 
 Arctura Base is in **founder-led testnet hardening**.
 
-The repository has been flattened into a usable subnet layout, and the core protocol, attestation, scoring, Base RPC, Bittensor v10 runtime, and evidence-gate tests pass locally. The current milestone is the supervised 48-hour testnet evidence run: systemd-managed miner and validator services are live on testnet netuid `505`, have completed one attestation and one non-zero weight commit, and must now complete the uninterrupted endurance window before any Finney spend.
+The repository has been flattened into a usable subnet layout, and the core protocol, attestation, scoring, Base RPC, Bittensor v10 runtime, and evidence-gate tests pass locally. The current milestone is the supervised 48-hour testnet evidence run: systemd-managed miner and validator services are live on testnet netuid `505`, have completed miner attestation, and must now accumulate the uninterrupted endurance window plus two successful non-zero validator weight commits before any Finney spend.
 
 Public operator-facing launch materials are served from `docs/` through GitHub
 Pages: pitch deck, live launch-cost ticker, custody runbook, monitoring guide,
@@ -28,7 +28,7 @@ Current validation:
 
 ```bash
 pytest tests/ -v
-# 113 passed
+# 258 passed
 ```
 
 This project is not yet mainnet-ready, security-audited, or production-emissions-ready. The immediate focus is proving the subnet end-to-end with repeatable local and testnet runs before expanding contributor scope.
