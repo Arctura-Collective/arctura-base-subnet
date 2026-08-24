@@ -275,6 +275,39 @@
       ],
       "title": "Validator Cycle Latency",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 7,
+      "targets": [
+        {
+          "expr": "arctura_network_emission_tao_per_day",
+          "legendFormat": "Network TAO/day",
+          "refId": "A"
+        },
+        {
+          "expr": "arctura_treasury_emission_tao_per_day",
+          "legendFormat": "Treasury TAO/day",
+          "refId": "B"
+        }
+      ],
+      "title": "Network Emissions",
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
