@@ -66,6 +66,8 @@ def test_monitoring_docs_link_deployable_artifacts():
     assert "deploy/grafana/arctura-launch-dashboard.json" in docs
     assert "deploy/monitoring/docker-compose.yml" in docs
     assert "metagraph-emissions.example.json" in docs
+    assert "monitoring-status.example.json" in docs
+    assert "arctura-monitoring-audit" in docs
     assert "arctura_remaining_launch_hours" in docs
     assert "arctura_latest_weight_cooldown_blocks_until_allowed" in docs
 

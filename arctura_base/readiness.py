@@ -12,6 +12,7 @@ from typing import Any, cast
 from arctura_base.aws_readiness import audit_tfvars
 from arctura_base.evidence import parse_timestamp
 from arctura_base.mainnet_approval import DEFAULT_MAX_COST_AGE_MINUTES
+from arctura_base.monitoring_readiness import audit_status as audit_monitoring_status
 from arctura_base.treasury import audit_policy, load_policy
 
 
@@ -90,6 +91,7 @@ def build_readiness_audit(
     evidence_report: dict[str, Any],
     cost_payload: dict[str, Any],
     aws_audit: dict[str, Any],
+    monitoring_audit: dict[str, Any],
     treasury_audit: dict[str, Any],
     now: datetime | None = None,
     max_cost_age_minutes: int = DEFAULT_MAX_COST_AGE_MINUTES,
@@ -110,6 +112,7 @@ def build_readiness_audit(
             max_cost_age_minutes=max_cost_age_minutes,
         ),
         "aws_asg": aws_audit,
+        "monitoring": monitoring_audit,
         "treasury": treasury_audit,
     }
     blockers = [name for name, section in sections.items() if not bool(section.get("ok"))]
@@ -155,6 +158,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("deploy/treasury/emission_policy.example.json"),
     )
+    parser.add_argument(
+        "--monitoring-status",
+        type=Path,
+        default=Path("deploy/monitoring/monitoring-status.example.json"),
+    )
     parser.add_argument("--max-cost-age-minutes", type=int, default=DEFAULT_MAX_COST_AGE_MINUTES)
     parser.add_argument("--allow-treasury-placeholders", action="store_true")
     parser.add_argument("--output", type=Path)
@@ -176,10 +184,15 @@ def main(argv: list[str] | None = None) -> int:
             allow_placeholders=args.allow_treasury_placeholders,
         ),
     )
+    monitoring = _safe_section(
+        "monitoring",
+        lambda: audit_monitoring_status(_load_json(args.monitoring_status)),
+    )
     report = build_readiness_audit(
         evidence_report=evidence,
         cost_payload=cost,
         aws_audit=aws,
+        monitoring_audit=monitoring,
         treasury_audit=treasury,
         max_cost_age_minutes=args.max_cost_age_minutes,
     )

@@ -44,6 +44,7 @@ def test_readiness_audit_passes_only_when_all_sections_are_green() -> None:
         evidence_report=green_evidence(),
         cost_payload=fresh_cost(),
         aws_audit=green_audit("aws"),
+        monitoring_audit=green_audit("monitoring"),
         treasury_audit=green_audit("treasury"),
         now=datetime(2026, 8, 24, 0, 10, tzinfo=timezone.utc),
     )
@@ -64,17 +65,20 @@ def test_readiness_audit_reports_section_blockers() -> None:
     cost["ok"] = False
     aws = green_audit("aws")
     aws["ok"] = False
+    monitoring = green_audit("monitoring")
+    monitoring["ok"] = False
 
     report = build_readiness_audit(
         evidence_report=evidence,
         cost_payload=cost,
         aws_audit=aws,
+        monitoring_audit=monitoring,
         treasury_audit=green_audit("treasury"),
         now=datetime(2026, 8, 24, 0, 10, tzinfo=timezone.utc),
     )
 
     assert report["ok"] is False
-    assert report["blockers"] == ["evidence", "burn_cost", "aws_asg"]
+    assert report["blockers"] == ["evidence", "burn_cost", "aws_asg", "monitoring"]
     assert "burn-cost payload is unavailable" in report["sections"]["burn_cost"]["errors"]
 
 
@@ -83,6 +87,7 @@ def test_readiness_audit_rejects_stale_cost_even_with_green_evidence() -> None:
         evidence_report=green_evidence(),
         cost_payload=fresh_cost(),
         aws_audit=green_audit("aws"),
+        monitoring_audit=green_audit("monitoring"),
         treasury_audit=green_audit("treasury"),
         now=datetime(2026, 8, 24, 1, 0, tzinfo=timezone.utc),
     )
@@ -97,6 +102,7 @@ def test_cli_writes_readiness_audit(tmp_path) -> None:
     cost = tmp_path / "cost.json"
     tfvars = tmp_path / "terraform.tfvars"
     treasury = tmp_path / "treasury.json"
+    monitoring = tmp_path / "monitoring.json"
     output = tmp_path / "readiness.json"
 
     evidence.write_text(json.dumps(green_evidence()), encoding="utf-8")
@@ -137,6 +143,34 @@ def test_cli_writes_readiness_audit(tmp_path) -> None:
         ),
         encoding="utf-8",
     )
+    monitoring.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "environment": "finney-mainnet",
+                "collected_at": "2026-08-24T00:00:00Z",
+                "prometheus": {
+                    "targets_healthy": True,
+                    "node_exporter_textfile_collector": True,
+                    "arctura_metrics_seen": True,
+                    "status_export": "runs/mainnet-evidence/prometheus-targets.json",
+                },
+                "grafana": {
+                    "dashboard_imported": True,
+                    "dashboard_uid": "arctura-launch-readiness",
+                    "export_or_screenshot_attached": True,
+                    "evidence": "runs/mainnet-evidence/grafana.png",
+                },
+                "alertmanager": {
+                    "configured": True,
+                    "test_notification_delivered": True,
+                    "receiver": "launch-ops",
+                    "evidence": "runs/mainnet-evidence/alertmanager.json",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
 
     exit_code = main(
         [
@@ -148,6 +182,8 @@ def test_cli_writes_readiness_audit(tmp_path) -> None:
             str(tfvars),
             "--treasury-policy",
             str(treasury),
+            "--monitoring-status",
+            str(monitoring),
             "--max-cost-age-minutes",
             "999999",
             "--output",

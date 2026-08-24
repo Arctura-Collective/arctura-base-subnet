@@ -132,6 +132,25 @@ The compose stack uses `deploy/monitoring/prometheus.yml`,
 `deploy/monitoring/alertmanager.yml`, `deploy/prometheus/arctura-alerts.yml`, and
 `deploy/grafana/arctura-launch-dashboard.json`.
 
+## Monitoring Readiness Audit
+
+After a production or launch-candidate monitoring stack is running, copy
+`deploy/monitoring/monitoring-status.example.json` to a reviewed status file and
+fill in the observed Prometheus, Grafana, and Alertmanager evidence:
+
+```bash
+cp deploy/monitoring/monitoring-status.example.json \
+  runs/mainnet-evidence/monitoring-status.json
+# Edit runs/mainnet-evidence/monitoring-status.json from reviewed screenshots,
+# exports, and test notification records.
+arctura-monitoring-audit \
+  --status runs/mainnet-evidence/monitoring-status.json \
+  --output runs/mainnet-evidence/monitoring-audit.json
+```
+
+The audit reads JSON only. It does not start Docker, probe Prometheus, call AWS,
+send notifications, open wallets, or approve launch.
+
 For AWS production deployments, `deploy/aws/asg/` includes CloudWatch alarms and
 a Lambda bridge that forwards alarm state changes to an Alertmanager-compatible
 `/api/v2/alerts` endpoint. This connects EC2 Auto Scaling health signals to the
