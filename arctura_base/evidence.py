@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,8 @@ FATAL_MARKERS = (
     "RuntimeError",
     "bittensor.errors",
 )
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
+LOG_TIMESTAMP_PATTERN = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?)")
 
 
 def parse_timestamp(value: str) -> datetime:
@@ -43,6 +46,37 @@ def log_from_marker(log: str, marker: str) -> str:
     if marker_index == -1:
         return log
     return log[marker_index:]
+
+
+def _parse_log_timestamp(line: str) -> datetime | None:
+    cleaned = ANSI_ESCAPE_PATTERN.sub("", line)
+    match = LOG_TIMESTAMP_PATTERN.match(cleaned)
+    if not match:
+        return None
+    for timestamp_format in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(match.group(1), timestamp_format)
+        except ValueError:
+            continue
+    return None
+
+
+def validator_cycle_latencies(validator_log: str) -> list[float]:
+    """Return seconds from mandate issue to tempo completion for validator cycles."""
+    started_at: datetime | None = None
+    latencies: list[float] = []
+    for line in validator_log.splitlines():
+        timestamp = _parse_log_timestamp(line)
+        if timestamp is None:
+            continue
+        if "Issuing mandate" in line:
+            started_at = timestamp
+        elif "Tempo complete" in line and started_at is not None:
+            latencies.append(round(max(0.0, (timestamp - started_at).total_seconds()), 3))
+            started_at = None
+        elif "Validator loop error" in line:
+            started_at = None
+    return latencies
 
 
 def evaluate_evidence(
@@ -74,6 +108,7 @@ def evaluate_evidence(
     attestations = miner_log.count("Mandate attested")
     weight_commits = validator_log.count("Weights set")
     health_passes = health_log.count('"ok": true')
+    cycle_latencies = validator_cycle_latencies(validator_log)
 
     checks = {
         "duration": elapsed_hours >= minimum_hours,
@@ -96,6 +131,9 @@ def evaluate_evidence(
             "miner_restarts": miner_restarts,
             "validator_restarts": validator_restarts,
             "fatal_counts": fatal_counts,
+            "validator_cycles": len(cycle_latencies),
+            "validator_cycle_latest_seconds": cycle_latencies[-1] if cycle_latencies else 0,
+            "validator_cycle_max_seconds": max(cycle_latencies) if cycle_latencies else 0,
         },
     }
 

@@ -21,7 +21,9 @@ def test_alert_rules_cover_service_down_stale_metrics_and_weight_stall():
     assert "ArcturaNeuronServiceDown" in rules
     assert "ArcturaMetricsStale" in rules
     assert "ArcturaWeightCommitStalled" in rules
+    assert "ArcturaValidatorCycleLatencyHigh" in rules
     assert "arctura_weight_commits_total == 0" in rules
+    assert "arctura_validator_cycle_latest_seconds > 120" in rules
 
 
 def test_grafana_dashboard_imports_and_references_exported_metrics():
@@ -39,6 +41,7 @@ def test_grafana_dashboard_imports_and_references_exported_metrics():
         "arctura_health_passes_total",
         "arctura_attestations_total",
         "arctura_weight_commits_total",
+        "arctura_validator_cycle_latest_seconds",
         "arctura_service_active",
         "arctura_service_restarts_total",
     ):

@@ -102,6 +102,21 @@ def render_prometheus(report: dict[str, Any], *, collected_at: datetime | None =
             "# HELP arctura_health_passes_total Passing health samples in the current evidence window.",
             "# TYPE arctura_health_passes_total counter",
             _sample("arctura_health_passes_total", int(metrics.get("health_passes", 0))),
+            "# HELP arctura_validator_cycles_total Completed validator mandate cycles in the evidence window.",
+            "# TYPE arctura_validator_cycles_total counter",
+            _sample("arctura_validator_cycles_total", int(metrics.get("validator_cycles", 0))),
+            "# HELP arctura_validator_cycle_latest_seconds Latest validator mandate cycle latency.",
+            "# TYPE arctura_validator_cycle_latest_seconds gauge",
+            _sample(
+                "arctura_validator_cycle_latest_seconds",
+                float(metrics.get("validator_cycle_latest_seconds", 0)),
+            ),
+            "# HELP arctura_validator_cycle_max_seconds Maximum validator mandate cycle latency in the evidence window.",
+            "# TYPE arctura_validator_cycle_max_seconds gauge",
+            _sample(
+                "arctura_validator_cycle_max_seconds",
+                float(metrics.get("validator_cycle_max_seconds", 0)),
+            ),
         ]
     )
     # Keep the explicit mapping above near the HELP text; this guard catches
