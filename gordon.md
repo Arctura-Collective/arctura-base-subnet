@@ -850,6 +850,9 @@ the current status map.
 - Issue #7 treasury tooling now includes a non-mutating policy audit mode for
   signer/timelock/share/placeholder readiness before operators generate any
   unsigned distribution plan.
+- Issue #4 AWS readiness now includes `arctura-aws-asg-audit`, a local tfvars
+  audit for placeholder AWS IDs, capacity bounds, Alertmanager endpoint shape,
+  and secret markers before any Terraform plan/apply is approved.
 - Issue #4 still needs external AWS proof before closure. Terraform ASG,
   CloudWatch alarms, and the CloudWatch-to-Alertmanager bridge exist under
   `deploy/aws/asg/`, but production closure still requires operator-approved

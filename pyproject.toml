@@ -66,6 +66,7 @@ arctura-coverage-gate = "arctura_base.coverage_gate:main"
 arctura-mainnet-approval = "arctura_base.mainnet_approval:main"
 arctura-validator-failover-plan = "arctura_base.failover:main"
 arctura-treasury-plan = "arctura_base.treasury:main"
+arctura-aws-asg-audit = "arctura_base.aws_readiness:main"
 arctura-miner = "neurons.miner:main"
 arctura-validator = "neurons.validator:main"
 
