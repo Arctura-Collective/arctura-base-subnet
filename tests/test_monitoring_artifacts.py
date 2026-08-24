@@ -21,8 +21,11 @@ def test_alert_rules_cover_service_down_stale_metrics_and_weight_stall():
     assert "ArcturaNeuronServiceDown" in rules
     assert "ArcturaMetricsStale" in rules
     assert "ArcturaWeightCommitStalled" in rules
+    assert "ArcturaWeightCommitCooldownBlocked" in rules
     assert "ArcturaValidatorCycleLatencyHigh" in rules
     assert "arctura_weight_commits_total == 0" in rules
+    assert "arctura_latest_weight_cooldown_blocks_until_allowed > 0" in rules
+    assert "arctura_remaining_weight_commits > 0" in rules
     assert "arctura_validator_cycle_latest_seconds > 120" in rules
 
 
@@ -37,10 +40,15 @@ def test_grafana_dashboard_imports_and_references_exported_metrics():
     for metric in (
         "arctura_evidence_gate_ok",
         "arctura_evidence_elapsed_hours",
+        "arctura_remaining_launch_hours",
+        "arctura_remaining_health_samples",
+        "arctura_remaining_weight_commits",
         "arctura_evidence_check_pass",
         "arctura_health_passes_total",
         "arctura_attestations_total",
         "arctura_weight_commits_total",
+        "arctura_weight_cooldown_deferrals_total",
+        "arctura_latest_weight_cooldown_blocks_until_allowed",
         "arctura_validator_cycle_latest_seconds",
         "arctura_network_emission_tao_per_day",
         "arctura_treasury_emission_tao_per_day",
@@ -58,6 +66,8 @@ def test_monitoring_docs_link_deployable_artifacts():
     assert "deploy/grafana/arctura-launch-dashboard.json" in docs
     assert "deploy/monitoring/docker-compose.yml" in docs
     assert "metagraph-emissions.example.json" in docs
+    assert "arctura_remaining_launch_hours" in docs
+    assert "arctura_latest_weight_cooldown_blocks_until_allowed" in docs
 
 
 def test_compose_monitoring_stack_wires_prometheus_node_exporter_and_grafana():

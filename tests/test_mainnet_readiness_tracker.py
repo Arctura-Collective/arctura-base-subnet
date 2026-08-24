@@ -44,3 +44,11 @@ def test_tracker_lists_current_evidence_gate_requirements():
         "at least two successful non-zero weight commits",
     ):
         assert requirement in text
+
+
+def test_go_no_go_checklist_does_not_precheck_unproven_weight_commits():
+    text = (ROOT / "docs" / "GO_NO_GO_CHECKLIST.md").read_text(encoding="utf-8")
+
+    assert "- [ ] `neurons/validator.py` — submitted at least two non-zero testnet weights" in text
+    assert "- [ ] Bittensor v10.5 testnet miner and validator complete one attestation" in text
+    assert "260 tests on 2026-08-24" in text

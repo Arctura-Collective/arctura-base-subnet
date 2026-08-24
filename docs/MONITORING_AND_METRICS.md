@@ -26,9 +26,15 @@ Key metrics:
 
 - `arctura_evidence_gate_ok`
 - `arctura_evidence_elapsed_hours`
+- `arctura_remaining_launch_hours`
+- `arctura_remaining_health_samples`
+- `arctura_remaining_weight_commits`
 - `arctura_evidence_check_pass{check="duration"}`
 - `arctura_attestations_total`
 - `arctura_weight_commits_total`
+- `arctura_weight_commit_markers_total`
+- `arctura_weight_cooldown_deferrals_total`
+- `arctura_latest_weight_cooldown_blocks_until_allowed`
 - `arctura_health_passes_total`
 - `arctura_validator_cycle_latest_seconds`
 - `arctura_validator_cycle_max_seconds`
@@ -101,6 +107,7 @@ rule files. The included rules cover:
 - evidence gate still red after 48 hours
 - stale metrics collection
 - no weight commit after the initial launch window
+- repeated Bittensor cooldown deferrals with remaining block gap
 - high validator mandate-cycle latency
 
 The repository also includes `deploy/prometheus/prometheus.yml` as a minimal
@@ -160,10 +167,15 @@ node-exporter. The dashboard includes:
 
 - SingleStat: `arctura_evidence_gate_ok`
 - Gauge: `arctura_evidence_elapsed_hours`
+- Gauge: `arctura_remaining_launch_hours`
+- Gauge: `arctura_remaining_health_samples`
+- Gauge: `arctura_remaining_weight_commits`
 - Table: `arctura_evidence_check_pass`
 - Timeseries: `arctura_health_passes_total`
 - Timeseries: `arctura_attestations_total`
 - Timeseries: `arctura_weight_commits_total`
+- Timeseries: `arctura_weight_cooldown_deferrals_total`
+- Gauge: `arctura_latest_weight_cooldown_blocks_until_allowed`
 - Timeseries: `arctura_validator_cycle_latest_seconds`
 - Timeseries: `arctura_network_emission_tao_per_day`
 - Timeseries: `arctura_service_restarts_total`

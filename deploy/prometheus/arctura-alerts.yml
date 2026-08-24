@@ -64,6 +64,15 @@ groups:
           summary: "No Arctura weight commit observed after three hours"
           description: "The validator is live but no successful weight commit has appeared in the evidence window."
 
+      - alert: ArcturaWeightCommitCooldownBlocked
+        expr: arctura_latest_weight_cooldown_blocks_until_allowed > 0 and arctura_remaining_weight_commits > 0
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Arctura weight submission is cooldown-blocked"
+          description: "Latest cooldown deferral still needs {{ $value }} Bittensor blocks before the next eligible weight submission."
+
       - alert: ArcturaValidatorCycleLatencyHigh
         expr: arctura_validator_cycle_latest_seconds > 120
         for: 5m

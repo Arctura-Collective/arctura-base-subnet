@@ -844,6 +844,9 @@ the current status map.
 - The evidence report also includes `remaining.hours`,
   `remaining.health_samples`, and `remaining.weight_commits` so operators can
   see exact launch-gate deltas without manually deriving them from raw metrics.
+- Issue #6 monitoring now exports those remaining/cooldown fields to
+  Prometheus textfile metrics and includes an alert for cooldown-blocked weight
+  submissions while required commits are still missing.
 - Issue #4 still needs external AWS proof before closure. Terraform ASG,
   CloudWatch alarms, and the CloudWatch-to-Alertmanager bridge exist under
   `deploy/aws/asg/`, but production closure still requires operator-approved

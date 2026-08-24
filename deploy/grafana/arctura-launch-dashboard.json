@@ -146,6 +146,11 @@
           "expr": "arctura_evidence_elapsed_hours",
           "legendFormat": "Elapsed hours",
           "refId": "A"
+        },
+        {
+          "expr": "arctura_remaining_launch_hours",
+          "legendFormat": "Remaining hours",
+          "refId": "B"
         }
       ],
       "title": "Evidence Window Hours",
@@ -203,6 +208,11 @@
           "refId": "A"
         },
         {
+          "expr": "arctura_remaining_health_samples",
+          "legendFormat": "Remaining health samples",
+          "refId": "D"
+        },
+        {
           "expr": "arctura_attestations_total",
           "legendFormat": "Attestations",
           "refId": "B"
@@ -211,6 +221,16 @@
           "expr": "arctura_weight_commits_total",
           "legendFormat": "Weight commits",
           "refId": "C"
+        },
+        {
+          "expr": "arctura_remaining_weight_commits",
+          "legendFormat": "Remaining weight commits",
+          "refId": "E"
+        },
+        {
+          "expr": "arctura_weight_cooldown_deferrals_total",
+          "legendFormat": "Weight cooldown deferrals",
+          "refId": "F"
         }
       ],
       "title": "Evidence Counters",
@@ -271,6 +291,11 @@
           "expr": "arctura_validator_cycle_max_seconds",
           "legendFormat": "Max validator cycle",
           "refId": "B"
+        },
+        {
+          "expr": "arctura_latest_weight_cooldown_blocks_until_allowed",
+          "legendFormat": "Cooldown blocks until allowed",
+          "refId": "C"
         }
       ],
       "title": "Validator Cycle Latency",

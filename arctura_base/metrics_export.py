@@ -157,6 +157,7 @@ def render_prometheus(report: dict[str, Any], *, collected_at: datetime | None =
         lines.append(_sample("arctura_evidence_check_pass", _bool(passed), {"check": name}))
 
     metrics = report.get("metrics", {})
+    remaining = report.get("remaining", {})
     scalar_metrics = {
         "elapsed_hours": "arctura_evidence_elapsed_hours",
         "attestations": "arctura_attestations_total",
@@ -174,9 +175,36 @@ def render_prometheus(report: dict[str, Any], *, collected_at: datetime | None =
             "# HELP arctura_weight_commits_total Weight commits observed in the current evidence window.",
             "# TYPE arctura_weight_commits_total counter",
             _sample("arctura_weight_commits_total", int(metrics.get("weight_commits", 0))),
+            "# HELP arctura_weight_commit_markers_total Raw weight commit log markers observed in the current evidence window.",
+            "# TYPE arctura_weight_commit_markers_total counter",
+            _sample(
+                "arctura_weight_commit_markers_total",
+                int(metrics.get("weight_commit_markers", 0)),
+            ),
+            "# HELP arctura_weight_cooldown_deferrals_total Weight submissions deferred by Bittensor cooldown.",
+            "# TYPE arctura_weight_cooldown_deferrals_total counter",
+            _sample(
+                "arctura_weight_cooldown_deferrals_total",
+                int(metrics.get("weight_cooldown_deferrals", 0)),
+            ),
             "# HELP arctura_health_passes_total Passing health samples in the current evidence window.",
             "# TYPE arctura_health_passes_total counter",
             _sample("arctura_health_passes_total", int(metrics.get("health_passes", 0))),
+            "# HELP arctura_remaining_launch_hours Hours still required before the evidence duration gate can pass.",
+            "# TYPE arctura_remaining_launch_hours gauge",
+            _sample("arctura_remaining_launch_hours", float(remaining.get("hours", 0))),
+            "# HELP arctura_remaining_health_samples Passing health samples still required before the health gate can pass.",
+            "# TYPE arctura_remaining_health_samples gauge",
+            _sample(
+                "arctura_remaining_health_samples",
+                int(remaining.get("health_samples", 0)),
+            ),
+            "# HELP arctura_remaining_weight_commits Non-zero weight commits still required before the weight gate can pass.",
+            "# TYPE arctura_remaining_weight_commits gauge",
+            _sample(
+                "arctura_remaining_weight_commits",
+                int(remaining.get("weight_commits", 0)),
+            ),
             "# HELP arctura_validator_cycles_total Completed validator mandate cycles in the evidence window.",
             "# TYPE arctura_validator_cycles_total counter",
             _sample("arctura_validator_cycles_total", int(metrics.get("validator_cycles", 0))),
@@ -202,6 +230,35 @@ def render_prometheus(report: dict[str, Any], *, collected_at: datetime | None =
         "weight_commits",
         "health_passes",
     }
+
+    latest_cooldown = metrics.get("latest_weight_cooldown")
+    if isinstance(latest_cooldown, dict):
+        cooldown_labels = {"uid": latest_cooldown.get("uid", "unknown")}
+        lines.extend(
+            [
+                "# HELP arctura_latest_weight_cooldown_blocks_since_last_update Latest observed blocks since validator weight update.",
+                "# TYPE arctura_latest_weight_cooldown_blocks_since_last_update gauge",
+                _sample(
+                    "arctura_latest_weight_cooldown_blocks_since_last_update",
+                    int(latest_cooldown.get("blocks_since_last_update", 0)),
+                    cooldown_labels,
+                ),
+                "# HELP arctura_latest_weight_cooldown_rate_limit Bittensor weight rate limit from latest cooldown deferral.",
+                "# TYPE arctura_latest_weight_cooldown_rate_limit gauge",
+                _sample(
+                    "arctura_latest_weight_cooldown_rate_limit",
+                    int(latest_cooldown.get("weights_rate_limit", 0)),
+                    cooldown_labels,
+                ),
+                "# HELP arctura_latest_weight_cooldown_blocks_until_allowed Remaining Bittensor blocks before next eligible weight submission.",
+                "# TYPE arctura_latest_weight_cooldown_blocks_until_allowed gauge",
+                _sample(
+                    "arctura_latest_weight_cooldown_blocks_until_allowed",
+                    int(latest_cooldown.get("blocks_until_next_allowed", 0)),
+                    cooldown_labels,
+                ),
+            ]
+        )
 
     lines.extend(
         [
