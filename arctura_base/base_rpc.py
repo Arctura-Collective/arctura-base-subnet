@@ -70,6 +70,7 @@ class BaseRPCClient:
         self,
         rpc_url: str | None = None,
         timeout: int = 10,
+        allow_agent_actions: bool | None = None,
     ) -> None:
         """
         Initialize the Base RPC client.
@@ -78,6 +79,8 @@ class BaseRPCClient:
             rpc_url:  Base RPC endpoint. Defaults to BASE_RPC_URL env var,
                       then Coinbase's public endpoint.
             timeout:  HTTP request timeout in seconds.
+            allow_agent_actions: Permit state-changing AgentKit actions. Defaults
+                                 to ARCTURA_ALLOW_AGENT_ACTIONS=false.
         """
         if load_dotenv is not None:
             load_dotenv()
@@ -88,6 +91,13 @@ class BaseRPCClient:
             )
         self.w3 = _Web3(_Web3.HTTPProvider(url, request_kwargs={"timeout": timeout}))
         self.rpc_url = url
+        if allow_agent_actions is None:
+            allow_agent_actions = os.environ.get("ARCTURA_ALLOW_AGENT_ACTIONS", "").lower() in {
+                "1",
+                "true",
+                "yes",
+            }
+        self.allow_agent_actions = allow_agent_actions
         self._block_hash_cache: dict[int, str] = {}
         self._verify_connection()
 
@@ -325,6 +335,12 @@ class BaseRPCClient:
             )
 
         elif query_type == "agent_action":
+            if not self.allow_agent_actions:
+                raise PermissionError(
+                    "agent_action mandates are disabled by default; set "
+                    "ARCTURA_ALLOW_AGENT_ACTIONS=true or pass --allow_agent_actions "
+                    "only after explicit operator approval"
+                )
             # Delegate to AgentKit adapter — requires CDP credentials
             from arctura_base.agentkit import execute_agent_action
 

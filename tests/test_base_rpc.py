@@ -71,6 +71,30 @@ def test_unknown_query_type_raises(mock_client):
         )
 
 
+def test_agent_action_disabled_by_default_before_adapter_import(mock_client, monkeypatch):
+    called = False
+
+    def fake_execute_agent_action(**kwargs):
+        nonlocal called
+        called = True
+        return {"status": "should-not-run"}
+
+    monkeypatch.setattr(
+        "arctura_base.agentkit.execute_agent_action",
+        fake_execute_agent_action,
+    )
+
+    with pytest.raises(PermissionError, match="disabled by default"):
+        mock_client.execute_mandate(
+            query_type="agent_action",
+            contract_address=None,
+            block_range=(21_000_000, 21_000_000),
+            payload={"action_type": "transfer", "action_args": {}},
+        )
+
+    assert called is False
+
+
 def test_execute_mandate_reuses_block_hash_for_fixed_block(mock_client):
     block = {"hash": bytes.fromhex("11" * 32)}
     mock_client.w3.eth.get_block.return_value = block
