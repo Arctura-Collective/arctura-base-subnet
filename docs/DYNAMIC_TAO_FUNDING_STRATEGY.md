@@ -48,9 +48,9 @@ Non-goals:
 ## Current Fundraising Leverage
 
 - PR #9 merged into `main` with GitHub CI green.
-- Local suite passes with 113 tests.
-- Testnet netuid `505` has produced a systemd-managed attestation and non-zero
-  weight commit.
+- Local suite passes with 273 tests.
+- Testnet netuid `505` has produced a systemd-managed attestation; non-zero
+  validator weight commits are still pending in the current evidence window.
 - The 48-hour evidence run is active but not complete.
 
 ## Next Funding Milestone
