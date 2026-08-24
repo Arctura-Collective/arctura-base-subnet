@@ -5,7 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from arctura_base.treasury import build_distribution_plan, load_policy, main, validate_policy
+from arctura_base.treasury import (
+    audit_policy,
+    build_distribution_plan,
+    load_policy,
+    main,
+    validate_policy,
+)
 
 POLICY_PATH = Path("deploy/treasury/emission_policy.example.json")
 
@@ -36,6 +42,32 @@ def test_policy_rejects_placeholders_without_explicit_template_mode():
 
     with pytest.raises(ValueError, match="placeholder"):
         validate_policy(policy)
+
+
+def test_policy_audit_reports_placeholder_destinations():
+    policy = load_policy(POLICY_PATH)
+
+    audit = audit_policy(policy)
+
+    assert audit["audit_type"] == "treasury_policy_readiness_audit"
+    assert audit["ok"] is False
+    assert audit["checks"]["allocation_destinations_final"] is False
+    assert audit["findings"]["placeholder_allocations"] == [
+        "core_engineering",
+        "validator_syndicates",
+        "dtao_liquidity_pool",
+    ]
+    assert audit["safety"]["on_chain_action_attempted"] is False
+    assert audit["safety"]["wallet_required"] is False
+
+
+def test_policy_audit_accepts_template_placeholders_only_when_explicitly_allowed():
+    policy = load_policy(POLICY_PATH)
+
+    audit = audit_policy(policy, allow_placeholders=True)
+
+    assert audit["ok"] is True
+    assert audit["requirements"]["placeholder_destinations_allowed"] is True
 
 
 def test_distribution_plan_rejects_bad_share_sum():
@@ -96,3 +128,22 @@ def test_cli_writes_unsigned_plan(tmp_path):
     rendered = output.read_text(encoding="utf-8")
     assert "unsigned_treasury_distribution_dry_run" in rendered
     assert "on_chain_action_attempted" in rendered
+
+
+def test_cli_writes_policy_audit_without_total_tao(tmp_path):
+    output = tmp_path / "audit.json"
+
+    exit_code = main(
+        [
+            "--policy",
+            str(POLICY_PATH),
+            "--audit-only",
+            "--output",
+            str(output),
+        ]
+    )
+
+    assert exit_code == 0
+    rendered = output.read_text(encoding="utf-8")
+    assert "treasury_policy_readiness_audit" in rendered
+    assert "placeholder_allocations" in rendered
