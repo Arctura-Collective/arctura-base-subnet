@@ -11,6 +11,19 @@ python scripts/update_subnet_cost_ticker.py
 python -m json.tool docs/data/subnet_launch_cost.json
 ```
 
+If this repository host does not have `btcli`, run the live cost command in a
+separate trusted shell and paste the output into the payload builder without
+having the repo call Bittensor:
+
+```bash
+python scripts/update_subnet_cost_ticker.py \
+  --raw-btcli-output 'Subnet burn cost: 812.5 TAO'
+python -m json.tool docs/data/subnet_launch_cost.json
+```
+
+Manual mode only parses operator-provided output; it does not query the chain,
+open a wallet, register a subnet, stake, transfer funds, or approve launch.
+
 The committed JSON and `docs/subnet-cost.html` page are planning snapshots. The
 mainnet checklist still requires a fresh burn-cost check within 30 minutes of
 registration and explicit operator approval before any on-chain spend.
@@ -48,7 +61,7 @@ Non-goals:
 ## Current Fundraising Leverage
 
 - PR #9 merged into `main` with GitHub CI green.
-- Local suite passes with 277 tests.
+- Local suite passes with 278 tests.
 - Testnet netuid `505` has produced a systemd-managed attestation; non-zero
   validator weight commits are still pending in the current evidence window.
 - The 48-hour evidence run is active but not complete.
