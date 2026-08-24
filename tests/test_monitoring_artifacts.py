@@ -51,3 +51,32 @@ def test_monitoring_docs_link_deployable_artifacts():
     assert "deploy/prometheus/prometheus.yml" in docs
     assert "deploy/prometheus/arctura-alerts.yml" in docs
     assert "deploy/grafana/arctura-launch-dashboard.json" in docs
+    assert "deploy/monitoring/docker-compose.yml" in docs
+
+
+def test_compose_monitoring_stack_wires_prometheus_node_exporter_and_grafana():
+    compose = (ROOT / "deploy" / "monitoring" / "docker-compose.yml").read_text(encoding="utf-8")
+    prometheus = (ROOT / "deploy" / "monitoring" / "prometheus.yml").read_text(encoding="utf-8")
+    datasource = (
+        ROOT
+        / "deploy"
+        / "monitoring"
+        / "grafana"
+        / "provisioning"
+        / "datasources"
+        / "prometheus.yml"
+    ).read_text(encoding="utf-8")
+    dashboards = (
+        ROOT / "deploy" / "monitoring" / "grafana" / "provisioning" / "dashboards" / "arctura.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "prom/prometheus" in compose
+    assert "prom/node-exporter" in compose
+    assert "grafana/grafana" in compose
+    assert "--collector.textfile.directory=/textfile" in compose
+    assert "../prometheus/arctura-alerts.yml" in compose
+    assert "../grafana/arctura-launch-dashboard.json" in compose
+    assert "node-exporter:9100" in prometheus
+    assert 'regex: "arctura_.*"' in prometheus
+    assert "http://prometheus:9090" in datasource
+    assert "/var/lib/grafana/dashboards" in dashboards
