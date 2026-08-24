@@ -22,6 +22,7 @@ def test_tracker_maps_all_open_launch_issues_to_evidence():
         "arctura-custody-audit",
         "arctura-coverage-gate",
         "arctura-collect-evidence",
+        "next_actions",
     ):
         assert artifact in text
 
@@ -34,6 +35,7 @@ def test_tracker_preserves_no_spend_authorization_boundary():
     assert "TAO" in text
     assert "explicit operator approval" in text
     assert "within 30 minutes" in text
+    assert "Do not substitute a green test suite" in text
 
 
 def test_tracker_lists_current_evidence_gate_requirements():

@@ -49,6 +49,11 @@ arctura-readiness-audit \
 This audit reads existing files only. It does not call Bittensor, AWS,
 Terraform, Docker, wallets, or systemd.
 
+When the aggregate audit is red, treat its `blockers` array as the authoritative
+section list and its `next_actions` object as the operator closure checklist.
+Do not substitute a green test suite, green static docs, or a stale burn-cost
+payload for a green aggregate audit.
+
 ## Issue tracker
 
 | Issue | Repository state | Remaining external blocker | Closure evidence |
