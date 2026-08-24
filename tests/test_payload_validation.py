@@ -62,6 +62,33 @@ def test_agent_action_payload_rejects_unimplemented_action():
     assert "Unknown action_type" in error
 
 
+def test_mandate_context_rejects_agent_action_by_default():
+    is_valid, error = validate_mandate_context(
+        query_type="agent_action",
+        block_range=(200, 200),
+        contract_address=None,
+        latest_block=200,
+        max_block_lookback=100,
+    )
+
+    assert is_valid is False
+    assert "disabled by default" in error
+
+
+def test_mandate_context_allows_agent_action_only_with_operator_opt_in():
+    is_valid, error = validate_mandate_context(
+        query_type="agent_action",
+        block_range=(200, 200),
+        contract_address=None,
+        latest_block=200,
+        max_block_lookback=100,
+        allow_agent_actions=True,
+    )
+
+    assert is_valid is True
+    assert error is None
+
+
 def test_normalize_block_range_maps_zero_zero_to_latest_block():
     assert normalize_block_range((0, 0), latest_block=123) == (123, 123)
     assert normalize_block_range((120, 0), latest_block=123) == (120, 120)

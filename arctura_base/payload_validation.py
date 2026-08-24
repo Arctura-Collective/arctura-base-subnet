@@ -133,8 +133,11 @@ def validate_mandate_context(
     contract_address: str | None,
     latest_block: int,
     max_block_lookback: int,
+    allow_agent_actions: bool = False,
 ) -> tuple[bool, str | None]:
     """Validate mandate fields that depend on chain context and miner policy."""
+    if query_type == "agent_action" and not allow_agent_actions:
+        return False, "agent_action mandates are disabled by default"
     if max_block_lookback <= 0:
         return False, "max_block_lookback must be positive"
     try:

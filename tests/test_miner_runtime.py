@@ -99,6 +99,36 @@ def test_forward_refuses_oversized_block_range_before_execute_mandate():
     assert result.confidence == 0.0
 
 
+def test_forward_refuses_agent_action_without_operator_opt_in():
+    class FakeBaseClient:
+        execute_called = False
+
+        def get_latest_block_number(self):
+            return 1_000
+
+        def execute_mandate(self, **kwargs):
+            self.execute_called = True
+            raise AssertionError("execute_mandate should not be called")
+
+    base_client = FakeBaseClient()
+    miner = object.__new__(ArcturaMiner)
+    miner.base_client = base_client
+    miner.config = SimpleNamespace(max_block_lookback=10, allow_agent_actions=False)
+    synapse = BaseSubnetSynapse(
+        mandate_id="agent-action",
+        query_type="agent_action",
+        base_block_range=(1_000, 1_000),
+        mandate_payload={"action_type": "transfer", "action_args": {"amount": "1"}},
+    )
+
+    result = miner.forward(synapse)
+
+    assert base_client.execute_called is False
+    assert result.base_state_hash is None
+    assert result.merkle_proof is None
+    assert result.confidence == 0.0
+
+
 def test_blacklist_requires_validator_permit():
     miner = object.__new__(ArcturaMiner)
     miner.config = type("Config", (), {"allow_non_validator": False})()

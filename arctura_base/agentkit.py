@@ -3,9 +3,10 @@ arctura_base/agentkit.py
 
 AgentKit adapter for the Arctura Base subnet miner.
 
-Enables miners to execute onchain Base actions as mandate types — not just
-read state. This is the L3 Cognitive Mesh layer: miners can operate as
-autonomous agents on Base, with their actions attested and scored by validators.
+Enables miners to execute onchain Base actions as mandate types when explicitly
+enabled by the operator. AgentKit actions are disabled by default because Phase
+01 launch validation must not let arbitrary validator mandates move funds or
+mutate Base state.
 
 Requires the optional [agentkit] install:
     pip install -e ".[agentkit]"

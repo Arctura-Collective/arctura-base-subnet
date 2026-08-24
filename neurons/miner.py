@@ -68,8 +68,11 @@ class ArcturaMiner:
         self.subtensor = bt.Subtensor(config=self.config)
         self.metagraph = load_metagraph(self.subtensor, self.config.netuid)
 
-        # Base chain client
-        self.base_client = BaseRPCClient()
+        # Base chain client. AgentKit mandates can mutate Base state, so they
+        # are disabled unless the operator explicitly opts in.
+        self.base_client = BaseRPCClient(
+            allow_agent_actions=bool(getattr(self.config, "allow_agent_actions", False))
+        )
 
         # Axon — the miner's network-facing endpoint
         self.axon = bt.Axon(wallet=self.wallet, config=self.config)
@@ -116,6 +119,13 @@ class ArcturaMiner:
             "--allow_non_validator",
             action="store_true",
             help="Allow callers without a validator permit (unsafe on mainnet).",
+        )
+        parser.add_argument(
+            "--allow_agent_actions",
+            action="store_true",
+            default=os.environ.get("ARCTURA_ALLOW_AGENT_ACTIONS", "").lower()
+            in {"1", "true", "yes"},
+            help="Allow state-changing AgentKit mandates (unsafe without explicit approval).",
         )
 
         config = bt.Config(parser)
@@ -202,6 +212,7 @@ class ArcturaMiner:
                 contract_address=synapse.contract_address,
                 latest_block=latest_block,
                 max_block_lookback=int(getattr(self.config, "max_block_lookback", 1000)),
+                allow_agent_actions=bool(getattr(self.config, "allow_agent_actions", False)),
             )
             if not is_valid:
                 raise ValueError(f"Refusing invalid mandate context: {error_msg}")
