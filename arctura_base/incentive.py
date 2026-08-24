@@ -251,23 +251,30 @@ def score_response(
 # ── P5 Stewardship modifier ───────────────────────────────────────────────
 
 
-def apply_stewardship_modifier(base_score: float, energy_tag: str) -> float:
+def apply_stewardship_modifier(
+    base_score: float,
+    energy_tag: str,
+    *,
+    verified: bool = False,
+) -> float:
     """
     Apply P5 Stewardship carbon-aware weight modifier.
 
-    Phase 01 miners self-report energy provenance. Self-declared tags are not a
-    safe basis for emissions, so the modifier is disabled until provenance can be
-    validated independently.
+    Self-declared energy tags are not a safe basis for emissions. The modifier
+    only applies when a validator-controlled verification record confirms the
+    miner hotkey and claimed tag.
 
     Args:
         base_score:  Resonance BFT score before stewardship adjustment.
         energy_tag:  Miner's declared energy provenance tag.
+        verified:    True only when validator-owned provenance verification
+                     confirms the miner hotkey and tag.
 
     Returns:
-        Unmodified score, capped to [0.0, 1.0].
+        Modified score when verified, otherwise unmodified, capped to [0.0, 1.0].
     """
-    _ = energy_tag
-    return round(min(max(base_score, 0.0), 1.0), 6)
+    modifier = STEWARDSHIP_MODIFIER.get(energy_tag, 1.0) if verified else 1.0
+    return round(min(max(base_score * modifier, 0.0), 1.0), 6)
 
 
 # ── Sybil detection ───────────────────────────────────────────────────────

@@ -105,14 +105,20 @@ class TestStewardshipModifier:
     def test_renewable_verified_does_not_self_award_boost(self):
         assert apply_stewardship_modifier(0.8, "renewable_verified") == 0.8
 
+    def test_renewable_verified_boosts_only_when_verified(self):
+        assert apply_stewardship_modifier(0.8, "renewable_verified", verified=True) == 0.92
+
     def test_high_carbon_self_declaration_does_not_change_score(self):
         assert apply_stewardship_modifier(0.8, "high_carbon") == 0.8
+
+    def test_high_carbon_penalty_applies_when_verified(self):
+        assert apply_stewardship_modifier(0.8, "high_carbon", verified=True) == 0.72
 
     def test_unknown_no_change(self):
         assert apply_stewardship_modifier(0.8, "unknown") == 0.8
 
     def test_capped_at_one(self):
-        assert apply_stewardship_modifier(1.0, "renewable_verified") == 1.0
+        assert apply_stewardship_modifier(1.0, "renewable_verified", verified=True) == 1.0
 
 
 class TestNormalization:

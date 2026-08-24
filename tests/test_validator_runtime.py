@@ -1,9 +1,11 @@
 """Runtime compatibility checks for the validator neuron."""
 
 import sys
+from collections import defaultdict
 from types import SimpleNamespace
 
 from arctura_base.protocol import BaseSubnetSynapse
+from arctura_base.utils import build_merkle_proof
 from neurons.validator import ArcturaValidator
 
 
@@ -127,3 +129,34 @@ def test_active_miner_uids_do_not_treat_validator_permit_as_a_role():
     )()
 
     assert validator._get_active_miner_uids() == [1, 2, 3]
+
+
+def test_verified_stewardship_modifier_applies_in_validator_scoring():
+    validator = object.__new__(ArcturaValidator)
+    validator.metagraph = SimpleNamespace(hotkeys=["miner-hotkey"])
+    validator._calibration_history = defaultdict(list)
+    validator._CALIBRATION_WINDOW = 100
+    validator._stewardship_verifications = {
+        "miner-hotkey": {
+            "energy_tag": "renewable_verified",
+            "status": "verified",
+        }
+    }
+    state_hash = "a" * 64
+    synapse = BaseSubnetSynapse(
+        base_state_hash=state_hash,
+        merkle_proof=build_merkle_proof(state_hash),
+        block_hash_anchor="live",
+        execution_trace={"steps": ["rpc_fetch", "output_hash", "merkle_build", "block_anchor"]},
+        deadline_block=100,
+        energy_tag="renewable_verified",
+    )
+
+    scores = validator._score_all_responses(
+        synapses=[synapse],
+        miner_uids=[0],
+        reference_hash="live",
+        response_block=100,
+    )
+
+    assert scores[0] > 0.9
