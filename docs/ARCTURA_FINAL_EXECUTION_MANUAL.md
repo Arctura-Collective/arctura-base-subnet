@@ -59,45 +59,26 @@ groups:
 
 ---
 
-## Part 2 — Automated dTAO Treasury & Revenue-Share Logic
+## Part 2 — dTAO Treasury & Revenue-Share Planning
 
-Under Dynamic TAO, the subnet treasury receives 18% of emissions. To automate revenue sharing with validator syndicates and fund engineering without manual friction, deploy this automated Python/Substrate distribution script (`scripts/distribute_treasury.py`).
+Under Dynamic TAO, the subnet treasury receives 18% of emissions. Repository
+automation is intentionally limited to unsigned dry-run planning; no script in
+this repository is authorized to move funds, sign transactions, submit
+extrinsics, or manage treasury keys.
 
-```python
-#!/usr/bin/env python3
-"""
-Arctura Automated Treasury & Revenue-Share Distribution Script
-Calculates and executes emission splits between core engineering,
-ecosystem validator syndicates, and dTAO liquidity pools.
-"""
+Use the policy template and planner documented in `docs/TREASURY_GOVERNANCE.md`:
 
-import sys
-import bittensor as bt
-
-# Distribution Ratios
-CORE_ENGINEERING_SHARE = 0.40  # 40% of treasury emissions
-SYNDICATE_SHARE = 0.30  # 30% to validator syndicates
-LIQUIDITY_POOL_SHARE = 0.30  # 30% to dTAO AMM liquidity
-
-
-def distribute_emissions(total_treasury_tao: float):
-    eng_amount = total_treasury_tao * CORE_ENGINEERING_SHARE
-    syn_amount = total_treasury_tao * SYNDICATE_SHARE
-    liq_amount = total_treasury_tao * LIQUIDITY_POOL_SHARE
-
-    print(f"Total Treasury Intake: {total_treasury_tao} TAO")
-    print(f" -> Core Engineering Allocation: {eng_amount:.4f} TAO")
-    print(f" -> Validator Syndicate Share:   {syn_amount:.4f} TAO")
-    print(f" -> dTAO Liquidity Provisioning:  {liq_amount:.4f} TAO")
-
-    # In production, integrate btcli wallet transfer calls here
-    # bt.wallet(name="owner").substrate.transfer(...)
-
-
-if __name__ == "__main__":
-    intake = float(sys.argv[1]) if len(sys.argv) > 1 else 100.0
-    distribute_emissions(intake)
+```bash
+python -m arctura_base.treasury \
+  --policy deploy/treasury/emission_policy.example.json \
+  --total-tao 100 \
+  --allow-placeholders
 ```
+
+The planner calculates the approved 40% core engineering, 30% validator
+syndicate, and 30% dTAO liquidity split as an unsigned JSON review packet. A
+real treasury action requires separately approved multisig execution and
+hardware-wallet confirmation.
 
 ---
 
