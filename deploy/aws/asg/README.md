@@ -16,6 +16,11 @@ provisions AWS resources.
 - SNS topic plus Lambda bridge that converts CloudWatch alarm notifications into
   Alertmanager-compatible Prometheus webhook alerts.
 
+Launch evidence metrics are rendered separately by
+`scripts/render_cloudwatch_metrics.py`. That script produces a
+`put-metric-data` JSON payload for the `Arctura/Launch` namespace but does not
+call AWS or provision resources.
+
 ## Required inputs
 
 Copy `terraform.tfvars.example` to `terraform.tfvars` outside version control and
@@ -43,4 +48,3 @@ Before applying:
    Alertmanager endpoint.
 4. Confirm no coldkey material is present in user data, AMI snapshots, or SSM
    parameters.
-
