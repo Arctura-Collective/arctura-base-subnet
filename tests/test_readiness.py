@@ -45,6 +45,7 @@ def test_readiness_audit_passes_only_when_all_sections_are_green() -> None:
         cost_payload=fresh_cost(),
         aws_audit=green_audit("aws"),
         monitoring_audit=green_audit("monitoring"),
+        custody_audit=green_audit("custody"),
         treasury_audit=green_audit("treasury"),
         now=datetime(2026, 8, 24, 0, 10, tzinfo=timezone.utc),
     )
@@ -67,18 +68,21 @@ def test_readiness_audit_reports_section_blockers() -> None:
     aws["ok"] = False
     monitoring = green_audit("monitoring")
     monitoring["ok"] = False
+    custody = green_audit("custody")
+    custody["ok"] = False
 
     report = build_readiness_audit(
         evidence_report=evidence,
         cost_payload=cost,
         aws_audit=aws,
         monitoring_audit=monitoring,
+        custody_audit=custody,
         treasury_audit=green_audit("treasury"),
         now=datetime(2026, 8, 24, 0, 10, tzinfo=timezone.utc),
     )
 
     assert report["ok"] is False
-    assert report["blockers"] == ["evidence", "burn_cost", "aws_asg", "monitoring"]
+    assert report["blockers"] == ["evidence", "burn_cost", "aws_asg", "monitoring", "custody"]
     assert "burn-cost payload is unavailable" in report["sections"]["burn_cost"]["errors"]
 
 
@@ -88,6 +92,7 @@ def test_readiness_audit_rejects_stale_cost_even_with_green_evidence() -> None:
         cost_payload=fresh_cost(),
         aws_audit=green_audit("aws"),
         monitoring_audit=green_audit("monitoring"),
+        custody_audit=green_audit("custody"),
         treasury_audit=green_audit("treasury"),
         now=datetime(2026, 8, 24, 1, 0, tzinfo=timezone.utc),
     )
@@ -103,6 +108,7 @@ def test_cli_writes_readiness_audit(tmp_path) -> None:
     tfvars = tmp_path / "terraform.tfvars"
     treasury = tmp_path / "treasury.json"
     monitoring = tmp_path / "monitoring.json"
+    custody = tmp_path / "custody.json"
     output = tmp_path / "readiness.json"
 
     evidence.write_text(json.dumps(green_evidence()), encoding="utf-8")
@@ -171,6 +177,46 @@ def test_cli_writes_readiness_audit(tmp_path) -> None:
         ),
         encoding="utf-8",
     )
+    custody.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "environment": "finney-mainnet",
+                "reviewed_at": "2026-08-24T00:00:00Z",
+                "owner_coldkey": {
+                    "offline": True,
+                    "not_operational_hot_wallet": True,
+                    "backups_two_physical_locations": True,
+                    "evidence": "secure-review/owner-custody-record.json",
+                },
+                "validator_coldkey": {
+                    "offline": True,
+                    "evidence": "secure-review/validator-custody-record.json",
+                },
+                "miner_coldkey": {
+                    "offline": True,
+                    "evidence": "secure-review/miner-custody-record.json",
+                },
+                "runtime_hosts": {
+                    "hotkeys_only": True,
+                    "hotkey_revocation_path_documented": True,
+                    "evidence": "secure-review/runtime-wallet-inventory.json",
+                },
+                "treasury": {
+                    "multisig_or_governance_controlled": True,
+                    "evidence": "secure-review/treasury-multisig-record.json",
+                },
+                "review": {
+                    "reviewers": ["operator", "independent-reviewer"],
+                    "wallet_names_reviewed": True,
+                    "network_and_commands_reviewed": True,
+                    "approval_packet_recorded": True,
+                    "approval_packet": "secure-review/arctura-mainnet-approval.json",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
 
     exit_code = main(
         [
@@ -184,6 +230,8 @@ def test_cli_writes_readiness_audit(tmp_path) -> None:
             str(treasury),
             "--monitoring-status",
             str(monitoring),
+            "--custody-status",
+            str(custody),
             "--max-cost-age-minutes",
             "999999",
             "--output",

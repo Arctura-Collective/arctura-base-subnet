@@ -9,6 +9,8 @@ def test_key_rotation_runbook_exists_and_blocks_unauthorized_signing():
     runbook = (ROOT / "docs" / "KEY_ROTATION_AND_CUSTODY.md").read_text(encoding="utf-8")
 
     assert "Emergency Hotkey Revocation" in runbook
+    assert "arctura-custody-audit" in runbook
+    assert "does not create wallets" in runbook
     assert "Owner Coldkey or Treasury Incident" in runbook
     assert "Forbidden Without Explicit Final Approval" in runbook
     assert "btcli subnet create --subtensor.network finney" in runbook

@@ -19,6 +19,7 @@ def test_tracker_maps_all_open_launch_issues_to_evidence():
         "arctura-aws-asg-audit",
         "arctura-readiness-audit",
         "arctura-monitoring-audit",
+        "arctura-custody-audit",
         "arctura-coverage-gate",
         "arctura-collect-evidence",
     ):
@@ -54,5 +55,5 @@ def test_go_no_go_checklist_does_not_precheck_unproven_weight_commits():
 
     assert "- [ ] `neurons/validator.py` — submitted at least two non-zero testnet weights" in text
     assert "- [ ] Bittensor v10.5 testnet miner and validator complete one attestation" in text
-    assert "282 tests on 2026-08-24" in text
+    assert "286 tests on 2026-08-24" in text
     assert "arctura-readiness-audit" in text

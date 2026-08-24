@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from arctura_base.aws_readiness import audit_tfvars
+from arctura_base.custody_readiness import audit_status as audit_custody_status
 from arctura_base.evidence import parse_timestamp
 from arctura_base.mainnet_approval import DEFAULT_MAX_COST_AGE_MINUTES
 from arctura_base.monitoring_readiness import audit_status as audit_monitoring_status
@@ -92,6 +93,7 @@ def build_readiness_audit(
     cost_payload: dict[str, Any],
     aws_audit: dict[str, Any],
     monitoring_audit: dict[str, Any],
+    custody_audit: dict[str, Any],
     treasury_audit: dict[str, Any],
     now: datetime | None = None,
     max_cost_age_minutes: int = DEFAULT_MAX_COST_AGE_MINUTES,
@@ -113,6 +115,7 @@ def build_readiness_audit(
         ),
         "aws_asg": aws_audit,
         "monitoring": monitoring_audit,
+        "custody": custody_audit,
         "treasury": treasury_audit,
     }
     blockers = [name for name, section in sections.items() if not bool(section.get("ok"))]
@@ -163,6 +166,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("deploy/monitoring/monitoring-status.example.json"),
     )
+    parser.add_argument(
+        "--custody-status",
+        type=Path,
+        default=Path("deploy/custody/custody-status.example.json"),
+    )
     parser.add_argument("--max-cost-age-minutes", type=int, default=DEFAULT_MAX_COST_AGE_MINUTES)
     parser.add_argument("--allow-treasury-placeholders", action="store_true")
     parser.add_argument("--output", type=Path)
@@ -188,11 +196,16 @@ def main(argv: list[str] | None = None) -> int:
         "monitoring",
         lambda: audit_monitoring_status(_load_json(args.monitoring_status)),
     )
+    custody = _safe_section(
+        "custody",
+        lambda: audit_custody_status(_load_json(args.custody_status)),
+    )
     report = build_readiness_audit(
         evidence_report=evidence,
         cost_payload=cost,
         aws_audit=aws,
         monitoring_audit=monitoring,
+        custody_audit=custody,
         treasury_audit=treasury,
         max_cost_age_minutes=args.max_cost_age_minutes,
     )
