@@ -3,6 +3,7 @@
 import inspect
 import socket
 import sys
+from types import SimpleNamespace
 from typing import Tuple  # noqa: UP035 - mirrors Bittensor's runtime contract
 
 import bittensor as bt
@@ -63,6 +64,36 @@ def test_forward_refuses_invalid_payload_before_rpc():
 
     result = miner.forward(synapse)
 
+    assert result.base_state_hash is None
+    assert result.merkle_proof is None
+    assert result.confidence == 0.0
+
+
+def test_forward_refuses_oversized_block_range_before_execute_mandate():
+    class FakeBaseClient:
+        execute_called = False
+
+        def get_latest_block_number(self):
+            return 1_000
+
+        def execute_mandate(self, **kwargs):
+            self.execute_called = True
+            raise AssertionError("execute_mandate should not be called")
+
+    base_client = FakeBaseClient()
+    miner = object.__new__(ArcturaMiner)
+    miner.base_client = base_client
+    miner.config = SimpleNamespace(max_block_lookback=10)
+    synapse = BaseSubnetSynapse(
+        mandate_id="oversized",
+        query_type="balance",
+        base_block_range=(900, 900),
+        mandate_payload={"address": "0x4200000000000000000000000000000000000006"},
+    )
+
+    result = miner.forward(synapse)
+
+    assert base_client.execute_called is False
     assert result.base_state_hash is None
     assert result.merkle_proof is None
     assert result.confidence == 0.0
