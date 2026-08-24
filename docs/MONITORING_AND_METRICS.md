@@ -100,6 +100,28 @@ a Lambda bridge that forwards alarm state changes to an Alertmanager-compatible
 `/api/v2/alerts` endpoint. This connects EC2 Auto Scaling health signals to the
 same Prometheus/Grafana alerting surface used by launch evidence metrics.
 
+To publish the launch evidence report itself into CloudWatch, first render a
+safe payload from an existing `arctura-collect-evidence` report:
+
+```bash
+python scripts/render_cloudwatch_metrics.py \
+  --report runs/mainnet-evidence/report.json \
+  --output runs/mainnet-evidence/cloudwatch-metric-data.json
+```
+
+The renderer does not call AWS. After operator approval and AWS credentials are
+configured, publish the rendered payload explicitly:
+
+```bash
+aws cloudwatch put-metric-data \
+  --namespace Arctura/Launch \
+  --metric-data file://runs/mainnet-evidence/cloudwatch-metric-data.json
+```
+
+The payload contains `EvidenceGateOk`, `EvidenceElapsedHours`, `Attestations`,
+`HealthPasses`, `WeightCommits`, `MinerRestarts`, `ValidatorRestarts`, and
+`FatalMarkers`, each with an `Environment` dimension.
+
 ## Grafana Panels
 
 Import `deploy/grafana/arctura-launch-dashboard.json` into Grafana and point

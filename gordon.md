@@ -804,3 +804,86 @@ Before executing any Finney registration command, the operator MUST:
 ---
 
 **Audit complete.** These findings must be resolved or explicitly accepted before mainnet spend. The adversarial scoring and evidence-gate gaps are the highest-risk items for the 48-hour gate.
+
+---
+
+## Codex Update — Gordon AI Findings / Handoff, 2026-08-24
+
+Current source is ahead of the branch originally audited by Gordon. Treat the
+triage notes at the top of this file and `docs/MAINNET_READINESS_TRACKER.md` as
+the current status map.
+
+### Current launch status
+
+- Mainnet is not live.
+- No Finney registration, staking, wallet mutation, AWS apply, or Docker launch
+  has been performed by Codex.
+- The current blocker is evidence, not source-control mechanics:
+  `arctura-collect-evidence` must return `ok: true` after the uninterrupted
+  48-hour window.
+- Current required evidence remains: at least 48 elapsed hours, zero miner and
+  validator restarts, no fatal markers, at least one miner attestation, at least
+  570 passing health samples, and at least two validator weight commits.
+
+### Latest repo-side issue findings
+
+- Issue #4 still needs external AWS proof before closure. Terraform ASG,
+  CloudWatch alarms, and the CloudWatch-to-Alertmanager bridge exist under
+  `deploy/aws/asg/`, but production closure still requires operator-approved
+  `terraform plan`, `terraform apply`, ASG in-service capacity, and alarm
+  delivery evidence.
+- Issue #6 has Prometheus/Grafana/Alertmanager artifacts, but production closure
+  still requires a running monitoring target, Grafana import evidence, and a
+  delivered Alertmanager test notification.
+- A safe CloudWatch evidence payload renderer has been added:
+  `scripts/render_cloudwatch_metrics.py` and `arctura_base/cloudwatch_metrics.py`.
+  It reads an existing `runs/mainnet-evidence/report.json` and renders an AWS
+  CLI `put-metric-data` JSON list for `Arctura/Launch`. It does not call AWS.
+
+### Safe heavy-lifting tasks for Gordon AI
+
+These tasks are useful and bounded for Docker Desktop / Gordon AI. They must
+stay read-only or local-only unless the operator explicitly authorizes external
+actions.
+
+1. Run the full local validation gate:
+
+   ```bash
+   .venv/bin/python -m pytest tests/ -q
+   .venv/bin/python -m ruff check .
+   .venv/bin/python -m ruff format --check .
+   .venv/bin/python -m black --check arctura_base/ neurons/ tests/ deploy/aws/asg/cloudwatch_to_alertmanager.py
+   .venv/bin/python -m mypy arctura_base neurons scripts tests deploy/aws/asg/cloudwatch_to_alertmanager.py
+   git diff --check
+   ```
+
+2. Validate the AWS artifacts without applying them:
+
+   ```bash
+   cd deploy/aws/asg
+   terraform fmt -check
+   terraform validate
+   ```
+
+   Do not run `terraform apply`.
+
+3. Validate monitoring config locally if Docker is available:
+
+   ```bash
+   cd deploy/monitoring
+   docker compose config
+   ```
+
+   Do not run `docker compose up` unless explicitly authorized.
+
+4. Render, inspect, and schema-check the CloudWatch metric payload from any
+   existing evidence report:
+
+   ```bash
+   python scripts/render_cloudwatch_metrics.py \
+     --report runs/mainnet-evidence/report.json \
+     --output runs/mainnet-evidence/cloudwatch-metric-data.json
+   python -m json.tool runs/mainnet-evidence/cloudwatch-metric-data.json
+   ```
+
+   Do not run `aws cloudwatch put-metric-data` unless explicitly authorized.
