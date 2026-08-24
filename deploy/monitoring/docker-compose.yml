@@ -12,7 +12,20 @@ services:
       - ../prometheus/arctura-alerts.yml:/etc/prometheus/arctura-alerts.yml:ro
       - prometheus-data:/prometheus
     depends_on:
+      - alertmanager
       - node-exporter
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
     restart: unless-stopped
 
   node-exporter:
@@ -47,5 +60,5 @@ services:
 
 volumes:
   prometheus-data:
+  alertmanager-data:
   grafana-data:
-

@@ -83,8 +83,8 @@ prometheus --config.file=deploy/prometheus/prometheus.yml
 ## Compose Monitoring Stack
 
 For a deployable single-host stack, use `deploy/monitoring/docker-compose.yml`.
-It runs Prometheus, node-exporter with the textfile collector, and Grafana with
-the Arctura launch dashboard pre-provisioned:
+It runs Prometheus, Alertmanager, node-exporter with the textfile collector, and
+Grafana with the Arctura launch dashboard pre-provisioned:
 
 ```bash
 cd deploy/monitoring
@@ -92,7 +92,7 @@ GRAFANA_ADMIN_PASSWORD='replace-this-before-exposure' docker compose up -d
 ```
 
 The compose stack uses `deploy/monitoring/prometheus.yml`,
-`deploy/prometheus/arctura-alerts.yml`, and
+`deploy/monitoring/alertmanager.yml`, `deploy/prometheus/arctura-alerts.yml`, and
 `deploy/grafana/arctura-launch-dashboard.json`.
 
 For AWS production deployments, `deploy/aws/asg/` includes CloudWatch alarms and

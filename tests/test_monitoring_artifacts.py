@@ -57,6 +57,7 @@ def test_monitoring_docs_link_deployable_artifacts():
 def test_compose_monitoring_stack_wires_prometheus_node_exporter_and_grafana():
     compose = (ROOT / "deploy" / "monitoring" / "docker-compose.yml").read_text(encoding="utf-8")
     prometheus = (ROOT / "deploy" / "monitoring" / "prometheus.yml").read_text(encoding="utf-8")
+    alertmanager = (ROOT / "deploy" / "monitoring" / "alertmanager.yml").read_text(encoding="utf-8")
     datasource = (
         ROOT
         / "deploy"
@@ -71,12 +72,17 @@ def test_compose_monitoring_stack_wires_prometheus_node_exporter_and_grafana():
     ).read_text(encoding="utf-8")
 
     assert "prom/prometheus" in compose
+    assert "prom/alertmanager" in compose
     assert "prom/node-exporter" in compose
     assert "grafana/grafana" in compose
     assert "--collector.textfile.directory=/textfile" in compose
+    assert "./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro" in compose
     assert "../prometheus/arctura-alerts.yml" in compose
     assert "../grafana/arctura-launch-dashboard.json" in compose
+    assert "alertmanager:9093" in prometheus
     assert "node-exporter:9100" in prometheus
     assert 'regex: "arctura_.*"' in prometheus
+    assert "webhook_configs" in alertmanager
+    assert "send_resolved: true" in alertmanager
     assert "http://prometheus:9090" in datasource
     assert "/var/lib/grafana/dashboards" in dashboards
