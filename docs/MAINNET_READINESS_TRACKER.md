@@ -27,6 +27,9 @@ Mainnet go/no-go requires:
 - at least 570 passing health samples
 - at least two successful non-zero weight commits with positive `top_weight`
 
+The evidence report includes a derived `remaining` section for the current
+window. It is operator guidance only; the launch gate is still `ok: true`.
+
 The current live candidate should not be restarted unless a runtime code change
 is merged or an operational fault requires it.
 

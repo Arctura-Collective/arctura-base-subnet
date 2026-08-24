@@ -98,4 +98,7 @@ python -m json.tool runs/mainnet-evidence/report.json
   `metrics.latest_weight_cooldown.blocks_until_next_allowed` in
   `runs/mainnet-evidence/report.json` to estimate the remaining Bittensor block
   gap before the next eligible weight submission.
+- Inspect `remaining.hours`, `remaining.health_samples`, and
+  `remaining.weight_commits` for the exact launch-gate quantities still missing
+  from the current uninterrupted window.
 - Process state alone is insufficient. The evidence report must pass.

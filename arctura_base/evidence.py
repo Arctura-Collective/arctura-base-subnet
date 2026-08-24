@@ -121,6 +121,23 @@ def weight_cooldown_deferrals(validator_log: str) -> list[dict[str, int]]:
     return deferrals
 
 
+def build_remaining_requirements(
+    *,
+    elapsed_hours: float,
+    health_passes: int,
+    weight_commits: int,
+    minimum_hours: float,
+    minimum_health_checks: int,
+    minimum_weight_commits: int,
+) -> dict[str, float | int]:
+    """Return exact remaining launch-gate quantities without changing pass/fail logic."""
+    return {
+        "hours": round(max(minimum_hours - elapsed_hours, 0.0), 3),
+        "health_samples": max(minimum_health_checks - health_passes, 0),
+        "weight_commits": max(minimum_weight_commits - weight_commits, 0),
+    }
+
+
 def evaluate_evidence(
     *,
     started_at: datetime,
@@ -164,6 +181,14 @@ def evaluate_evidence(
         "restart_budget": max(miner_restarts, validator_restarts) <= maximum_restarts,
         "no_fatal_errors": not any(fatal_counts.values()),
     }
+    remaining = build_remaining_requirements(
+        elapsed_hours=elapsed_hours,
+        health_passes=health_passes,
+        weight_commits=weight_commits,
+        minimum_hours=minimum_hours,
+        minimum_health_checks=minimum_health_checks,
+        minimum_weight_commits=minimum_weight_commits,
+    )
     return {
         "ok": all(checks.values()),
         "checks": checks,
@@ -182,6 +207,7 @@ def evaluate_evidence(
             "validator_cycle_latest_seconds": cycle_latencies[-1] if cycle_latencies else 0,
             "validator_cycle_max_seconds": max(cycle_latencies) if cycle_latencies else 0,
         },
+        "remaining": remaining,
     }
 
 
