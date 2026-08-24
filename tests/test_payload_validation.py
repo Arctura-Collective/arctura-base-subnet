@@ -3,7 +3,11 @@
 import pytest
 
 from arctura_base.agentkit import SUPPORTED_AGENT_ACTIONS
-from arctura_base.payload_validation import validate_mandate_payload
+from arctura_base.payload_validation import (
+    normalize_block_range,
+    validate_mandate_context,
+    validate_mandate_payload,
+)
 
 
 def test_balance_payload_accepts_valid_address():
@@ -56,3 +60,64 @@ def test_agent_action_payload_rejects_unimplemented_action():
     )
     assert is_valid is False
     assert "Unknown action_type" in error
+
+
+def test_normalize_block_range_maps_zero_zero_to_latest_block():
+    assert normalize_block_range((0, 0), latest_block=123) == (123, 123)
+    assert normalize_block_range((120, 0), latest_block=123) == (120, 120)
+
+
+def test_mandate_context_rejects_reversed_future_and_oversized_ranges():
+    for block_range, expected in (
+        ((200, 100), "start must be <= end"),
+        ((100, 201), "future Base blocks"),
+        ((50, 100), "max_block_lookback"),
+    ):
+        is_valid, error = validate_mandate_context(
+            query_type="balance",
+            block_range=block_range,
+            contract_address=None,
+            latest_block=200,
+            max_block_lookback=100,
+        )
+        assert is_valid is False
+        assert expected in error
+
+
+def test_mandate_context_rejects_unbounded_event_scan():
+    is_valid, error = validate_mandate_context(
+        query_type="events",
+        block_range=(0, 0),
+        contract_address="0x4200000000000000000000000000000000000006",
+        latest_block=200,
+        max_block_lookback=100,
+    )
+
+    assert is_valid is False
+    assert "explicit bounded" in error
+
+
+def test_mandate_context_requires_valid_contract_for_state_queries():
+    is_valid, error = validate_mandate_context(
+        query_type="state",
+        block_range=(199, 200),
+        contract_address="not-an-address",
+        latest_block=200,
+        max_block_lookback=100,
+    )
+
+    assert is_valid is False
+    assert "Invalid contract_address" in error
+
+
+def test_mandate_context_accepts_latest_balance_query():
+    is_valid, error = validate_mandate_context(
+        query_type="balance",
+        block_range=(0, 0),
+        contract_address=None,
+        latest_block=200,
+        max_block_lookback=100,
+    )
+
+    assert is_valid is True
+    assert error is None

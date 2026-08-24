@@ -21,6 +21,8 @@ weights, which determine TAO emission distribution.
 | Fabricated state hash | Merkle proof verification fails → 0.0 |
 | Stale attestation | block_hash_anchor mismatch → 0.0 |
 | Pre-computed proof | block_hash_anchor tied to a block that must exist at query time |
+| Oversized or malformed Base RPC mandate | Miner validates block ranges against latest Base height and `max_block_lookback` before execution |
+| Unbounded event-log scan | Event queries require an explicit bounded Base block range |
 | Incomplete execution | Completeness scoring penalizes missing trace steps |
 | Sybil triads or larger (identical hashes) | Hash collision detection flags three-or-more UIDs sharing a hash in one tempo → 75% score penalty |
 | New or thin-history miner | No calibration bonus until enough observations exist |

@@ -36,7 +36,7 @@ import bittensor as bt
 from arctura_base.base_rpc import BaseRPCClient
 from arctura_base.bittensor_runtime import load_metagraph
 from arctura_base.incentive import REQUIRED_STEPS
-from arctura_base.payload_validation import validate_mandate_payload
+from arctura_base.payload_validation import validate_mandate_context, validate_mandate_payload
 from arctura_base.protocol import BaseSubnetSynapse
 from arctura_base.utils import build_merkle_proof, get_energy_tag, hash_canonical_output
 
@@ -194,6 +194,17 @@ class ArcturaMiner:
             )
             if not is_valid:
                 raise ValueError(f"Refusing invalid mandate payload: {error_msg}")
+
+            latest_block = self.base_client.get_latest_block_number()
+            is_valid, error_msg = validate_mandate_context(
+                query_type=synapse.query_type,
+                block_range=synapse.base_block_range,
+                contract_address=synapse.contract_address,
+                latest_block=latest_block,
+                max_block_lookback=int(getattr(self.config, "max_block_lookback", 1000)),
+            )
+            if not is_valid:
+                raise ValueError(f"Refusing invalid mandate context: {error_msg}")
 
             # Step 1: Fetch Base chain data deterministically
             output = self.base_client.execute_mandate(

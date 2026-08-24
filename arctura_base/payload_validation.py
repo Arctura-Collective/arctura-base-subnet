@@ -95,6 +95,69 @@ PAYLOAD_SCHEMAS: dict[str, type[BaseModel]] = {
 }
 
 
+def normalize_block_range(
+    block_range: tuple[int, int],
+    *,
+    latest_block: int,
+) -> tuple[int, int]:
+    """Normalize a Base block range against the current latest block.
+
+    `(0, 0)` means "latest block" for single-block mandates. `(start, 0)` means
+    "single explicit start block". All other ranges are inclusive.
+    """
+    if len(block_range) != 2:
+        raise ValueError("base_block_range must contain exactly two block numbers")
+    start, end = block_range
+    if not isinstance(start, int) or not isinstance(end, int):
+        raise ValueError("base_block_range values must be integers")
+    if start < 0 or end < 0:
+        raise ValueError("base_block_range values must be non-negative")
+    if latest_block < 0:
+        raise ValueError("latest_block must be non-negative")
+
+    if start == 0 and end == 0:
+        return latest_block, latest_block
+    if end == 0:
+        end = start
+    if start > end:
+        raise ValueError("base_block_range start must be <= end")
+    if end > latest_block:
+        raise ValueError("base_block_range cannot target future Base blocks")
+    return start, end
+
+
+def validate_mandate_context(
+    *,
+    query_type: str,
+    block_range: tuple[int, int],
+    contract_address: str | None,
+    latest_block: int,
+    max_block_lookback: int,
+) -> tuple[bool, str | None]:
+    """Validate mandate fields that depend on chain context and miner policy."""
+    if max_block_lookback <= 0:
+        return False, "max_block_lookback must be positive"
+    try:
+        start, end = normalize_block_range(block_range, latest_block=latest_block)
+    except ValueError as exc:
+        return False, str(exc)
+
+    if latest_block - start > max_block_lookback:
+        return False, "base_block_range exceeds max_block_lookback"
+    if query_type == "events" and block_range == (0, 0):
+        return False, "events query requires an explicit bounded base_block_range"
+    if query_type in {"events", "state"}:
+        if not contract_address:
+            return False, f"contract_address required for {query_type} query"
+        if not is_valid_address(contract_address):
+            return False, f"Invalid contract_address: {contract_address}"
+    if query_type == "balance" and contract_address is not None:
+        return False, "contract_address must be omitted for balance query"
+
+    _ = end
+    return True, None
+
+
 def validate_mandate_payload(query_type: str, payload: Any) -> tuple[bool, str | None]:
     """Validate a mandate payload for its query type."""
     schema = PAYLOAD_SCHEMAS.get(query_type)
