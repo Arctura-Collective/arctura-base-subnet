@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from arctura_base.evidence import (
+    build_remaining_requirements,
     build_testnet_evidence_template,
     evaluate_evidence,
     log_from_marker,
@@ -92,6 +93,33 @@ def test_startup_traceback_before_live_marker_does_not_fail_gate():
     assert report["metrics"]["fatal_counts"]["Traceback (most recent call last)"] == 0
 
 
+def test_remaining_requirements_are_exact_non_negative_deltas():
+    assert build_remaining_requirements(
+        elapsed_hours=0.94,
+        health_passes=27,
+        weight_commits=0,
+        minimum_hours=48.0,
+        minimum_health_checks=570,
+        minimum_weight_commits=2,
+    ) == {
+        "hours": 47.06,
+        "health_samples": 543,
+        "weight_commits": 2,
+    }
+    assert build_remaining_requirements(
+        elapsed_hours=50.0,
+        health_passes=600,
+        weight_commits=3,
+        minimum_hours=48.0,
+        minimum_health_checks=570,
+        minimum_weight_commits=2,
+    ) == {
+        "hours": 0.0,
+        "health_samples": 0,
+        "weight_commits": 0,
+    }
+
+
 @pytest.mark.parametrize(
     ("override", "failed_check"),
     [
@@ -148,6 +176,7 @@ def test_evidence_fails_incomplete_or_unhealthy_run(override, failed_check):
 
     assert report["ok"] is False
     assert report["checks"][failed_check] is False
+    assert all(value >= 0 for value in report["remaining"].values())
 
 
 def test_validator_cycle_latencies_from_journal_markers():
@@ -232,6 +261,11 @@ def test_evidence_reports_validator_cycle_latency_metrics():
         "blocks_since_last_update": 20,
         "weights_rate_limit": 100,
         "blocks_until_next_allowed": 81,
+    }
+    assert report["remaining"] == {
+        "hours": 0.0,
+        "health_samples": 0,
+        "weight_commits": 0,
     }
 
 

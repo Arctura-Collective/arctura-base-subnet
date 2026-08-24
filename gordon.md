@@ -841,6 +841,9 @@ the current status map.
   `weight_cooldown_deferrals` and `latest_weight_cooldown`, including the
   remaining `blocks_until_next_allowed` gap, while still requiring two positive
   `top_weight` commits before launch approval.
+- The evidence report also includes `remaining.hours`,
+  `remaining.health_samples`, and `remaining.weight_commits` so operators can
+  see exact launch-gate deltas without manually deriving them from raw metrics.
 - Issue #4 still needs external AWS proof before closure. Terraform ASG,
   CloudWatch alarms, and the CloudWatch-to-Alertmanager bridge exist under
   `deploy/aws/asg/`, but production closure still requires operator-approved

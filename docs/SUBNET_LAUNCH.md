@@ -102,6 +102,11 @@ to cooldown, the evidence report includes `weight_cooldown_deferrals` and
 diagnostic, not a successful commit; the gate still requires two later
 `Weights set` entries with positive `top_weight`.
 
+The report also includes a derived `remaining` section with the exact remaining
+hours, health samples, and non-zero weight commits needed for the current
+window. These values are diagnostics only; `ok: true` is still the authoritative
+launch gate.
+
 ## Phase 3 — Mainnet Registration
 
 See [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md) and
