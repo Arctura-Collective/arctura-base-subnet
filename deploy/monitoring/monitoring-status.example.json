@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "environment": "finney-mainnet",
+  "collected_at": "REPLACE_WITH_OPERATOR_REVIEW_TIMESTAMP",
+  "prometheus": {
+    "targets_healthy": false,
+    "node_exporter_textfile_collector": false,
+    "arctura_metrics_seen": false,
+    "status_export": "REPLACE_WITH_PROMETHEUS_TARGET_STATUS_EXPORT"
+  },
+  "grafana": {
+    "dashboard_imported": false,
+    "dashboard_uid": "arctura-launch-readiness",
+    "export_or_screenshot_attached": false,
+    "evidence": "REPLACE_WITH_DASHBOARD_EXPORT_OR_SCREENSHOT_REFERENCE"
+  },
+  "alertmanager": {
+    "configured": false,
+    "test_notification_delivered": false,
+    "receiver": "REPLACE_WITH_RECEIVER_NAME",
+    "evidence": "REPLACE_WITH_TEST_NOTIFICATION_REFERENCE"
+  }
+}
