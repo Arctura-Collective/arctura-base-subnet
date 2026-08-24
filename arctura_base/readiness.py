@@ -16,6 +16,33 @@ from arctura_base.mainnet_approval import DEFAULT_MAX_COST_AGE_MINUTES
 from arctura_base.monitoring_readiness import audit_status as audit_monitoring_status
 from arctura_base.treasury import audit_policy, load_policy
 
+NEXT_ACTIONS = {
+    "evidence": (
+        "Complete the 48-hour testnet evidence window with no uncaught fatal "
+        "errors and at least two non-zero validator weight commits."
+    ),
+    "burn_cost": (
+        "Refresh Finney burn cost from a trusted btcli shell within 30 minutes "
+        "of final review and keep the payload ok:true."
+    ),
+    "aws_asg": (
+        "Replace AWS tfvars placeholders with reviewed production values, review "
+        "terraform plan, apply only after approval, and attach ASG in-service evidence."
+    ),
+    "monitoring": (
+        "Run the production monitoring stack, verify Prometheus targets, Grafana "
+        "dashboard import, and Alertmanager test delivery, then update status JSON."
+    ),
+    "custody": (
+        "Complete offline coldkey custody review, confirm hotkeys-only runtime "
+        "hosts, record reviewer approvals, and update custody status JSON."
+    ),
+    "treasury": (
+        "Finalize multisig/governance policy destinations, signer threshold, "
+        "timelock, and dry-run plan matching the approved transaction."
+    ),
+}
+
 
 def _load_json(path: Path) -> dict[str, Any]:
     return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
@@ -125,6 +152,7 @@ def build_readiness_audit(
         "created_at": observed_at.isoformat().replace("+00:00", "Z"),
         "ok": not blockers,
         "blockers": blockers,
+        "next_actions": {name: NEXT_ACTIONS[name] for name in blockers},
         "sections": sections,
         "safety": {
             "dry_run_only": True,

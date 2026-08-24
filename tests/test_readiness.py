@@ -53,6 +53,7 @@ def test_readiness_audit_passes_only_when_all_sections_are_green() -> None:
     assert report["audit_type"] == "arctura_mainnet_readiness_audit"
     assert report["ok"] is True
     assert report["blockers"] == []
+    assert report["next_actions"] == {}
     assert report["safety"]["on_chain_action_attempted"] is False
     assert report["safety"]["aws_action_attempted"] is False
     assert report["safety"]["terraform_action_attempted"] is False
@@ -83,6 +84,10 @@ def test_readiness_audit_reports_section_blockers() -> None:
 
     assert report["ok"] is False
     assert report["blockers"] == ["evidence", "burn_cost", "aws_asg", "monitoring", "custody"]
+    assert set(report["next_actions"]) == set(report["blockers"])
+    assert "two non-zero validator weight commits" in report["next_actions"]["evidence"]
+    assert "trusted btcli shell" in report["next_actions"]["burn_cost"]
+    assert "Alertmanager test delivery" in report["next_actions"]["monitoring"]
     assert "burn-cost payload is unavailable" in report["sections"]["burn_cost"]["errors"]
 
 
@@ -99,6 +104,7 @@ def test_readiness_audit_rejects_stale_cost_even_with_green_evidence() -> None:
 
     assert report["ok"] is False
     assert report["blockers"] == ["burn_cost"]
+    assert list(report["next_actions"]) == ["burn_cost"]
     assert any("stale" in error for error in report["sections"]["burn_cost"]["errors"])
 
 
