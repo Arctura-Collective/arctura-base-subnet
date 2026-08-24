@@ -6,6 +6,11 @@ prepare the process, but no key generation, secret inspection, signing, fund
 movement, subnet registration, staking, or treasury action is authorized by this
 document alone.
 
+Treasury distribution planning remains dry-run only in this repository. Use
+`docs/TREASURY_GOVERNANCE.md` and `arctura-treasury-plan` to prepare unsigned
+review packets; actual treasury transactions require separate multisig approval
+and hardware-wallet confirmation.
+
 ## Roles
 
 | Role | Scope | Custody requirement |
@@ -128,4 +133,3 @@ btcli subnet register --subtensor.network finney
 btcli stake add --subtensor.network finney
 btcli transfer --subtensor.network finney
 ```
-

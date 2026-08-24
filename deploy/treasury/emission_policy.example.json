@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "policy_name": "arctura-mainnet-treasury-v1",
+  "dry_run_only": true,
+  "treasury_share_of_subnet_emissions": "0.18",
+  "min_signers": 3,
+  "timelock_hours": 48,
+  "allocations": [
+    {
+      "name": "core_engineering",
+      "share": "0.40",
+      "destination_kind": "multisig_safe",
+      "destination": "REPLACE_WITH_CORE_ENGINEERING_SAFE"
+    },
+    {
+      "name": "validator_syndicates",
+      "share": "0.30",
+      "destination_kind": "multisig_safe",
+      "destination": "REPLACE_WITH_VALIDATOR_SYNDICATE_SAFE"
+    },
+    {
+      "name": "dtao_liquidity_pool",
+      "share": "0.30",
+      "destination_kind": "governance_controlled_liquidity",
+      "destination": "REPLACE_WITH_DTAO_LIQUIDITY_CONTROLLER"
+    }
+  ]
+}
