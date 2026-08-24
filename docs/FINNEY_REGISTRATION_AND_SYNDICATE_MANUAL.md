@@ -6,6 +6,14 @@
 
 ---
 
+> [!WARNING]
+> This is a historical planning manual, not spend authorization. Before any
+> Finney `subnet create`, recycle registration, staking, or funding action,
+> complete [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md), confirm
+> `arctura-readiness-audit` returns `ok: true`, generate a reviewed
+> `arctura-mainnet-approval` packet, and obtain separate final operator
+> approval for the exact command.
+
 ## Executive Summary
 
 Launching the **Arctura Base Subnet** on Bittensor Finney Mainnet requires precision execution of network commands and sophisticated alignment with ecosystem stakeholders. This manual provides the exact technical command sequence for `btcli subnet create` and outlines a professional framework for structuring revenue-share and stake delegation agreements with Bittensor validator syndicates.
@@ -100,8 +108,9 @@ To the Validator Committee,
 We are launching Arctura — the first decentralized bridge bringing Coinbase Base L2 intelligence, AgentKit autonomous actions, and verifiable Merkle attestation into Bittensor.
 
 Current Status:
-- Local testnet (netuid 505) fully verified (63/63 pytest tests passing).
-- Production AWS Docker architecture ready for Finney deployment.
+- Testnet netuid 505 evidence run active; current local suite has 276 passing tests.
+- Production AWS artifacts are prepared, but deployment remains gated on green
+  `arctura-readiness-audit` output and final operator approval.
 
 Syndicate Offer:
 1. Exclusive Early Alpha Allocation: X% of Arctura genesis alpha tokens under dTAO.

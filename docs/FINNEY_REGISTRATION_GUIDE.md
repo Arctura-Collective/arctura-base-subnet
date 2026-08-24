@@ -6,6 +6,14 @@
 
 ---
 
+> [!WARNING]
+> This guide is not spend authorization. Before any Finney `subnet create`,
+> recycle registration, staking, or funding action, complete
+> [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md), confirm
+> `arctura-readiness-audit` returns `ok: true`, generate a reviewed
+> `arctura-mainnet-approval` packet, and obtain separate final operator
+> approval for the exact command.
+
 ## 1. Bittensor Finney Registration & Burn Cost Requirements
 
 To launch a new subnet on Bittensor Finney mainnet, operators must navigate dynamic economic parameters governed by supply, demand, and block-based decay curves [3].
@@ -33,13 +41,49 @@ To launch a new subnet on Bittensor Finney mainnet, operators must navigate dyna
 To eliminate manual configuration errors and ensure 24/7 reliability, the repository now includes a complete Docker Compose setup and automated AWS initialization script.
 
 ### A. AWS Instance Provisioning
-1. Launch an Ubuntu 24.04 LTS EC2 instance (`c6i.2xlarge` for validators, `c6i.xlarge` for miners).
-2. Attach an **Elastic IP (EIP)** to guarantee a permanent static public IP.
+1. Launch an Ubuntu 22.04 or 24.04 LTS EC2 instance. Use `g5.xlarge` or
+   `g4dn.xlarge` only when the miner workload actually needs a GPU; the current
+   Base-state attestation path is CPU/network bound, so CPU instances remain
+   acceptable for validators and ordinary miners.
+2. Attach a **200 GB gp3 encrypted root volume** and an **Elastic IP (EIP)** if
+   the node must keep a stable public address.
 3. Configure your AWS Security Group:
-   - Inbound TCP `22` (SSH)
-   - Inbound TCP `8091` (Miner Axon)
-   - Inbound TCP `8092` (Validator Axon)
-   - Outbound TCP `30333` (Bittensor P2P)
+   - Inbound TCP `22` from the operator IP or VPN only.
+   - Inbound TCP miner axon port, normally `8091` on production AWS or `8191`
+     for the current testnet evidence host, from intended Bittensor peers.
+   - No public validator axon is required by the current runtime; the validator is dendrite-only unless the architecture changes.
+   - Outbound TCP `30333` and ordinary HTTPS egress.
+4. No coldkeys, owner mnemonics, or treasury material belong on EC2. Runtime
+   hosts may hold approved hotkeys only.
+
+Initial host bootstrap:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y git curl wget build-essential python3-pip python3-venv python3-dev \
+  libssl-dev libffi-dev net-tools htop tmux nvtop ubuntu-drivers-common
+
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source "$HOME/.local/bin/env"
+```
+
+Optional GPU driver/toolkit setup for `g5.xlarge` or `g4dn.xlarge` miners:
+
+```bash
+sudo ubuntu-drivers autoinstall
+sudo reboot
+
+nvidia-smi
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt update
+sudo apt install -y cuda-toolkit-12-3
+
+echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
+source ~/.bashrc
+nvcc --version
+```
 
 ### B. Automated Deployment Script
 SSH into your AWS instance and run the deployment script:

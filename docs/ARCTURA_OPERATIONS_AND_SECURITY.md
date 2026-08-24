@@ -6,6 +6,14 @@
 
 ---
 
+> [!WARNING]
+> This is a historical operations manual, not spend authorization. Before any
+> Finney `subnet create`, recycle registration, staking, AWS production apply,
+> or funding action, complete [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md),
+> confirm `arctura-readiness-audit` returns `ok: true`, generate a reviewed
+> `arctura-mainnet-approval` packet, and obtain separate final operator
+> approval for the exact command.
+
 ## Executive Summary
 
 This manual provides the complete operational, legal, and security blueprint for launching and maintaining the **Arctura Base Subnet** on Bittensor Finney Mainnet. It details treasury governance under Dynamic TAO (dTAO), AWS cloud infrastructure security hardening against DDoS and RPC exploitation, and includes a full investor and validator pitch deck in Markdown format.
@@ -46,15 +54,15 @@ sudo ufw allow from YOUR_ADMIN_IP to any port 22 proto tcp
 # Allow Bittensor P2P traffic
 sudo ufw allow 30333/tcp
 
-# Allow Miner Axon (Port 8091) and Validator Axon (Port 8092)
+# Allow Miner Axon (Port 8091); do not expose a validator axon by default
 sudo ufw allow 8091/tcp
-sudo ufw allow 8092/tcp
 
 sudo ufw enable
 ```
 
 ### 2. DDoS Mitigation & Rate Limiting (Nginx Reverse Proxy)
-To protect miner and validator axons from volumetric layer-7 HTTP/WebSocket floods, route external traffic through an Nginx reverse proxy configured with rate limiting:
+To protect miner axons from volumetric layer-7 HTTP/WebSocket floods, route
+external traffic through an Nginx reverse proxy configured with rate limiting:
 ```nginx
 # /etc/nginx/sites-available/arctura-axon
 limit_req_zone $binary_remote_addr zone=axon_limit:10m rate=10r/s;
@@ -99,7 +107,9 @@ server {
 ## Slide 1: Executive Summary — The Intelligence Bridge
 - **The Core Thesis:** Base is Coinbase’s L2 consumer engine (10M+ daily active addresses); Bittensor is the decentralized AI incentive layer. Currently, **zero Base subnets exist** on Bittensor.
 - **The Solution:** Arctura (`arctura-base-subnet`) integrates Base state reads, event logs, and CDP AgentKit autonomous actions directly into Bittensor through verifiable Merkle attestation and Resonance BFT scoring.
-- **The Milestone:** Fully verified locally on testnet (`505`) with 63/63 pytest unit tests passing. Ready for Finney Mainnet deployment.
+- **The Milestone:** Testnet netuid `505` evidence run is active with the local
+  test suite passing. Finney deployment remains gated on green
+  `arctura-readiness-audit` output and final operator approval.
 
 ---
 

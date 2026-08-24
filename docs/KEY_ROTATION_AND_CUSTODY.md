@@ -11,6 +11,11 @@ Treasury distribution planning remains dry-run only in this repository. Use
 review packets; actual treasury transactions require separate multisig approval
 and hardware-wallet confirmation.
 
+Before any Finney command is executed, complete
+[GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md), confirm
+`arctura-readiness-audit` returns `ok: true`, and generate a reviewed
+`arctura-mainnet-approval` packet. This runbook does not override those gates.
+
 ## Roles
 
 | Role | Scope | Custody requirement |

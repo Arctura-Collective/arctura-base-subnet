@@ -89,6 +89,11 @@ python scripts/generate_env.py
 | `CDP_API_KEY_PRIVATE_KEY` | ⬜ | — | Required only for AgentKit actions |
 | `LOG_LEVEL` | ✅ | `info` | `debug` / `info` / `warning` |
 
+Finney values in local config are not launch authorization. Before any real
+Finney registration, recycle registration, staking, or funding action, complete
+`docs/GO_NO_GO_CHECKLIST.md`, confirm `arctura-readiness-audit` returns
+`ok: true`, and use the reviewed `arctura-mainnet-approval` packet.
+
 Alternatively, copy `.env.example` and fill manually:
 
 ```bash

@@ -6,6 +6,14 @@
 
 ---
 
+> [!WARNING]
+> This is a historical operator note, not spend authorization. Before any
+> Finney `subnet create`, recycle registration, staking, or funding action,
+> complete [GO_NO_GO_CHECKLIST.md](GO_NO_GO_CHECKLIST.md), confirm
+> `arctura-readiness-audit` returns `ok: true`, generate a reviewed
+> `arctura-mainnet-approval` packet, and obtain separate final operator
+> approval for the exact command.
+
 ## Part 1 — Final Finney Pre-Flight Checklist & Environment Variables
 
 Before executing `btcli subnet create` on Bittensor Finney Mainnet, verify every item on this checklist. Do not execute under pressure without review.
@@ -28,7 +36,10 @@ LOGGING_LEVEL=info
 ```
 
 ### 3. Infrastructure & Network Verification
-- [ ] **AWS Security Groups Open:** Ports `22` (SSH), `8091` (Miner Axon), `8092` (Validator Axon), and outbound `30333` (P2P) verified.
+- [ ] **AWS Security Groups Reviewed:** Port `22` is restricted to the
+  operator IP/VPN, the miner axon port is reachable only as intended, and no
+  public validator axon is exposed by default because the current validator is
+  dendrite-only.
 - [ ] **Static Elastic IPs Attached:** EC2 instances assigned fixed public IPs.
 - [ ] **Testnet Run Complete:** 48+ hours of continuous testnet (`505`) execution with zero uncaught exceptions and passing unit tests (`pytest tests/ -v`).
 
@@ -61,7 +72,7 @@ You can host your pitch deck (`docs/pitch_deck.html`) publicly in minutes using 
 - **Slide 4 (Verifiable Resonance BFT):** "Miners don't just answer queries; they prove them. Every response includes a cryptographic Merkle proof anchored to live Base block hashes, scored across four rigorous dimensions."
 - **Slide 5 (Dynamic TAO Tokenomics):** "Under dTAO, emissions are cleanly split: 41% to miners, 41% to validators, and 18% to the subnet treasury, with treasury tokens locked into AMM liquidity pools during immunity."
 - **Slide 6 (Go-To-Market & Grants):** "We leverage dual-stack non-dilutive grant funding—including Base Builder Rewards and Optimism Retro Funding—to cover infrastructure overhead while partnering with top validator syndicates."
-- **Slide 7 (Launch Roadmap):** "Our local testnet on netuid 505 is fully verified. We are hardening AWS nodes now, targeting Finney mainnet registration on August 15."
+- **Slide 7 (Launch Roadmap):** "Our testnet netuid 505 evidence run is active. We are hardening AWS nodes and will not attempt Finney registration until the readiness audit and go/no-go checklist are green."
 - **Slide 8 (Call to Action):** "We are onboarding founding validator partners today. Check out our GitHub repository or visit arctura.network/base to join us."
 
 ---
