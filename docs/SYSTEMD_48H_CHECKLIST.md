@@ -91,6 +91,7 @@ python -m json.tool runs/mainnet-evidence/report.json
 - Do not count the successful foreground probe as the 48-hour run start; the
   evidence window starts from the systemd-managed neuron start.
 - A chain cooldown deferral is not a failure by itself, but the 48-hour evidence
-  gate still requires at least two successful weight commits inside the collected
-  systemd journal window.
+  gate still requires at least two successful non-zero weight commits inside the
+  collected systemd journal window. The collector only counts `Weights set`
+  entries with a positive `top_weight`.
 - Process state alone is insufficient. The evidence report must pass.

@@ -25,7 +25,7 @@ Mainnet go/no-go requires:
 - zero fatal journal markers
 - at least 48 hours elapsed on the current launch candidate
 - at least 570 passing health samples
-- at least two successful weight commits
+- at least two successful non-zero weight commits with positive `top_weight`
 
 The current live candidate should not be restarted unless a runtime code change
 is merged or an operational fault requires it.
@@ -35,7 +35,7 @@ is merged or an operational fault requires it.
 | Issue | Repository state | Remaining external blocker | Closure evidence |
 | --- | --- | --- | --- |
 | #1 Core Miner Incentive Mechanism: Merkle Proof Attestation & AgentKit Verification | Merkle proof scoring, live Base block-hash anchoring, payload/context validation, bounded block ranges, and AgentKit mutation opt-in are implemented and tested. | None for source-control readiness; runtime evidence must stay clean on the merged code. | CI green, testnet evidence `ok: true`, and no AgentKit mutation enabled unless separately approved. |
-| #2 Automated Validator Scoring & Weight-Setting Mechanism | Resonance BFT scoring, calibration hardening, Sybil collision penalty, verified-only stewardship modifiers, cooldown diagnostics, normalization, and weight setting are implemented and tested. | Need two successful weight commits in the current evidence window. | Evidence report shows `weight_commits >= 2` and zero restart/fatal failures. |
+| #2 Automated Validator Scoring & Weight-Setting Mechanism | Resonance BFT scoring, calibration hardening, Sybil collision penalty, verified-only stewardship modifiers, cooldown diagnostics, normalization, and weight setting are implemented and tested. Evidence only counts commits with positive `top_weight`. | Need two successful non-zero weight commits in the current evidence window. | Evidence report shows `weight_commits >= 2` and zero restart/fatal failures. |
 | #4 AWS EC2 Auto-Scaling Miners & Dynamic Validator Health Checks | Terraform ASG/CloudWatch artifacts, CloudWatch metric rendering, Alertmanager bridge, and dry-run validator failover decision packets exist under `deploy/aws/asg/` and `arctura_base.failover`. | AWS AMI, subnet, security group, instance profile, live probe snapshots, and production apply are not provisioned from this repo. | Operator-approved `terraform plan`, production apply evidence, ASG in-service capacity, CloudWatch alarm delivery evidence, and a reviewed validator failover decision packet. |
 | #6 Real-Time Telemetry Monitoring & Prometheus/Grafana Alerting Dashboards | Textfile exporter, systemd metrics timer, Prometheus rules, Grafana dashboard, `deploy/monitoring` compose stack, and Alertmanager routing are implemented and tested. | Hosted or production compose stack is not running from this repo. | Prometheus target healthy, Grafana dashboard imported, Alertmanager test notification delivered, and screenshots or exported status attached. |
 | #7 Multi-Sig Treasury Governance & Automated dTAO Emission Pool | Dry-run treasury policy/planner and custody runbooks exist; unsafe execution docs were removed. | Real multisig/Safe setup, signer list, timelock, treasury destination, and dTAO liquidity controller are external governance actions. | Signed multisig approval packet, hardware-wallet confirmation record, timelock parameters, and dry-run plan matching the approved transaction. |

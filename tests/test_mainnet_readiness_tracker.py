@@ -40,6 +40,6 @@ def test_tracker_lists_current_evidence_gate_requirements():
         "zero fatal journal markers",
         "at least 48 hours",
         "at least 570 passing health samples",
-        "at least two successful weight commits",
+        "at least two successful non-zero weight commits",
     ):
         assert requirement in text

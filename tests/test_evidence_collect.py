@@ -24,7 +24,11 @@ def test_collect_writes_complete_evidence_bundle(tmp_path):
         service = command[command.index("-u") + 1]
         logs = {
             "arctura-miner": "Arctura Base miner live\nMandate attested\n",
-            "arctura-validator": "Arctura Base validator live\nWeights set\nWeights set\n",
+            "arctura-validator": (
+                "Arctura Base validator live\n"
+                "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
+                "Weights set | miners=1 | top_uid=1 | top_weight=0.750\n"
+            ),
             "arctura-health": '{"ok": true}\n' * 576,
         }
         return completed(command, logs[service])
@@ -60,7 +64,11 @@ def test_collect_preserves_each_service_start_marker(tmp_path):
         journal_since[service] = command[command.index("--since") + 1]
         logs = {
             "arctura-miner": "Arctura Base miner live\nMandate attested\n",
-            "arctura-validator": "Arctura Base validator live\nWeights set\nWeights set\n",
+            "arctura-validator": (
+                "Arctura Base validator live\n"
+                "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
+                "Weights set | miners=1 | top_uid=1 | top_weight=0.750\n"
+            ),
             "arctura-health": '{"ok": true}\n' * 576,
         }
         return completed(command, logs[service])

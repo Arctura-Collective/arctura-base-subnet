@@ -9,6 +9,7 @@ from arctura_base.evidence import (
     build_testnet_evidence_template,
     evaluate_evidence,
     log_from_marker,
+    nonzero_weight_commits,
     parse_timestamp,
     validator_cycle_latencies,
     write_testnet_evidence_template,
@@ -43,7 +44,11 @@ def test_evidence_passes_complete_48_hour_run():
         started_at=started,
         now=started + timedelta(hours=49),
         miner_log="Arctura Base miner live\nMandate attested\n" * 2,
-        validator_log="Arctura Base validator live\nWeights set\nWeights set\n",
+        validator_log=(
+            "Arctura Base validator live\n"
+            "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
+            "Weights set | miners=1 | top_uid=1 | top_weight=0.750\n"
+        ),
         health_log='{"ok": true}\n' * 576,
         miner_restarts=0,
         validator_restarts=0,
@@ -74,8 +79,8 @@ def test_startup_traceback_before_live_marker_does_not_fail_gate():
             "Traceback (most recent call last)\n"
             "websockets.exceptions.ConnectionClosedError\n"
             "Arctura Base validator live\n"
-            "Weights set\n"
-            "Weights set\n"
+            "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
+            "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
         ),
         health_log='{"ok": true}\n' * 576,
         miner_restarts=0,
@@ -94,7 +99,25 @@ def test_startup_traceback_before_live_marker_does_not_fail_gate():
             {"miner_log": "Arctura Base miner live\nTraceback (most recent call last)"},
             "no_fatal_errors",
         ),
-        ({"validator_log": "Arctura Base validator live\nWeights set\n"}, "weight_commits"),
+        (
+            {
+                "validator_log": (
+                    "Arctura Base validator live\n"
+                    "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
+                )
+            },
+            "weight_commits",
+        ),
+        (
+            {
+                "validator_log": (
+                    "Arctura Base validator live\n"
+                    "Weights set | miners=1 | top_uid=1 | top_weight=0.000\n"
+                    "Weights set | miners=1 | top_uid=1 | top_weight=0.000\n"
+                )
+            },
+            "weight_commits",
+        ),
         ({"health_log": '{"ok": true}\n' * 569}, "health_samples"),
         ({"miner_restarts": 1}, "restart_budget"),
     ],
@@ -105,7 +128,11 @@ def test_evidence_fails_incomplete_or_unhealthy_run(override, failed_check):
         "started_at": started,
         "now": started + timedelta(hours=49),
         "miner_log": "Arctura Base miner live\nMandate attested",
-        "validator_log": "Arctura Base validator live\nWeights set\nWeights set",
+        "validator_log": (
+            "Arctura Base validator live\n"
+            "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
+            "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
+        ),
         "health_log": '{"ok": true}\n' * 576,
         "miner_restarts": 0,
         "validator_restarts": 0,
@@ -135,6 +162,18 @@ def test_validator_cycle_latencies_from_journal_markers():
     assert validator_cycle_latencies(log) == [2.37, 4.25]
 
 
+def test_nonzero_weight_commits_require_positive_top_weight():
+    log = "\n".join(
+        [
+            "Weights set | miners=1 | top_uid=1 | top_weight=1.000",
+            "Weights set | miners=1 | top_uid=1 | top_weight=0.000",
+            "Weights set without explicit top weight",
+        ]
+    )
+
+    assert nonzero_weight_commits(log) == 1
+
+
 def test_evidence_reports_validator_cycle_latency_metrics():
     started = datetime(2026, 6, 17, tzinfo=timezone.utc)
     report = evaluate_evidence(
@@ -145,7 +184,8 @@ def test_evidence_reports_validator_cycle_latency_metrics():
             "Arctura Base validator live\n"
             "2026-08-23 17:17:36.000 | INFO | Issuing mandate | id=abc\n"
             "2026-08-23 17:17:39.500 | INFO | Tempo complete | sleeping 4320s\n"
-            "Weights set\nWeights set\n"
+            "Weights set | miners=1 | top_uid=1 | top_weight=1.000\n"
+            "Weights set | miners=1 | top_uid=1 | top_weight=0.750\n"
         ),
         health_log='{"ok": true}\n' * 576,
         miner_restarts=0,
@@ -155,6 +195,8 @@ def test_evidence_reports_validator_cycle_latency_metrics():
     assert report["metrics"]["validator_cycles"] == 1
     assert report["metrics"]["validator_cycle_latest_seconds"] == 3.5
     assert report["metrics"]["validator_cycle_max_seconds"] == 3.5
+    assert report["metrics"]["weight_commits"] == 2
+    assert report["metrics"]["weight_commit_markers"] == 2
 
 
 def test_parse_timestamp_requires_timezone():
