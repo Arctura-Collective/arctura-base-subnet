@@ -1,8 +1,9 @@
 # Mainnet Go / No-Go Checklist
 
 Every item must be checked before running `btcli subnet create` on Finney.
-Use [../MAINNET_LAUNCH_BLOCKERS.md](../MAINNET_LAUNCH_BLOCKERS.md) for the
-operator-facing blocker list and non-mutating verification commands.
+Use [MAINNET_READINESS_TRACKER.md](MAINNET_READINESS_TRACKER.md) for the
+issue-backed blocker list, external closure evidence, and non-mutating
+verification commands.
 
 ## Capital
 - [ ] Burn cost checked within last 30 minutes
