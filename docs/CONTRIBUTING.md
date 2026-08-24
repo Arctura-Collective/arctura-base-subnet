@@ -161,6 +161,11 @@ pytest tests/ -v
 # Run with coverage
 pytest tests/ -v --cov=arctura_base --cov-report=term-missing
 
+# Build a machine-readable coverage report for launch review
+coverage run -m pytest tests/ -q
+coverage json -o coverage.json
+arctura-coverage-gate --coverage-json coverage.json --minimum-percent 100
+
 # Run a specific test file
 pytest tests/test_scoring.py -v
 
@@ -169,6 +174,11 @@ pytest tests/test_attestation.py::test_verify_proof_round_trip -v
 ```
 
 **CI runs:** `pytest` + `ruff` + `black --check` + `mypy` + `bandit` on every push. Your PR must pass all of these before review.
+
+The Finney launch gate is stricter than normal PR CI. Before mainnet approval,
+`arctura-coverage-gate` must pass at `100%` for launch-critical modules. If it
+fails, treat the output as a blocker list; do not reinterpret a green test suite
+as satisfying the coverage requirement.
 
 Run the full CI check locally before pushing:
 
