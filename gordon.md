@@ -853,6 +853,9 @@ the current status map.
 - Issue #4 AWS readiness now includes `arctura-aws-asg-audit`, a local tfvars
   audit for placeholder AWS IDs, capacity bounds, Alertmanager endpoint shape,
   and secret markers before any Terraform plan/apply is approved.
+- Final go/no-go tooling now includes `arctura-readiness-audit`, an aggregate
+  dry-run audit over evidence, burn-cost payload, AWS tfvars, and treasury
+  policy artifacts.
 - Issue #4 still needs external AWS proof before closure. Terraform ASG,
   CloudWatch alarms, and the CloudWatch-to-Alertmanager bridge exist under
   `deploy/aws/asg/`, but production closure still requires operator-approved

@@ -33,6 +33,20 @@ window. It is operator guidance only; the launch gate is still `ok: true`.
 The current live candidate should not be restarted unless a runtime code change
 is merged or an operational fault requires it.
 
+To aggregate the current repo-side launch blockers without external side
+effects:
+
+```bash
+arctura-readiness-audit \
+  --evidence-report runs/mainnet-evidence/report.json \
+  --cost-payload docs/data/subnet_launch_cost.json \
+  --aws-tfvars deploy/aws/asg/terraform.tfvars.example \
+  --treasury-policy deploy/treasury/emission_policy.example.json
+```
+
+This audit reads existing files only. It does not call Bittensor, AWS,
+Terraform, Docker, wallets, or systemd.
+
 ## Issue tracker
 
 | Issue | Repository state | Remaining external blocker | Closure evidence |
@@ -50,8 +64,10 @@ Before any Finney mainnet command is run, all of the following must be present:
 1. Evidence report returns `ok: true`.
 2. Dynamic subnet launch cost is checked from a trusted `btcli` environment
    within 30 minutes of the proposed transaction.
-3. Funding source and buffer are confirmed.
-4. Owner, validator, miner, and treasury custody gates in
+3. `arctura-readiness-audit` returns `ok: true` against the reviewed evidence,
+   burn-cost, AWS tfvars, and treasury policy artifacts.
+4. Funding source and buffer are confirmed.
+5. Owner, validator, miner, and treasury custody gates in
    `docs/KEY_ROTATION_AND_CUSTODY.md` are complete.
-5. Explicit operator approval names the exact command, wallet, network, netuid
+6. Explicit operator approval names the exact command, wallet, network, netuid
    if applicable, amount if applicable, and maximum acceptable burn/slippage.
