@@ -29,6 +29,21 @@ The policy also requires:
 - at least two multisig signers
 - at least 24 hours of timelock before execution
 
+## Audit a policy before planning
+
+Before building a distribution plan, render a non-mutating readiness audit:
+
+```bash
+python -m arctura_base.treasury \
+  --policy deploy/treasury/emission_policy.example.json \
+  --audit-only
+```
+
+The audit reports whether the policy is still using placeholder destinations,
+whether allocation shares sum to 100%, and whether signer/timelock requirements
+meet the launch minimums. It does not require `--total-tao`, wallet files, chain
+access, or AWS credentials.
+
 ## Generate an unsigned plan
 
 For template review with placeholder destinations:

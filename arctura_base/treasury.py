@@ -124,6 +124,58 @@ def validate_policy(policy: TreasuryPolicy, *, allow_placeholders: bool = False)
             )
 
 
+def audit_policy(policy: TreasuryPolicy, *, allow_placeholders: bool = False) -> dict[str, Any]:
+    """Return a non-mutating governance readiness audit for a treasury policy."""
+    allocation_names = [allocation.name for allocation in policy.allocations]
+    duplicate_names = sorted(
+        {name for name in allocation_names if allocation_names.count(name) > 1}
+    )
+    placeholder_allocations = [
+        allocation.name
+        for allocation in policy.allocations
+        if _contains_placeholder(allocation.destination)
+    ]
+    share_sum = sum((allocation.share for allocation in policy.allocations), Decimal("0"))
+    checks = {
+        "schema_version": policy.schema_version == 1,
+        "policy_name": bool(policy.policy_name),
+        "dry_run_only": policy.dry_run_only is True,
+        "treasury_share": policy.treasury_share_of_subnet_emissions == Decimal("0.18"),
+        "min_signers": policy.min_signers >= 2,
+        "timelock": policy.timelock_hours >= 24,
+        "allocations_present": bool(policy.allocations),
+        "allocation_shares_sum": share_sum in {Decimal("1.00"), Decimal("1")},
+        "allocation_names_unique": not duplicate_names,
+        "allocation_destinations_present": all(
+            bool(allocation.destination) for allocation in policy.allocations
+        ),
+        "allocation_destinations_final": allow_placeholders or not placeholder_allocations,
+    }
+    return {
+        "audit_type": "treasury_policy_readiness_audit",
+        "policy_name": policy.policy_name,
+        "ok": all(checks.values()),
+        "checks": checks,
+        "findings": {
+            "duplicate_allocation_names": duplicate_names,
+            "placeholder_allocations": placeholder_allocations,
+            "share_sum": str(share_sum),
+        },
+        "requirements": {
+            "dry_run_only": True,
+            "treasury_share_of_subnet_emissions": "0.18",
+            "min_signers_at_least": 2,
+            "timelock_hours_at_least": 24,
+            "placeholder_destinations_allowed": allow_placeholders,
+        },
+        "safety": {
+            "on_chain_action_attempted": False,
+            "wallet_required": False,
+            "requires_separate_multisig_approval": True,
+        },
+    }
+
+
 def build_distribution_plan(
     policy: TreasuryPolicy,
     *,
@@ -180,7 +232,10 @@ def build_parser() -> argparse.ArgumentParser:
         description="Build an unsigned dry-run Arctura treasury distribution plan."
     )
     parser.add_argument("--policy", type=Path, required=True, help="Treasury policy JSON file.")
-    parser.add_argument("--total-tao", required=True, help="Treasury intake amount in TAO.")
+    parser.add_argument(
+        "--total-tao",
+        help="Treasury intake amount in TAO. Required unless --audit-only is used.",
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -191,6 +246,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Allow placeholder destinations when validating example policies.",
     )
+    parser.add_argument(
+        "--audit-only",
+        action="store_true",
+        help="Render a non-mutating policy readiness audit instead of a distribution plan.",
+    )
     return parser
 
 
@@ -198,12 +258,17 @@ def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint."""
     args = build_parser().parse_args(argv)
     policy = load_policy(args.policy)
-    plan = build_distribution_plan(
-        policy,
-        total_treasury_tao=_decimal(args.total_tao, "total_tao"),
-        allow_placeholders=args.allow_placeholders,
-    )
-    rendered = json.dumps(plan, indent=2, sort_keys=True)
+    if args.audit_only:
+        output = audit_policy(policy, allow_placeholders=args.allow_placeholders)
+    else:
+        if args.total_tao is None:
+            raise ValueError("--total-tao is required unless --audit-only is used")
+        output = build_distribution_plan(
+            policy,
+            total_treasury_tao=_decimal(args.total_tao, "total_tao"),
+            allow_placeholders=args.allow_placeholders,
+        )
+    rendered = json.dumps(output, indent=2, sort_keys=True)
     if args.output:
         args.output.write_text(rendered + "\n", encoding="utf-8")
     else:

@@ -847,6 +847,9 @@ the current status map.
 - Issue #6 monitoring now exports those remaining/cooldown fields to
   Prometheus textfile metrics and includes an alert for cooldown-blocked weight
   submissions while required commits are still missing.
+- Issue #7 treasury tooling now includes a non-mutating policy audit mode for
+  signer/timelock/share/placeholder readiness before operators generate any
+  unsigned distribution plan.
 - Issue #4 still needs external AWS proof before closure. Terraform ASG,
   CloudWatch alarms, and the CloudWatch-to-Alertmanager bridge exist under
   `deploy/aws/asg/`, but production closure still requires operator-approved
