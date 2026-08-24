@@ -21,6 +21,12 @@ FATAL_MARKERS = (
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 LOG_TIMESTAMP_PATTERN = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?)")
 TOP_WEIGHT_PATTERN = re.compile(r"\btop_weight=([0-9]+(?:\.[0-9]+)?)\b")
+WEIGHT_COOLDOWN_PATTERN = re.compile(
+    r"Weight submission deferred by chain cooldown \| "
+    r"uid=(?P<uid>\d+) \| "
+    r"blocks_since_last_update=(?P<blocks_since_last_update>\d+) \| "
+    r"weights_rate_limit=(?P<weights_rate_limit>\d+)"
+)
 
 
 def parse_timestamp(value: str) -> datetime:
@@ -92,6 +98,29 @@ def nonzero_weight_commits(validator_log: str) -> int:
     return commits
 
 
+def weight_cooldown_deferrals(validator_log: str) -> list[dict[str, int]]:
+    """Return parsed Bittensor weight cooldown deferrals from validator logs."""
+    deferrals: list[dict[str, int]] = []
+    for line in validator_log.splitlines():
+        match = WEIGHT_COOLDOWN_PATTERN.search(line)
+        if not match:
+            continue
+        blocks_since_last_update = int(match.group("blocks_since_last_update"))
+        weights_rate_limit = int(match.group("weights_rate_limit"))
+        deferrals.append(
+            {
+                "uid": int(match.group("uid")),
+                "blocks_since_last_update": blocks_since_last_update,
+                "weights_rate_limit": weights_rate_limit,
+                "blocks_until_next_allowed": max(
+                    weights_rate_limit - blocks_since_last_update + 1,
+                    0,
+                ),
+            }
+        )
+    return deferrals
+
+
 def evaluate_evidence(
     *,
     started_at: datetime,
@@ -121,6 +150,7 @@ def evaluate_evidence(
     attestations = miner_log.count("Mandate attested")
     weight_commits = nonzero_weight_commits(validator_log)
     weight_commit_markers = validator_log.count("Weights set")
+    cooldown_deferrals = weight_cooldown_deferrals(validator_log)
     health_passes = health_log.count('"ok": true')
     cycle_latencies = validator_cycle_latencies(validator_log)
 
@@ -142,6 +172,8 @@ def evaluate_evidence(
             "attestations": attestations,
             "weight_commits": weight_commits,
             "weight_commit_markers": weight_commit_markers,
+            "weight_cooldown_deferrals": len(cooldown_deferrals),
+            "latest_weight_cooldown": cooldown_deferrals[-1] if cooldown_deferrals else None,
             "health_passes": health_passes,
             "miner_restarts": miner_restarts,
             "validator_restarts": validator_restarts,

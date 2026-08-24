@@ -836,6 +836,11 @@ the current status map.
   reports 100% for all required modules: `arctura_base/utils.py`,
   `arctura_base/incentive.py`, `arctura_base/payload_validation.py`,
   `arctura_base/base_rpc.py`, `neurons/miner.py`, and `neurons/validator.py`.
+- Issue #2 weight evidence now distinguishes successful non-zero commits from
+  Bittensor cooldown deferrals. `arctura-collect-evidence` reports
+  `weight_cooldown_deferrals` and `latest_weight_cooldown`, including the
+  remaining `blocks_until_next_allowed` gap, while still requiring two positive
+  `top_weight` commits before launch approval.
 - Issue #4 still needs external AWS proof before closure. Terraform ASG,
   CloudWatch alarms, and the CloudWatch-to-Alertmanager bridge exist under
   `deploy/aws/asg/`, but production closure still requires operator-approved
