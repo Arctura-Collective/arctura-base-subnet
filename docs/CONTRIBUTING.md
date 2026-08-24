@@ -83,6 +83,7 @@ python scripts/generate_env.py
 | `VALIDATOR_AXON_PORT` | ✅ | `8092` | Validator axon port |
 | `VALIDATOR_TIMEOUT` | ✅ | `30` | Miner response timeout (seconds) |
 | `ARCTURA_ENERGY_TAG` | ✅ | `unknown` | P5 Stewardship energy tag |
+| `ARCTURA_STEWARDSHIP_VERIFICATION_FILE` | ❌ | unset | Validator-owned JSON file for verified P5 Stewardship provenance |
 | `CDP_API_KEY_NAME` | ⬜ | — | Required only for AgentKit actions |
 | `CDP_API_KEY_PRIVATE_KEY` | ⬜ | — | Required only for AgentKit actions |
 | `LOG_LEVEL` | ✅ | `info` | `debug` / `info` / `warning` |

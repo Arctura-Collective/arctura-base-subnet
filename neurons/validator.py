@@ -47,6 +47,10 @@ from arctura_base.incentive import (
     score_response,
 )
 from arctura_base.protocol import BaseSubnetSynapse
+from arctura_base.stewardship import (
+    is_stewardship_verified,
+    load_stewardship_verifications,
+)
 
 
 class ArcturaValidator:
@@ -91,6 +95,9 @@ class ArcturaValidator:
         # Calibration history: {hotkey: [accuracy_float, ...]}
         self._calibration_history: dict[str, list[float]] = defaultdict(list)
         self._CALIBRATION_WINDOW = 100  # rolling window
+        self._stewardship_verifications = load_stewardship_verifications(
+            getattr(self.config, "stewardship_verification_file", None)
+        )
 
         bt.logging.info(
             f"Arctura Base validator initialized\n"
@@ -124,6 +131,11 @@ class ArcturaValidator:
             type=int,
             default=int(os.environ.get("VALIDATOR_TEMPO", "360")),
             help="Validator scoring cadence in Bittensor blocks.",
+        )
+        parser.add_argument(
+            "--stewardship-verification-file",
+            default=os.environ.get("ARCTURA_STEWARDSHIP_VERIFICATION_FILE", ""),
+            help="Optional validator-owned JSON file of verified miner energy provenance.",
         )
 
         config = bt.Config(parser)
@@ -294,8 +306,18 @@ class ArcturaValidator:
                 historical_calibration=calibration,
             )
 
-            # Apply P5 Stewardship modifier
-            final_score = apply_stewardship_modifier(base_score, synapse.energy_tag)
+            # Apply P5 Stewardship modifier only when validator-owned
+            # provenance verification confirms this hotkey and claimed tag.
+            stewardship_verified = is_stewardship_verified(
+                hotkey,
+                synapse.energy_tag,
+                getattr(self, "_stewardship_verifications", {}),
+            )
+            final_score = apply_stewardship_modifier(
+                base_score,
+                synapse.energy_tag,
+                verified=stewardship_verified,
+            )
 
             # Apply Sybil penalty
             if uid in sybil_flagged:
@@ -312,7 +334,7 @@ class ArcturaValidator:
             bt.logging.info(
                 f"uid={uid} | "
                 f"base={base_score:.3f} | "
-                f"energy={synapse.energy_tag} | "
+                f"energy={synapse.energy_tag} verified={stewardship_verified} | "
                 f"final={final_score:.3f}"
             )
 

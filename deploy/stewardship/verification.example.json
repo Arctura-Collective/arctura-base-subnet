@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "verifications": [
+    {
+      "hotkey": "REPLACE_WITH_MINER_HOTKEY_SS58",
+      "energy_tag": "renewable_verified",
+      "status": "verified",
+      "evidence": "REPLACE_WITH_REC_OR_GRID_CERTIFICATE_REFERENCE"
+    }
+  ]
+}

@@ -37,8 +37,11 @@ weights, which determine TAO emission distribution.
 | `unknown` | ×1.00 (no change) |
 | `high_carbon` | ×0.90 (-10%) |
 
-Set via `ARCTURA_ENERGY_TAG` in `.env`. Phase 03 replaces self-declaration
-with Stewardship Index API verification.
+Miners still declare `ARCTURA_ENERGY_TAG`, but validators apply the modifier only
+when a validator-owned verification file confirms the miner hotkey and claimed
+tag. Set `ARCTURA_STEWARDSHIP_VERIFICATION_FILE` or pass
+`--stewardship-verification-file` to the validator. Use
+`deploy/stewardship/verification.example.json` as the template.
 
 ## Validator Economics
 
