@@ -99,5 +99,5 @@ asyncio_mode = "auto"
 addopts = "-v --tb=short"
 
 [tool.coverage.run]
-source = ["arctura_base"]
-omit = ["tests/*", "neurons/*"]
+source = ["arctura_base", "neurons"]
+omit = ["tests/*"]

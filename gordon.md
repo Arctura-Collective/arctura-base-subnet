@@ -827,6 +827,15 @@ the current status map.
 
 ### Latest repo-side issue findings
 
+- Issue #1 launch-critical coverage has been tightened locally. Focused tests
+  now exercise branch coverage for deterministic output hashing, proof
+  rejection paths, payload schema/context validation, Base RPC connection/error
+  paths, token balance calls, event serialization, view calls, mandate
+  dispatch, miner runtime safety branches, validator mandate/scoring branches,
+  and weight-setting preflight/result handling. The launch coverage gate now
+  reports 100% for all required modules: `arctura_base/utils.py`,
+  `arctura_base/incentive.py`, `arctura_base/payload_validation.py`,
+  `arctura_base/base_rpc.py`, `neurons/miner.py`, and `neurons/validator.py`.
 - Issue #4 still needs external AWS proof before closure. Terraform ASG,
   CloudWatch alarms, and the CloudWatch-to-Alertmanager bridge exist under
   `deploy/aws/asg/`, but production closure still requires operator-approved

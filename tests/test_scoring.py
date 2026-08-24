@@ -68,6 +68,9 @@ class TestCompletenessScoring:
     def test_empty_trace_scores_zero(self):
         assert score_completeness(BaseSubnetSynapse()) == 0.0
 
+    def test_empty_steps_score_zero(self):
+        assert score_completeness(BaseSubnetSynapse(execution_trace={"steps": []})) == 0.0
+
 
 class TestLatencyScoring:
     def test_on_time_scores_one(self):
@@ -185,3 +188,6 @@ class TestCalibration:
         s = make_valid_synapse()
 
         assert score_response(s, FAKE_BLOCK_HASH, response_block=100) == 0.9
+
+    def test_none_response_scores_zero(self):
+        assert score_response(None, FAKE_BLOCK_HASH, response_block=100) == 0.0
