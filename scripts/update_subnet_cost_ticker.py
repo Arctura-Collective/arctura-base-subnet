@@ -103,6 +103,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT, help="JSON output path.")
     parser.add_argument("--network", default="finney", help="Bittensor network to query.")
     parser.add_argument(
+        "--raw-btcli-output",
+        help=(
+            "Parse operator-provided btcli burn_cost output instead of executing a command. "
+            "Use when btcli was run in a separate trusted shell."
+        ),
+    )
+    parser.add_argument(
         "--command",
         nargs="+",
         help="Override the burn-cost command. Defaults to btcli subnet burn_cost.",
@@ -113,21 +120,37 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     command = args.command or ["btcli", "subnet", "burn_cost", "--subtensor.network", args.network]
-    try:
-        cost_tao, raw_output = run_burn_cost(command)
-    except RuntimeError as exc:
-        payload = build_unavailable_payload(
-            network=args.network,
-            command=command,
-            error=str(exc),
-        )
-    else:
+    if args.raw_btcli_output:
+        cost_tao = parse_tao_amount(args.raw_btcli_output)
         payload = build_payload(
             cost_tao=cost_tao,
             network=args.network,
-            command=command,
-            raw_output=raw_output,
+            command=[
+                "operator-provided",
+                "btcli",
+                "subnet",
+                "burn_cost",
+                "--subtensor.network",
+                args.network,
+            ],
+            raw_output=args.raw_btcli_output,
         )
+    else:
+        try:
+            cost_tao, raw_output = run_burn_cost(command)
+        except RuntimeError as exc:
+            payload = build_unavailable_payload(
+                network=args.network,
+                command=command,
+                error=str(exc),
+            )
+        else:
+            payload = build_payload(
+                cost_tao=cost_tao,
+                network=args.network,
+                command=command,
+                raw_output=raw_output,
+            )
     write_payload(args.output, payload)
     print(f"Wrote {args.output}: {payload['cost_label']}")
     return 0

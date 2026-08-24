@@ -9,6 +9,7 @@ import pytest
 from scripts.update_subnet_cost_ticker import (
     build_payload,
     build_unavailable_payload,
+    main,
     parse_tao_amount,
     run_burn_cost,
 )
@@ -66,6 +67,29 @@ def test_build_unavailable_payload_blocks_registration_use() -> None:
 def test_run_burn_cost_reports_missing_command() -> None:
     with pytest.raises(RuntimeError, match="Burn-cost command unavailable"):
         run_burn_cost(["definitely-missing-btcli-for-test"])
+
+
+def test_manual_raw_btcli_output_writes_payload_without_running_command(tmp_path) -> None:
+    output = tmp_path / "subnet_launch_cost.json"
+
+    exit_code = main(
+        [
+            "--output",
+            str(output),
+            "--network",
+            "finney",
+            "--command",
+            "definitely-missing-btcli-for-test",
+            "--raw-btcli-output",
+            "Subnet burn cost: 812.5 TAO",
+        ]
+    )
+
+    assert exit_code == 0
+    rendered = output.read_text(encoding="utf-8")
+    assert '"cost_tao": "812.5"' in rendered
+    assert '"ok": true' in rendered
+    assert "operator-provided btcli subnet burn_cost --subtensor.network finney" in rendered
 
 
 def test_cost_page_renders_unavailable_payload_without_throwing() -> None:
