@@ -839,6 +839,10 @@ the current status map.
   `scripts/render_cloudwatch_metrics.py` and `arctura_base/cloudwatch_metrics.py`.
   It reads an existing `runs/mainnet-evidence/report.json` and renders an AWS
   CLI `put-metric-data` JSON list for `Arctura/Launch`. It does not call AWS.
+- A non-signing final approval packet generator has been added:
+  `arctura-mainnet-approval` / `arctura_base/mainnet_approval.py`. It refuses to
+  render if evidence is red, the Finney burn-cost snapshot is unavailable, or
+  the burn-cost snapshot is older than 30 minutes.
 
 ### Safe heavy-lifting tasks for Gordon AI
 

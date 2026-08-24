@@ -44,6 +44,8 @@ after enabling them on the launch host and reviewing the 48-hour journal with
 
 ## Final
 - [ ] Go/no-go reviewed by at least one other person
+- [ ] `arctura-mainnet-approval` packet generated from green evidence and a
+  Finney burn-cost snapshot collected within 30 minutes
 - [ ] Command ready to paste (do not type fresh under pressure):
   ```bash
   btcli subnet create --wallet.name owner --subtensor.network finney
