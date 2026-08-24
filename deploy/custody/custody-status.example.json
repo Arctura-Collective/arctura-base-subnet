@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "environment": "finney-mainnet",
+  "reviewed_at": "REPLACE_WITH_OPERATOR_REVIEW_TIMESTAMP",
+  "owner_coldkey": {
+    "offline": false,
+    "not_operational_hot_wallet": false,
+    "backups_two_physical_locations": false,
+    "evidence": "REPLACE_WITH_OFFLINE_CUSTODY_RECORD_REFERENCE"
+  },
+  "validator_coldkey": {
+    "offline": false,
+    "evidence": "REPLACE_WITH_VALIDATOR_COLDKEY_RECORD_REFERENCE"
+  },
+  "miner_coldkey": {
+    "offline": false,
+    "evidence": "REPLACE_WITH_MINER_COLDKEY_RECORD_REFERENCE"
+  },
+  "runtime_hosts": {
+    "hotkeys_only": false,
+    "hotkey_revocation_path_documented": false,
+    "evidence": "REPLACE_WITH_HOST_WALLET_INVENTORY_REFERENCE"
+  },
+  "treasury": {
+    "multisig_or_governance_controlled": false,
+    "evidence": "REPLACE_WITH_MULTISIG_OR_GOVERNANCE_RECORD_REFERENCE"
+  },
+  "review": {
+    "reviewers": [],
+    "wallet_names_reviewed": false,
+    "network_and_commands_reviewed": false,
+    "approval_packet_recorded": false,
+    "approval_packet": "REPLACE_WITH_APPROVAL_PACKET_REFERENCE"
+  }
+}

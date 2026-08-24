@@ -108,7 +108,7 @@ To the Validator Committee,
 We are launching Arctura — the first decentralized bridge bringing Coinbase Base L2 intelligence, AgentKit autonomous actions, and verifiable Merkle attestation into Bittensor.
 
 Current Status:
-- Testnet netuid 505 evidence run active; current local suite has 282 passing tests.
+- Testnet netuid 505 evidence run active; current local suite has 286 passing tests.
 - Production AWS artifacts are prepared, but deployment remains gated on green
   `arctura-readiness-audit` output and final operator approval.
 

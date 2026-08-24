@@ -16,6 +16,19 @@ Before any Finney command is executed, complete
 `arctura-readiness-audit` returns `ok: true`, and generate a reviewed
 `arctura-mainnet-approval` packet. This runbook does not override those gates.
 
+For a machine-readable dry-run custody gate, copy
+`deploy/custody/custody-status.example.json` to a secure review location, fill
+it from out-of-band custody records, and audit it without inspecting secrets:
+
+```bash
+arctura-custody-audit \
+  --status /secure/review/custody-status.json \
+  --output /secure/review/custody-audit.json
+```
+
+The audit reads JSON only. It does not create wallets, inspect mnemonics, sign,
+register, stake, transfer, or approve launch.
+
 ## Roles
 
 | Role | Scope | Custody requirement |
