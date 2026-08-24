@@ -25,6 +25,13 @@ def sample_report() -> dict:
             "attestations": 2,
             "weight_commits": 1,
             "weight_commit_markers": 2,
+            "weight_cooldown_deferrals": 1,
+            "latest_weight_cooldown": {
+                "uid": 2,
+                "blocks_since_last_update": 20,
+                "weights_rate_limit": 100,
+                "blocks_until_next_allowed": 81,
+            },
             "health_passes": 12,
             "miner_restarts": 0,
             "validator_restarts": 1,
@@ -35,6 +42,11 @@ def sample_report() -> dict:
                 "Traceback (most recent call last)": 0,
                 "uncaught exception": 0,
             },
+        },
+        "remaining": {
+            "hours": 47.012,
+            "health_samples": 540,
+            "weight_commits": 2,
         },
         "run": {
             "started_at": "2026-08-23T15:34:42-07:00",
@@ -63,6 +75,14 @@ def test_render_prometheus_contains_launch_metrics() -> None:
     assert 'arctura_evidence_check_pass{check="duration"} 0' in rendered
     assert "arctura_evidence_elapsed_hours 1.25" in rendered
     assert "arctura_attestations_total 2" in rendered
+    assert "arctura_weight_commit_markers_total 2" in rendered
+    assert "arctura_weight_cooldown_deferrals_total 1" in rendered
+    assert 'arctura_latest_weight_cooldown_blocks_since_last_update{uid="2"} 20' in rendered
+    assert 'arctura_latest_weight_cooldown_rate_limit{uid="2"} 100' in rendered
+    assert 'arctura_latest_weight_cooldown_blocks_until_allowed{uid="2"} 81' in rendered
+    assert "arctura_remaining_launch_hours 47.012" in rendered
+    assert "arctura_remaining_health_samples 540" in rendered
+    assert "arctura_remaining_weight_commits 2" in rendered
     assert "arctura_validator_cycles_total 3" in rendered
     assert "arctura_validator_cycle_latest_seconds 2.37" in rendered
     assert "arctura_validator_cycle_max_seconds 9.5" in rendered

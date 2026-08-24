@@ -17,9 +17,9 @@ verification commands.
 - [x] `neurons/miner.py` — successful mandates return valid `base_state_hash`
 - [x] `neurons/miner.py` — returns valid `merkle_proof` (verify_merkle_proof passes)
 - [x] `neurons/miner.py` — `block_hash_anchor` matches real Base block hash
-- [x] `neurons/validator.py` — submitted non-zero testnet weights successfully
-- [x] `pytest tests/ -q` passes with no failures (113 tests on 2026-08-23)
-- [x] Bittensor v10.5 testnet miner and validator complete one attestation and one non-zero weight commit
+- [ ] `neurons/validator.py` — submitted at least two non-zero testnet weights in the current evidence window
+- [x] `pytest tests/ -q` passes with no failures (260 tests on 2026-08-24)
+- [ ] Bittensor v10.5 testnet miner and validator complete one attestation and at least two non-zero weight commits in the current evidence window
 - [ ] No uncaught exceptions in 48h testnet run
 
 ## Network
