@@ -44,6 +44,17 @@ fill in real VPC/subnet/security-group/AMI values.
 Do not place coldkeys, mnemonics, or owner credentials on EC2 instances. This
 module is for hotkey-operated runtime nodes only.
 
+Before running `terraform plan`, audit the variable file locally:
+
+```bash
+arctura-aws-asg-audit --tfvars terraform.tfvars
+```
+
+The audit parses the tfvars file and reports placeholder IDs, invalid capacity
+bounds, missing subnets/security groups, non-HTTPS Alertmanager endpoints, and
+secret markers such as coldkey or mnemonic text. It does not call AWS,
+Terraform, Docker, systemd, wallets, or the network.
+
 ## Deployment outline
 
 ```bash

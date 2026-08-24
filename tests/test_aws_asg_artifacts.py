@@ -58,6 +58,7 @@ def test_aws_asg_readme_sets_safe_deployment_boundary():
     assert "CloudWatch" in readme
     assert "Auto Scaling Group" in readme
     assert "Alertmanager" in readme
+    assert "arctura-aws-asg-audit" in readme
     assert "arctura-validator-failover-plan" in readme
     assert "never stops a" in readme
 
