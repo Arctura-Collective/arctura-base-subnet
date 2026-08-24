@@ -21,6 +21,21 @@ Launch evidence metrics are rendered separately by
 `put-metric-data` JSON payload for the `Arctura/Launch` namespace but does not
 call AWS or provision resources.
 
+Validator failover planning is also dry-run only. Use
+`deploy/aws/asg/validator-probe.example.json` as the operator-provided probe
+schema, then render an advisory decision packet:
+
+```bash
+arctura-validator-failover-plan \
+  --evidence-report runs/mainnet-evidence/report.json \
+  --probe-snapshot deploy/aws/asg/validator-probe.example.json \
+  --output runs/mainnet-evidence/validator-failover-decision.json
+```
+
+The packet can say `hold`, `investigate`, or `failover_ready`. It never stops a
+service, modifies AWS, promotes a standby, signs transactions, or moves funds;
+actual failover still requires separate operator approval.
+
 ## Required inputs
 
 Copy `terraform.tfvars.example` to `terraform.tfvars` outside version control and

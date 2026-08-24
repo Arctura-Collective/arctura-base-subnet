@@ -15,6 +15,7 @@ def test_tracker_maps_all_open_launch_issues_to_evidence():
         "deploy/aws/asg/",
         "deploy/monitoring",
         "docs/KEY_ROTATION_AND_CUSTODY.md",
+        "validator failover decision packet",
         "arctura-collect-evidence",
     ):
         assert artifact in text
