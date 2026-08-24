@@ -86,6 +86,10 @@ def _positive_int(value: object) -> bool:
     return isinstance(value, int) and value > 0
 
 
+def _minimum_int(value: object, minimum: int) -> bool:
+    return isinstance(value, int) and value >= minimum
+
+
 def audit_tfvars(text: str) -> dict[str, Any]:
     """Return a non-mutating AWS ASG readiness audit for Terraform tfvars."""
     values = parse_tfvars(text)
@@ -94,6 +98,7 @@ def audit_tfvars(text: str) -> dict[str, Any]:
     miner_desired_capacity = values.get("miner_desired_capacity", miner_min_size)
     miner_max_size = values.get("miner_max_size", 3)
     miner_port = values.get("miner_port", 8091)
+    root_volume_size_gb = values.get("root_volume_size_gb", 200)
     lower_text = text.lower()
     secret_markers = [marker for marker in SECRET_MARKERS if marker in lower_text]
 
@@ -118,6 +123,7 @@ def audit_tfvars(text: str) -> dict[str, Any]:
             and 1 <= miner_min_size <= miner_desired_capacity <= miner_max_size
         ),
         "miner_port_valid": isinstance(miner_port, int) and 1024 <= miner_port <= 65535,
+        "root_volume_size_gb_at_least_200": _minimum_int(root_volume_size_gb, 200),
         "no_placeholders": not _contains_placeholder(values),
         "no_secret_markers": not secret_markers,
     }
