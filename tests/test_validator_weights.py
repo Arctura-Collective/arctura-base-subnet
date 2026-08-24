@@ -46,6 +46,34 @@ class PreflightReadySubtensor(PreflightCooldownSubtensor):
         return 21
 
 
+class PreflightUnregisteredSubtensor(PreflightCooldownSubtensor):
+    def get_uid_for_hotkey_on_subnet(self, hotkey, netuid):
+        return None
+
+
+class PreflightErrorSubtensor(PreflightCooldownSubtensor):
+    def get_uid_for_hotkey_on_subnet(self, hotkey, netuid):
+        raise RuntimeError("preflight unavailable")
+
+
+class ObjectResultSubtensor(PreflightReadySubtensor):
+    def set_weights(self, **kwargs):
+        self.calls += 1
+        return type("Result", (), {"success": True, "message": "ok"})()
+
+
+class EmptyMessageSubtensor(PreflightReadySubtensor):
+    def set_weights(self, **kwargs):
+        self.calls += 1
+        return type("Result", (), {"success": False, "message": ""})()
+
+
+class RaisingSetWeightsSubtensor(PreflightReadySubtensor):
+    def set_weights(self, **kwargs):
+        self.calls += 1
+        raise RuntimeError("submission failed")
+
+
 class Hotkey:
     ss58_address = "validator-hotkey"
 
@@ -104,4 +132,55 @@ def test_set_weights_proceeds_when_preflight_rate_limit_passes():
     validator.WEIGHT_SET_RETRIES = 3
 
     assert validator._set_weights({1: 1.0}) is True
+    assert validator.subtensor.calls == 1
+
+
+def test_weights_rate_limit_treats_unregistered_hotkey_as_limited():
+    validator = object.__new__(ArcturaValidator)
+    validator.subtensor = PreflightUnregisteredSubtensor()
+    validator.config = type("Config", (), {"netuid": 505})()
+    validator.wallet = Wallet()
+
+    assert validator._weights_rate_limited() is True
+
+
+def test_weights_rate_limit_allows_attempt_when_preflight_errors():
+    validator = object.__new__(ArcturaValidator)
+    validator.subtensor = PreflightErrorSubtensor()
+    validator.config = type("Config", (), {"netuid": 505})()
+    validator.wallet = Wallet()
+
+    assert validator._weights_rate_limited() is False
+
+
+def test_set_weights_accepts_object_result_success():
+    validator = object.__new__(ArcturaValidator)
+    validator.subtensor = ObjectResultSubtensor()
+    validator.config = type("Config", (), {"netuid": 505})()
+    validator.wallet = Wallet()
+    validator.WEIGHT_SET_RETRIES = 1
+
+    assert validator._set_weights({1: 1.0}) is True
+    assert validator.subtensor.calls == 1
+
+
+def test_set_weights_handles_empty_messages_and_final_failure():
+    validator = object.__new__(ArcturaValidator)
+    validator.subtensor = EmptyMessageSubtensor()
+    validator.config = type("Config", (), {"netuid": 505})()
+    validator.wallet = Wallet()
+    validator.WEIGHT_SET_RETRIES = 1
+
+    assert validator._set_weights({1: 1.0}) is False
+    assert validator.subtensor.calls == 1
+
+
+def test_set_weights_handles_submission_exceptions():
+    validator = object.__new__(ArcturaValidator)
+    validator.subtensor = RaisingSetWeightsSubtensor()
+    validator.config = type("Config", (), {"netuid": 505})()
+    validator.wallet = Wallet()
+    validator.WEIGHT_SET_RETRIES = 1
+
+    assert validator._set_weights({1: 1.0}) is False
     assert validator.subtensor.calls == 1
